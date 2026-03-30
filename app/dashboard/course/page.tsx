@@ -39,7 +39,7 @@ export default function CoursesPage() {
           {COURSES.map((course, idx) => (
             <Link
               key={course.slug}
-              href={`/course/${course.slug}`}
+              href={`/dashboard/course/${course.slug}`}
               className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all group overflow-hidden"
             >
               {/* Card header gradient */}

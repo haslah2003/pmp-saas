@@ -14,7 +14,14 @@ export default async function PracticePage() {
     .eq("user_id", user.id)
     .single();
 
-  const isPremium = sub && sub.plan !== "free" && sub.status === "active";
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  const isAdmin = profile?.role === "admin";
+  const isPremium = isAdmin || (sub && sub.plan !== "free" && sub.status === "active");
 
   if (!isPremium) {
     return (

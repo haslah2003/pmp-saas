@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Use service role key for webhooks (no user context)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy-init: Supabase admin client created on first request, not at build time
+// This prevents "supabaseKey is required" errors during next build
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 const PAYPAL_BASE = process.env.PAYPAL_MODE === "live"
   ? "https://api-m.paypal.com"
@@ -94,7 +97,7 @@ export async function POST(request: NextRequest) {
     else updateData.plan = "monthly";
   }
 
-  const { error } = await supabaseAdmin
+  const { error } = await getSupabaseAdmin()
     .from("subscriptions")
     .update(updateData)
     .eq("paypal_subscription_id", paypalSubId);

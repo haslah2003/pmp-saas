@@ -34,7 +34,7 @@ export default async function DashboardLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, email")
+    .select("full_name, email, role")
     .eq("id", user.id)
     .single();
 
@@ -44,7 +44,8 @@ export default async function DashboardLayout({
     .eq("user_id", user.id)
     .single();
 
-  const isPremium = sub && sub.plan !== "free" && sub.status === "active";
+  const isAdmin = profile?.role === "admin";
+  const isPremium = isAdmin || (sub && sub.plan !== "free" && sub.status === "active");
   const branding = await getBranding();
 
   const primaryColor = branding?.primary_color ?? "#1a2f5e";
@@ -99,6 +100,7 @@ export default async function DashboardLayout({
             </Link>
           ))}
 
+          {isAdmin && (
           <div className="pt-4">
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-2">
               Admin
@@ -130,7 +132,17 @@ export default async function DashboardLayout({
               </span>
               <span>Media Library</span>
             </Link>
+            <Link
+              href="/admin/resources"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all group"
+            >
+              <span className="w-7 h-7 rounded-lg flex items-center justify-center text-base" style={{ backgroundColor: primaryColor + '15' }}>
+                📚
+              </span>
+              <span>Resource Library</span>
+            </Link>
           </div>
+          )}
         </nav>
 
         {/* User profile area */}
@@ -149,11 +161,11 @@ export default async function DashboardLayout({
               <span
                 className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
                 style={{
-                  backgroundColor: isPremium ? '#dcfce7' : '#fef9c3',
-                  color: isPremium ? '#166534' : '#854d0e'
+                  backgroundColor: isAdmin ? '#fee2e2' : isPremium ? '#dcfce7' : '#fef9c3',
+                  color: isAdmin ? '#991b1b' : isPremium ? '#166534' : '#854d0e'
                 }}
               >
-                {isPremium ? "PREMIUM" : "FREE"}
+                {isAdmin ? "ADMIN" : isPremium ? "PREMIUM" : "FREE"}
               </span>
             </div>
           </div>

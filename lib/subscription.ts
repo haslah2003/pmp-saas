@@ -28,3 +28,8 @@ export async function getUserSubscription(): Promise<Subscription> {
 export function isPremium(sub: Subscription): boolean {
   return sub.plan !== "free" && sub.status === "active";
 }
+
+// Admin-aware premium check — use when you have the user's profile
+export function isPremiumOrAdmin(sub: Subscription, role?: string): boolean {
+  return role === "admin" || (sub.plan !== "free" && sub.status === "active");
+}

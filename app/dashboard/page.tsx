@@ -1,15 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 const PMBOK_MODULES = [
-  { id: 1, title: "Project Management Foundations", description: "PMBOK 7 principles, value delivery systems, and project management concepts.", lessons: 8, hours: 3, color: "#22c55e", progress: 100, emoji: "🏗️" },
-  { id: 2, title: "Stakeholder Performance Domain", description: "Stakeholder identification, engagement, and communication strategies.", lessons: 6, hours: 2.5, color: "#3b82f6", progress: 50, emoji: "🤝" },
-  { id: 3, title: "Team Performance Domain", description: "Team building, leadership, servant leadership, and conflict management.", lessons: 7, hours: 3, color: "#8b5cf6", progress: 15, emoji: "👥" },
-  { id: 4, title: "Development Approach & Life Cycle", description: "Predictive, adaptive, hybrid approaches and delivery cadence.", lessons: 5, hours: 2, color: "#10b981", progress: 0, emoji: "🔄" },
-  { id: 5, title: "Planning Performance Domain", description: "Scope, schedule, cost, resource, and quality planning.", lessons: 8, hours: 3.5, color: "#f59e0b", progress: 0, emoji: "📋" },
-  { id: 6, title: "Project Work & Delivery", description: "Executing project work, procurement, knowledge management, quality delivery.", lessons: 7, hours: 3, color: "#ef4444", progress: 0, emoji: "🚀" },
-  { id: 7, title: "Measurement Performance Domain", description: "KPIs, EVM, forecasting, dashboards, and reporting.", lessons: 6, hours: 2.5, color: "#6366f1", progress: 0, emoji: "📊" },
-  { id: 8, title: "Uncertainty Performance Domain", description: "Risk management, ambiguity, complexity, and resilience.", lessons: 5, hours: 2, color: "#ec4899", progress: 0, emoji: "⚡" },
+  { id: 1, title: "Project Management Foundations", description: "PMBOK 7 principles, value delivery systems, and project management concepts.", lessons: 8, hours: 3, color: "#22c55e", progress: 100, emoji: "🏗️", slug: "stakeholders" },
+  { id: 2, title: "Stakeholder Performance Domain", description: "Stakeholder identification, engagement, and communication strategies.", lessons: 6, hours: 2.5, color: "#3b82f6", progress: 50, emoji: "🤝", slug: "stakeholders" },
+  { id: 3, title: "Team Performance Domain", description: "Team building, leadership, servant leadership, and conflict management.", lessons: 7, hours: 3, color: "#8b5cf6", progress: 15, emoji: "👥", slug: "team" },
+  { id: 4, title: "Development Approach & Life Cycle", description: "Predictive, adaptive, hybrid approaches and delivery cadence.", lessons: 5, hours: 2, color: "#10b981", progress: 0, emoji: "🔄", slug: "development-approach" },
+  { id: 5, title: "Planning Performance Domain", description: "Scope, schedule, cost, resource, and quality planning.", lessons: 8, hours: 3.5, color: "#f59e0b", progress: 0, emoji: "📋", slug: "planning" },
+  { id: 6, title: "Project Work & Delivery", description: "Executing project work, procurement, knowledge management, quality delivery.", lessons: 7, hours: 3, color: "#ef4444", progress: 0, emoji: "🚀", slug: "project-work" },
+  { id: 7, title: "Measurement Performance Domain", description: "KPIs, EVM, forecasting, dashboards, and reporting.", lessons: 6, hours: 2.5, color: "#6366f1", progress: 0, emoji: "📊", slug: "measurement" },
+  { id: 8, title: "Uncertainty Performance Domain", description: "Risk management, ambiguity, complexity, and resilience.", lessons: 5, hours: 2, color: "#ec4899", progress: 0, emoji: "⚡", slug: "uncertainty" },
 ];
 
 const ECO_MODULES = [
@@ -70,9 +71,10 @@ export default async function CoursePage() {
         </div>
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
           {PMBOK_MODULES.map((mod) => (
-            <div
+            <Link
               key={mod.id}
-              className="bg-white rounded-2xl border-2 overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group"
+              href={`/dashboard/course/${mod.slug}`}
+              className="bg-white rounded-2xl border-2 overflow-hidden shadow-sm hover:shadow-md transition-all group"
               style={{ borderColor: mod.progress > 0 ? mod.color : '#e5e7eb' }}
             >
               <div className="px-5 pt-5 pb-3 flex items-start gap-4">
@@ -101,7 +103,7 @@ export default async function CoursePage() {
                   <div className="h-1.5 rounded-full transition-all" style={{ width: `${mod.progress}%`, backgroundColor: mod.color }} />
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
@@ -120,9 +122,10 @@ export default async function CoursePage() {
         </div>
         <div className="grid md:grid-cols-3 gap-4">
           {ECO_MODULES.map((mod) => (
-            <div
+            <Link
               key={mod.id}
-              className="bg-white rounded-2xl border-2 overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group"
+              href="/dashboard/course"
+              className="bg-white rounded-2xl border-2 overflow-hidden shadow-sm hover:shadow-md transition-all group"
               style={{ borderColor: mod.progress > 0 ? mod.color : '#e5e7eb' }}
             >
               <div className="px-5 pt-5 pb-3 flex items-start gap-4">
@@ -152,7 +155,7 @@ export default async function CoursePage() {
                   <div className="h-1.5 rounded-full transition-all" style={{ width: `${mod.progress}%`, backgroundColor: mod.color }} />
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
