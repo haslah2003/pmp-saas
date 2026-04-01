@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/practice", icon: "✏️", label: "Practice" },
   { href: "/dashboard/exam", icon: "⏱️", label: "Mock Exam" },
   { href: "/dashboard/tutor", icon: "🤖", label: "AI Tutor" },
+  { href: "/dashboard/billing", icon: "💳", label: "Billing" },
 ];
 
 async function getBranding() {
@@ -140,6 +141,15 @@ export default async function DashboardLayout({
                 📚
               </span>
               <span>Resource Library</span>
+            </Link>
+            <Link
+              href="/admin/billing"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all group"
+            >
+              <span className="w-7 h-7 rounded-lg flex items-center justify-center text-base" style={{ backgroundColor: primaryColor + '15' }}>
+                💰
+              </span>
+              <span>Billing</span>
             </Link>
           </div>
           )}
