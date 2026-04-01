@@ -178,6 +178,25 @@ export async function POST(req: NextRequest) {
 
   const { sectionType, content, lessonTitle, domain, framework = 'pmbok7' } = await req.json()
 
+  // ── Cache Check: serve instantly if already generated ──
+  const contentStr = typeof content === 'string' ? content : JSON.stringify(content)
+  const cacheKey = `deeper:${sectionType}:${lessonTitle}:${contentStr}`.toLowerCase().replace(/[^a-z0-9:]/g, '-').slice(0, 190)
+  
+  const { data: cached } = await supabase
+    .from('content_cache')
+    .select('content')
+    .eq('cache_key', cacheKey)
+    .single()
+
+  if (cached?.content) {
+    console.log(`[Deeper] Cache HIT: ${cacheKey.slice(0, 60)}`)
+    const encoder = new TextEncoder()
+    return new NextResponse(encoder.encode(cached.content), {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    })
+  }
+  console.log(`[Deeper] Cache MISS: ${cacheKey.slice(0, 60)}`)
+
   const prompt = buildPrompt(sectionType, content, lessonTitle, domain, framework)
 
   const stream = await anthropic.messages.stream({
@@ -190,6 +209,7 @@ Always ground your analysis in the specified framework. Be precise, exam-focused
   })
 
   const encoder = new TextEncoder()
+  let fullText = ''
   const readable = new ReadableStream({
     async start(controller) {
       for await (const chunk of stream) {
@@ -197,10 +217,20 @@ Always ground your analysis in the specified framework. Be precise, exam-focused
           chunk.type === 'content_block_delta' &&
           chunk.delta.type === 'text_delta'
         ) {
+          fullText += chunk.delta.text
           controller.enqueue(encoder.encode(chunk.delta.text))
         }
       }
       controller.close()
+
+      // Cache the complete response for instant replay
+      if (fullText.length > 50) {
+        supabase
+          .from('content_cache')
+          .upsert({ cache_key: cacheKey, content: fullText, content_type: `deeper:${sectionType}` }, { onConflict: 'cache_key' })
+          .then(() => console.log(`[Deeper] Cached: ${cacheKey.slice(0, 60)}`))
+          .catch(() => {})
+      }
     },
   })
 
