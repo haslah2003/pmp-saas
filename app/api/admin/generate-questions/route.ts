@@ -4,6 +4,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 // ─── System Prompt ───────────────────────────────────────────────
 const SYSTEM_PROMPT = `You are a PMP exam question writer. You must respond with ONLY a valid JSON array. No text before or after. No markdown. No code blocks. Just the raw JSON array starting with [ and ending with ].`
+// ─── Map UI difficulty to DB difficulty ──────────────────────────
+const DIFFICULTY_MAP: Record<string, string> = {
+  entry: 'entry',
+  intermediate: 'paced',
+  advanced: 'challenging',
+  expert: 'difficult',
+}
 
 // ─── Build the user prompt ───────────────────────────────────────
 function buildPrompt(domain: string, difficulty: string, count: number, seed: string): string {
@@ -154,7 +161,7 @@ export async function POST(req: NextRequest) {
           framework: 'pmbok7',
           domain: (q.domain as string) || domain,
           subdomain: (q.subdomain as string) || '',
-          difficulty: (q.difficulty as string) || difficulty,
+          difficulty: DIFFICULTY_MAP[difficulty] || 'paced',
           question_text: (q.question_text as string) || '',
           option_a: (q.option_a as string) || '',
           option_b: (q.option_b as string) || '',
