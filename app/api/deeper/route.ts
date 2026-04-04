@@ -228,8 +228,7 @@ Always ground your analysis in the specified framework. Be precise, exam-focused
         supabase
           .from('content_cache')
           .upsert({ cache_key: cacheKey, content: fullText, content_type: `deeper:${sectionType}` }, { onConflict: 'cache_key' })
-          .then(() => console.log(`[Deeper] Cached: ${cacheKey.slice(0, 60)}`))
-          .catch(() => {})
+.then(() => { console.log(`[Deeper] Cached: ${cacheKey.slice(0, 60)}`) })
       }
     },
   })
