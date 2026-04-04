@@ -56,6 +56,15 @@ interface GuruReport {
   confidence_message: string;
 }
 
+interface Badge {
+  id: string;
+  badge_name: string;
+  badge_description: string;
+  badge_icon: string;
+  score: number;
+  earned_at: string;
+}
+
 interface Video {
   id: string;
   title: string;
@@ -333,7 +342,7 @@ export default function PracticeClient() {
 
   const [guruReport, setGuruReport] = useState<GuruReport | null>(null);
   const [showGuru, setShowGuru] = useState(false);
-
+  const [badge, setBadge] = useState<Badge | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -424,6 +433,8 @@ export default function PracticeClient() {
         if (data.guruReport) {
           setGuruReport(data.guruReport);
           setShowGuru(true);
+        }if (data.badge) {
+          setBadge(data.badge);
         }
         setMode('wrapup');
       } catch {
@@ -675,6 +686,17 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
           </p>
           <p className="text-gray-500 text-sm mt-1">{wrapUp.score_message}</p>
         </div>
+        {badge && (
+          <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-300 rounded-2xl p-6 mb-4 text-center animate-pulse-once">
+            <div className="text-5xl mb-3">{badge.badge_icon}</div>
+            <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Badge Earned!</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-1">{badge.badge_name}</h3>
+            <p className="text-sm text-gray-600">{badge.badge_description}</p>
+            <div className="mt-3 inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full">
+              🎯 {badge.score}% accuracy
+            </div>
+          </div>
+        )}
 
         <WrapUpTabs wrapUp={wrapUp} videos={videos} />
 

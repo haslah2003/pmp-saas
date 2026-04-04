@@ -213,6 +213,48 @@ Be the most caring, wise, experienced mentor they could hope for. Make them feel
       } catch {
         guruReport = null;
       }
+    }// ── Award Performance Badge (≥80% on 15 questions) ──
+    let badge = null;
+    if (guruReportDue) {
+      const { data: recentForBadge } = await supabase
+        .from('question_responses')
+        .select('is_correct')
+        .eq('user_id', user.id)
+        .order('answered_at', { ascending: false })
+        .limit(15);
+
+      const badgeCorrect = recentForBadge?.filter(r => r.is_correct).length || 0;
+      const badgeScore = Math.round((badgeCorrect / 15) * 100);
+
+      if (badgeScore >= 80) {
+        const topDomains = Object.entries(domainScores)
+          .map(([d, v]) => ({ domain: d, score: Math.round(((v as {correct:number;total:number}).correct / (v as {correct:number;total:number}).total) * 100) }))
+          .sort((a, b) => b.score - a.score);
+
+        const badgeIcon = badgeScore === 100 ? '🏆' : badgeScore >= 93 ? '🥇' : '🏅';
+        const badgeName = badgeScore === 100 ? 'Perfect Mastery' : badgeScore >= 93 ? 'Expert Performance' : 'Strong Performance';
+        const badgeDesc = badgeScore === 100
+          ? `Flawless 15/15 — absolute mastery across ${topDomains[0]?.domain || 'all domains'}!`
+          : `Scored ${badgeCorrect}/15 (${badgeScore}%) — strong command of PMP concepts.`;
+
+        const { data: inserted } = await supabase
+          .from('badges')
+          .insert({
+            user_id: user.id,
+            badge_type: 'performance',
+            badge_name: badgeName,
+            badge_description: badgeDesc,
+            badge_icon: badgeIcon,
+            domain: topDomains[0]?.domain || null,
+            score: badgeScore,
+            questions_count: 15,
+            session_block: newBlockCount,
+          })
+          .select()
+          .single();
+
+        badge = inserted;
+      }
     }
 
     return NextResponse.json({
@@ -225,6 +267,7 @@ Be the most caring, wise, experienced mentor they could hope for. Make them feel
       guruReport,
       guruReportDue,
       blocksCompleted: newBlockCount,
+      badge,
     });
   } catch (error) {
     console.error('Submit API error:', error);
