@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
           option_b: (q.option_b as string) || '',
           option_c: (q.option_c as string) || '',
           option_d: (q.option_d as string) || '',
-          correct_answer: (q.correct_answer as string) || 'A',
+          correct_answer: ((q.correct_answer as string) || 'A').trim().charAt(0).toUpperCase(),
           explanation: (q.explanation as string) || '',
           rita_tip: (q.rita_tip as string) || '',
           pmbok_reference: (q.pmbok_reference as string) || '',
