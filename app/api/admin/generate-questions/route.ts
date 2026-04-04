@@ -104,7 +104,8 @@ export async function POST(req: NextRequest) {
       }
 
       const data = await response.json()
-      const raw = data.content?.[0]?.text || ''
+          const raw = data.content?.[0]?.text || ''
+console.log(`[DEBUG] Raw response variant ${v}:`, raw.substring(0, 200))
 
       try {
         // Extract JSON array from response
