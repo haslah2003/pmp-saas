@@ -10,17 +10,7 @@ const DOMAINS = {
 
 const DIFFICULTIES = ['entry', 'intermediate', 'advanced', 'expert']
 
-const SYSTEM_PROMPT = `You are a PMP exam question writer with deep expertise in PMBOK 7, ECO 2021, and Rita Mulcahy methodology.
-
-Generate high-quality PMP exam questions that:
-- Test application and analysis, NOT just recall
-- Reflect real PMI exam style (scenario-based, situational)
-- Have one clearly correct answer and three plausible distractors
-- Include a clear rationale explaining why the correct answer is right and why others are wrong
-- Are grounded in PMI-aligned project management principles
-
-Return ONLY a valid JSON array. No markdown, no explanation, no preamble.`
-
+const SYSTEM_PROMPT = `You are a PMP exam question writer. You must respond with ONLY a valid JSON array. No text before or after. No markdown. No code blocks. Just the raw JSON array starting with [ and ending with ].`
 function buildPrompt(domain: string, difficulty: string, count: number, variantSeed: string): string {
   const domainDesc = DOMAINS[domain as keyof typeof DOMAINS] || DOMAINS.people
   return `Generate ${count} unique PMP exam questions for:
@@ -45,8 +35,9 @@ Return a JSON array of objects with this exact structure:
     "correct": "A",
     "rationale": "Explanation of why the correct answer is right and why the others are wrong. Ground in PMBOK 7 / ECO 2021 principles."
   }
-]`
-}
+]
+
+Respond with ONLY the JSON array. Start your response with [ and end with ]. No other text.`}
 
 export async function POST(req: NextRequest) {
   try {
