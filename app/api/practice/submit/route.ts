@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
     const wrongQuestions = results.filter(r => !r.isCorrect);
     const domainsInBlock = [...new Set(results.map(r => r.domain))];
 
-    const wrapUpPrompt = `You are an expert PMP exam tutor. A student just completed a 5-question practice block.
+    const wrapUpPrompt = `You are an expert PMP exam tutor. A learner just completed a 5-question practice block.
 
 RESULTS:
 - Score: ${correct}/${total} (${score}%)
@@ -174,9 +174,9 @@ Keep key_learnings to max 3 items. Keep mindmap_branches to 3-4 branches. Make i
       const recentTotal = recentResponses?.length || 15;
       const recentScore = Math.round((recentCorrect / recentTotal) * 100);
 
-      const guruPrompt = `You are Master Chen Wei, a legendary PMP Guru who has been with PMI since its founding. You have personally mentored thousands of project managers to certification success. You speak with warmth, wisdom, deep expertise, and genuine care for each student's journey.
+      const guruPrompt = `You are Master Chen Wei, a legendary PMP Guru who has been with PMI since its founding. You have personally mentored thousands of project managers to certification success. You speak with warmth, wisdom, deep expertise, and genuine care for each learner's journey.
 
-A student has just completed 15 practice questions (3 blocks of 5). Here is their performance data:
+A learner has just completed 15 practice questions (3 blocks of 5). Here is their performance data:
 
 RECENT PERFORMANCE (last 15 questions):
 - Overall score: ${recentCorrect}/${recentTotal} (${recentScore}%)
@@ -185,7 +185,7 @@ RECENT PERFORMANCE (last 15 questions):
 
 Write a professional, warm, deeply insightful progress report as Master Chen Wei. Use this EXACT JSON structure (pure JSON, no markdown):
 {
-  "greeting": "Personal, warm greeting to the student (2 sentences)",
+  "greeting": "Personal, warm greeting to the learner (2 sentences)",
   "overall_assessment": "Professional assessment of their progress (3-4 sentences, warm but honest)",
   "strengths": [
     {"area": "strength area", "message": "specific encouraging observation"}
@@ -257,6 +257,19 @@ Be the most caring, wise, experienced mentor they could hope for. Make them feel
       }
     }
 
+    // If guru report is due, calculate overall 15-question score for display
+    let overallScore = null;
+    if (guruReportDue) {
+      const { data: last15 } = await supabase
+        .from('question_responses')
+        .select('is_correct')
+        .eq('user_id', user.id)
+        .order('answered_at', { ascending: false })
+        .limit(15);
+      const oc = last15?.filter(r => r.is_correct).length || 0;
+      overallScore = { correct: oc, total: 15, pct: Math.round((oc / 15) * 100) };
+    }
+
     return NextResponse.json({
       success: true,
       score,
@@ -268,6 +281,7 @@ Be the most caring, wise, experienced mentor they could hope for. Make them feel
       guruReportDue,
       blocksCompleted: newBlockCount,
       badge,
+      overallScore,
     });
   } catch (error) {
     console.error('Submit API error:', error);

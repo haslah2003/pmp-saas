@@ -343,6 +343,7 @@ export default function PracticeClient() {
   const [guruReport, setGuruReport] = useState<GuruReport | null>(null);
   const [showGuru, setShowGuru] = useState(false);
   const [badge, setBadge] = useState<Badge | null>(null);
+  const [overallScore, setOverallScore] = useState<{correct: number; total: number; pct: number} | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -433,8 +434,11 @@ export default function PracticeClient() {
         if (data.guruReport) {
           setGuruReport(data.guruReport);
           setShowGuru(true);
-        }if (data.badge) {
+        if (data.badge) {
           setBadge(data.badge);
+        }
+        if (data.overallScore) {
+          setOverallScore(data.overallScore);
         }
         setMode('wrapup');
       } catch {
@@ -685,6 +689,13 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
             {blockScore.correct}/{blockScore.total}
           </p>
           <p className="text-gray-500 text-sm mt-1">{wrapUp.score_message}</p>
+          {overallScore && (
+            <div className="mt-3 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-2 inline-block">
+              <p className="text-sm font-semibold text-indigo-700">
+                📊 Overall: {overallScore.correct}/{overallScore.total} ({overallScore.pct}%) across last 15 questions
+              </p>
+            </div>
+          )}
         </div>
         {badge && (
           <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-300 rounded-2xl p-6 mb-4 text-center animate-pulse-once">
