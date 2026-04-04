@@ -434,6 +434,7 @@ export default function PracticeClient() {
         if (data.guruReport) {
           setGuruReport(data.guruReport);
           setShowGuru(true);
+        }
         if (data.badge) {
           setBadge(data.badge);
         }
