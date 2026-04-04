@@ -93,6 +93,40 @@ export default async function LessonPage({ params }: Props) {
                 <span className="text-xs text-white/80">on any section for AI-powered analysis, case studies & more — grounded in {frameworkLabel}</span>
               </div>
             </div>
+            {/* What You'll Learn */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-lg">🎓</span>
+                <h2 className="text-base font-bold text-gray-900">What You&apos;ll Learn</h2>
+                <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full ml-auto font-medium">
+                  Learning Outcomes
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {lesson.keyConcepts.map((kc) => (
+                  <div key={kc.term} className="flex items-start gap-2.5">
+                    <span className="text-emerald-500 mt-0.5 flex-shrink-0">✓</span>
+                    <p className="text-sm text-gray-700">
+                      Understand <strong className="text-gray-900">{kc.term}</strong> and how to apply it in exam scenarios
+                    </p>
+                  </div>
+                ))}
+                {lesson.deepDive.map((section) => (
+                  <div key={section.heading} className="flex items-start gap-2.5">
+                    <span className="text-emerald-500 mt-0.5 flex-shrink-0">✓</span>
+                    <p className="text-sm text-gray-700">
+                      Explore <strong className="text-gray-900">{section.heading}</strong>
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-4 text-xs text-gray-500">
+                <span>🔑 {lesson.keyConcepts.length} key concepts</span>
+                <span>🔍 {lesson.deepDive.length} deep dive topics</span>
+                <span>🎯 {lesson.examTips.length} exam tips</span>
+                <span>⚠️ {lesson.commonPitfalls.length} pitfalls to avoid</span>
+              </div>
+            </div>
 
             {/* Overview */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
