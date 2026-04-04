@@ -80,9 +80,9 @@ export async function POST(req: NextRequest) {
     }
 
     const adminSupabase = createSupabaseClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
     const allGenerated: unknown[] = []
     const errors: string[] = []
@@ -116,7 +116,20 @@ export async function POST(req: NextRequest) {
       const raw = data.content?.[0]?.text || ''
 
       try {
-        const cleaned = raw.replace(/```json/g, '').replace(/```/g, '').trim()
+        // Extract JSON array from response
+        let cleaned = raw
+          .replace(/```json\n?/gi, '')
+          .replace(/```\n?/g, '')
+          .trim()
+
+        // Find the JSON array boundaries
+        const startIdx = cleaned.indexOf('[')
+        const endIdx = cleaned.lastIndexOf(']')
+        if (startIdx === -1 || endIdx === -1) {
+          errors.push(`Variant ${v}: No JSON array found`)
+          continue
+        }
+        cleaned = cleaned.slice(startIdx, endIdx + 1)
         const questions = JSON.parse(cleaned)
 
         if (!Array.isArray(questions)) {
