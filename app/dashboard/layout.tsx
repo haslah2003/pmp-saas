@@ -143,6 +143,15 @@ export default async function DashboardLayout({
               <span>Resource Library</span>
             </Link>
             <Link
+  href="/admin/questions"
+  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all group"
+>
+  <span className="w-7 h-7 rounded-lg flex items-center justify-center text-base" style={{ backgroundColor: primaryColor + '15' }}>
+    🧠
+  </span>
+  <span>Question Bank</span>
+</Link>
+            <Link
               href="/admin/billing"
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all group"
             >
