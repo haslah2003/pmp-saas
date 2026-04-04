@@ -130,20 +130,20 @@ console.log(`[DEBUG] Raw response variant ${v}:`, raw.substring(0, 200))
         }
 
         // Store to Supabase
-        const toInsert = questions.map((q: Record<string, unknown>) => ({
-          domain: q.domain || domain,
-          difficulty: q.difficulty || difficulty,
-          task: q.task || '',
-          scenario: q.scenario || '',
-          question: q.question || '',
-          options: q.options || {},
-          correct: q.correct || 'A',
-          rationale: q.rationale || '',
-          framework: 'pmbok7',
-          is_active: true,
-          variant_group: variantSeed,
-          created_by: user.id,
-        }))
+const toInsert = questions.map((q: Record<string, unknown>) => ({
+  domain: q.domain || domain,
+  difficulty: q.difficulty || difficulty,
+  subdomain: q.task || '',
+  question_text: q.question || '',
+  option_a: (q.options as Record<string, string>)?.A || '',
+  option_b: (q.options as Record<string, string>)?.B || '',
+  option_c: (q.options as Record<string, string>)?.C || '',
+  option_d: (q.options as Record<string, string>)?.D || '',
+  correct_answer: q.correct || 'A',
+  explanation: q.rationale || '',
+  framework: 'pmbok7',
+  is_active: true,
+}))
 
         const { data: inserted, error: insertError } = await adminSupabase
           .from('questions')
