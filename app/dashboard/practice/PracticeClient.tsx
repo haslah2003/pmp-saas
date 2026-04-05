@@ -344,6 +344,7 @@ export default function PracticeClient() {
   const [showGuru, setShowGuru] = useState(false);
   const [badge, setBadge] = useState<Badge | null>(null);
   const [overallScore, setOverallScore] = useState<{correct: number; total: number; pct: number} | null>(null);
+  const [guruReportId, setGuruReportId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -440,6 +441,9 @@ export default function PracticeClient() {
         }
         if (data.overallScore) {
           setOverallScore(data.overallScore);
+        }
+        if (data.guruReportId) {
+          setGuruReportId(data.guruReportId);
         }
         setMode('wrapup');
       } catch {
@@ -718,7 +722,13 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
               className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
               🧙‍♂️ View Your Guru Progress Report
             </button>
-          )}
+            )}
+            {guruReportId && (
+              <a href={"/dashboard/guru-report/" + guruReportId} target="_blank"
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-center">
+                📊 View Full Interactive Report
+              </a>
+            )}
           <button onClick={() => loadBlock(sessionId!, answeredIds)}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-all">
             Continue — Next Block of 5 →
