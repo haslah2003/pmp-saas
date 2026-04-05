@@ -198,7 +198,9 @@ Write a professional, warm, deeply insightful progress report as Master Chen Wei
   "confidence_message": "A final empowering message (2 sentences)"
 }
 
-Be the most caring, wise, experienced mentor they could hope for. Make them feel seen, supported, and capable.`;
+Be the most caring, wise, experienced mentor they could hope for. Make them feel seen, supported, and capable.
+
+CRITICAL: Always use the word "learner" — NEVER use the word "student". This is a professional adult learning environment.`;
 
       const guruResponse = await anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
