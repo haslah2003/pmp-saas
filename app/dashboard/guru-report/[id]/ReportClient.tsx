@@ -35,42 +35,31 @@ interface Props {
   historicalScores: { overall_score: number; created_at: string }[];
 }
 
-// ─── Normalize domain keys (fix duplication) ──────────────────────
+// ─── Normalize domain keys ───────────────────────────────────────
 function normalizeDomainScores(raw: Record<string, { correct: number; total: number }>) {
   const merged: Record<string, { correct: number; total: number; displayName: string }> = {};
-
   const DOMAIN_MAP: Record<string, string> = {
-    'people': 'People',
-    'People': 'People',
-    'process': 'Process',
-    'Process': 'Process',
+    'people': 'People', 'People': 'People',
+    'process': 'Process', 'Process': 'Process',
     'business-environment': 'Business Environment',
     'Business Environment': 'Business Environment',
     'business_environment': 'Business Environment',
   };
-
   Object.entries(raw).forEach(([key, val]) => {
     const normalized = DOMAIN_MAP[key] || key;
-    if (!merged[normalized]) {
-      merged[normalized] = { correct: 0, total: 0, displayName: normalized };
-    }
+    if (!merged[normalized]) merged[normalized] = { correct: 0, total: 0, displayName: normalized };
     merged[normalized].correct += val.correct || 0;
     merged[normalized].total += val.total || 0;
   });
-
   return merged;
 }
 
-// ─── Tooltip Component ────────────────────────────────────────────
+// ─── Tooltip ─────────────────────────────────────────────────────
 function Tooltip({ children, content }: { children: React.ReactNode; content: string }) {
   const [show, setShow] = useState(false);
-
   return (
-    <span
-      className="relative inline-block cursor-help"
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
-    >
+    <span className="relative inline-block cursor-help"
+      onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
       {children}
       {show && (
         <span className="absolute z-50 bottom-full left-0 mb-2 w-72 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl px-4 py-3 shadow-lg leading-relaxed print-tooltip">
@@ -81,21 +70,42 @@ function Tooltip({ children, content }: { children: React.ReactNode; content: st
   );
 }
 
+// ─── Marker with built-in hover tooltip ──────────────────────────
+function Marker({ pct, color, label, emoji, tipText, position }: {
+  pct: number; color: string; label: string; emoji: string; tipText: string; position: 'top' | 'bottom';
+}) {
+  const [hover, setHover] = useState(false);
+  return (
+    <div
+      className="absolute top-0 h-full z-10 cursor-help"
+      style={{ left: `${Math.min(pct, 99)}%` }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      {/* Vertical line */}
+      <div className="absolute top-0 h-full w-0.5" style={{ backgroundColor: color }} />
+
+      {/* Label pill */}
+      <div className={`absolute left-1/2 -translate-x-1/2 whitespace-nowrap ${position === 'top' ? '-top-7' : '-bottom-7'}`}>
+        <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full border shadow-sm"
+          style={{ color, backgroundColor: color + '15', borderColor: color + '40' }}>
+          {emoji} {label} {pct}%
+        </span>
+      </div>
+
+      {/* Hover tooltip */}
+      {hover && (
+        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-10 w-64 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl px-4 py-3 shadow-lg leading-relaxed">
+          {tipText}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Benchmark Bar ────────────────────────────────────────────────
-function BenchmarkBar({
-  label,
-  yourScore,
-  communityAvg,
-  targetPro,
-  aspirational,
-  domain,
-}: {
-  label: string;
-  yourScore: number;
-  communityAvg: number;
-  targetPro: number;
-  aspirational: number;
-  domain: string;
+function BenchmarkBar({ label, yourScore, communityAvg, targetPro, aspirational, domain }: {
+  label: string; yourScore: number; communityAvg: number; targetPro: number; aspirational: number; domain: string;
 }) {
   const gap = targetPro - yourScore;
   const sessionsNeeded = gap > 0 ? Math.ceil(gap / 5) : 0;
@@ -107,7 +117,7 @@ function BenchmarkBar({
         <Tooltip content={
           gap > 0
             ? `You need ${gap}% more to reach the Target Professional level. Approximately ${sessionsNeeded} focused practice session${sessionsNeeded > 1 ? 's' : ''} on ${domain} would close this gap.`
-            : `Excellent! You've exceeded the Target Professional benchmark. You're performing at exam-ready level in ${domain}.`
+            : `Excellent! You've exceeded the Target Professional benchmark in ${domain}.`
         }>
           <span className={`text-sm font-bold ${yourScore >= targetPro ? 'text-emerald-600' : 'text-amber-600'}`}>
             {yourScore}%
@@ -116,70 +126,36 @@ function BenchmarkBar({
         </Tooltip>
       </div>
 
-      {/* Progress Track */}
-      <div className="relative h-8 bg-violet-50 rounded-full overflow-visible border border-violet-100">
-        {/* Your Score Bar */}
-        <div
-          className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out"
-          style={{
-            width: `${Math.min(yourScore, 100)}%`,
-            background: 'linear-gradient(90deg, #ddd6fe, #c4b5fd)',
-          }}
-        />
+      {/* Bar container */}
+      <div className="relative h-8 bg-violet-50 rounded-full border border-violet-100">
+        {/* Your Score fill */}
+        <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out"
+          style={{ width: `${Math.min(yourScore, 100)}%`, background: 'linear-gradient(90deg, #ede9fe, #c4b5fd)' }} />
 
-        {/* Your Score Label - on the bar */}
-        <div
-          className="absolute top-1/2 -translate-y-1/2 z-20"
-          style={{ left: `${Math.min(Math.max(yourScore, 5), 95)}%`, transform: 'translate(-50%, -50%)' }}
-        >
-          <span className="text-[10px] font-bold text-violet-800 bg-white/90 px-2 py-0.5 rounded-full border border-violet-200 shadow-sm whitespace-nowrap">
+        {/* Your Score label on bar */}
+        <div className="absolute top-1/2 z-20"
+          style={{ left: `${Math.min(Math.max(yourScore - 3, 3), 92)}%`, transform: 'translateY(-50%)' }}>
+          <span className="text-[10px] font-bold text-violet-700 bg-white/90 px-2 py-0.5 rounded-full border border-violet-200 shadow-sm whitespace-nowrap">
             You: {yourScore}%
           </span>
         </div>
 
-        {/* Community Average Marker */}
+        {/* Community Average */}
         {communityAvg > 0 && (
-          <Tooltip content={`Community Average: ${communityAvg}%. This is the mean score of all learners on the PMP Expert Tutor Platform using the same study materials.`}>
-            <div
-              className="absolute top-0 h-full w-0.5 z-10"
-              style={{ left: `${Math.min(communityAvg, 100)}%`, backgroundColor: '#818cf8' }}
-            >
-              <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                <span className="text-[9px] font-semibold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 shadow-sm">
-                  👥 Comm. {communityAvg}%
-                </span>
-              </div>
-            </div>
-          </Tooltip>
+          <Marker pct={communityAvg} color="#818cf8" label="Comm." emoji="👥"
+            tipText={`Community Average: ${communityAvg}%. This is the mean score of all learners on the PMP Expert Tutor Platform using the same study materials.`}
+            position="top" />
         )}
 
-        {/* Target Professional Marker */}
-        <Tooltip content={`Target Professional: ${targetPro}%. This benchmark represents the performance level statistically correlated with PMP exam success. Reaching this level means you're exam-ready.`}>
-          <div
-            className="absolute top-0 h-full w-0.5 z-10"
-            style={{ left: `${Math.min(targetPro, 100)}%`, backgroundColor: '#34d399' }}
-          >
-            <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap">
-              <span className="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shadow-sm">
-                🎯 Target {targetPro}%
-              </span>
-            </div>
-          </div>
-        </Tooltip>
+        {/* Target Professional */}
+        <Marker pct={targetPro} color="#34d399" label="Target" emoji="🎯"
+          tipText={`Target Professional: ${targetPro}%. This benchmark represents the performance level statistically correlated with PMP exam success.`}
+          position="bottom" />
 
-        {/* Aspirational Marker */}
-        <Tooltip content={`Aspirational Level: ${aspirational}%. This elite benchmark represents mastery-level performance. Reaching this level indicates deep expertise beyond exam requirements.`}>
-          <div
-            className="absolute top-0 h-full w-0.5 z-10"
-            style={{ left: `${Math.min(aspirational, 100)}%`, backgroundColor: '#c4b5fd' }}
-          >
-            <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap">
-              <span className="text-[9px] font-semibold text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100 shadow-sm">
-                ⭐ Elite {aspirational}%
-              </span>
-            </div>
-          </div>
-        </Tooltip>
+        {/* Aspirational */}
+        <Marker pct={aspirational} color="#a78bfa" label="Elite" emoji="⭐"
+          tipText={`Aspirational Level: ${aspirational}%. This elite benchmark represents mastery-level performance beyond exam requirements.`}
+          position="top" />
       </div>
 
       {/* Print legend */}
@@ -199,17 +175,14 @@ function ScoreGauge({ score }: { score: number }) {
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
   const color = score >= 80 ? '#8b5cf6' : score >= 60 ? '#a78bfa' : '#f59e0b';
-
   return (
     <div className="relative w-40 h-40">
       <svg viewBox="0 0 140 140" className="w-full h-full -rotate-90">
         <circle cx="70" cy="70" r={radius} fill="none" stroke="#f5f3ff" strokeWidth="10" />
-        <circle
-          cx="70" cy="70" r={radius} fill="none" stroke={color} strokeWidth="10"
+        <circle cx="70" cy="70" r={radius} fill="none" stroke={color} strokeWidth="10"
           strokeLinecap="round" strokeDasharray={circumference}
           strokeDashoffset={circumference - progress}
-          className="transition-all duration-1000 ease-out"
-        />
+          className="transition-all duration-1000 ease-out" />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-3xl font-black" style={{ color }}>{score}%</span>
@@ -226,7 +199,6 @@ function TrendSparkline({ scores }: { scores: { overall_score: number; created_a
   const min = Math.min(...scores.map(s => s.overall_score), 0);
   const range = max - min || 1;
   const w = 160, h = 40;
-
   const points = scores.map((s, i) => {
     const x = (i / (scores.length - 1)) * w;
     const y = h - ((s.overall_score - min) / range) * h;
@@ -235,8 +207,7 @@ function TrendSparkline({ scores }: { scores: { overall_score: number; created_a
 
   return (
     <Tooltip content={`Your score trend over ${scores.length} sessions. ${
-      scores[scores.length - 1].overall_score > scores[0].overall_score
-        ? 'You are improving!' : 'Keep practicing to see improvement.'
+      scores[scores.length - 1].overall_score > scores[0].overall_score ? 'You are improving!' : 'Keep practicing to see improvement.'
     }`}>
       <svg viewBox={`0 0 ${w} ${h}`} className="w-40 h-10">
         <polyline fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} />
@@ -250,15 +221,8 @@ function TrendSparkline({ scores }: { scores: { overall_score: number; created_a
   );
 }
 
-// ─── Main Report Component ───────────────────────────────────────
-export default function ReportClient({
-  report,
-  learnerName,
-  sessionNumber,
-  targetBenchmarks,
-  aspirationalBenchmarks,
-  historicalScores,
-}: Props) {
+// ─── Main Report ─────────────────────────────────────────────────
+export default function ReportClient({ report, learnerName, sessionNumber, targetBenchmarks, aspirationalBenchmarks, historicalScores }: Props) {
   const [expandedStrength, setExpandedStrength] = useState<number | null>(null);
   const [expandedGrowth, setExpandedGrowth] = useState<number | null>(null);
 
@@ -266,17 +230,12 @@ export default function ReportClient({
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
 
-  // Normalize domains to remove duplicates
-  const normalizedDomains = normalizeDomainScores(
-    report.domain_scores as Record<string, { correct: number; total: number }>
-  );
+  const normalizedDomains = normalizeDomainScores(report.domain_scores as Record<string, { correct: number; total: number }>);
   const domainEntries = Object.entries(normalizedDomains);
-
   const handlePrint = () => window.print();
 
   return (
     <>
-      {/* Print Styles */}
       <style jsx global>{`
         @media print {
           body * { visibility: hidden; }
@@ -287,13 +246,11 @@ export default function ReportClient({
           .print-tooltip { position: static !important; display: block !important; transform: none !important;
             background: #f0fdf4 !important; color: #166534 !important; border: 1px solid #bbf7d0 !important;
             margin-top: 4px; width: 100% !important; border-radius: 8px; }
-          .print-tooltip span { display: none; }
-          .print-marker-label { font-size: 7px !important; }
         }
       `}</style>
 
       <div id="guru-report" className="min-h-screen bg-gray-50">
-        {/* ── Top Nav (no-print) ── */}
+        {/* Nav */}
         <div className="bg-white border-b border-gray-100 px-6 py-3 sticky top-0 z-20 no-print">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-gray-400">
@@ -312,16 +269,14 @@ export default function ReportClient({
 
         <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
 
-          {/* ── 1. Header ── */}
+          {/* 1. Header */}
           <div className="bg-gradient-to-br from-violet-400 via-purple-400 to-violet-500 rounded-3xl p-8 text-white shadow-lg">
             <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-3xl">🧙‍♂️</span>
-                  <div>
-                    <h1 className="text-2xl font-black tracking-tight">Guru Progress Report</h1>
-                    <p className="text-white/70 text-sm">PMP Expert Tutor · Master Chen Wei</p>
-                  </div>
+              <div className="flex items-center gap-3 mb-1">
+                <span className="text-3xl">🧙‍♂️</span>
+                <div>
+                  <h1 className="text-2xl font-black tracking-tight">Guru Progress Report</h1>
+                  <p className="text-white/70 text-sm">PMP Expert Tutor · Master Chen Wei</p>
                 </div>
               </div>
               {report.badges && (
@@ -332,26 +287,21 @@ export default function ReportClient({
               )}
             </div>
             <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="bg-white/15 rounded-xl px-4 py-3 backdrop-blur-sm">
-                <p className="text-white/60 text-[10px] uppercase tracking-wider font-medium">Learner</p>
-                <p className="text-white font-bold text-sm mt-0.5">{learnerName}</p>
-              </div>
-              <div className="bg-white/15 rounded-xl px-4 py-3 backdrop-blur-sm">
-                <p className="text-white/60 text-[10px] uppercase tracking-wider font-medium">Date</p>
-                <p className="text-white font-bold text-sm mt-0.5">{reportDate.split(',').slice(0, 2).join(',')}</p>
-              </div>
-              <div className="bg-white/15 rounded-xl px-4 py-3 backdrop-blur-sm">
-                <p className="text-white/60 text-[10px] uppercase tracking-wider font-medium">Session</p>
-                <p className="text-white font-bold text-sm mt-0.5">#{sessionNumber}</p>
-              </div>
-              <div className="bg-white/15 rounded-xl px-4 py-3 backdrop-blur-sm">
-                <p className="text-white/60 text-[10px] uppercase tracking-wider font-medium">Framework</p>
-                <p className="text-white font-bold text-sm mt-0.5">{report.framework === 'pmbok8' ? 'PMBOK 8' : 'PMBOK 7'}</p>
-              </div>
+              {[
+                { label: 'Learner', value: learnerName },
+                { label: 'Date', value: reportDate.split(',').slice(0, 2).join(',') },
+                { label: 'Session', value: `#${sessionNumber}` },
+                { label: 'Framework', value: report.framework === 'pmbok8' ? 'PMBOK 8' : 'PMBOK 7' },
+              ].map(item => (
+                <div key={item.label} className="bg-white/15 rounded-xl px-4 py-3 backdrop-blur-sm">
+                  <p className="text-white/60 text-[10px] uppercase tracking-wider font-medium">{item.label}</p>
+                  <p className="text-white font-bold text-sm mt-0.5">{item.value}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* ── 2. Executive Summary ── */}
+          {/* 2. Executive Summary */}
           <div className="bg-white rounded-2xl border border-violet-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 bg-violet-50/50 border-b border-violet-100">
               <h2 className="text-sm font-bold text-violet-800 uppercase tracking-wider">Executive Summary</h2>
@@ -365,14 +315,14 @@ export default function ReportClient({
                   </div>
                   <p className="text-gray-600 text-sm leading-relaxed">{report.overall_assessment}</p>
                   <div className="flex items-center gap-4 mt-4">
-                    <Tooltip content={`You answered ${report.overall_correct} out of ${report.overall_total} questions correctly in this checkpoint.`}>
+                    <Tooltip content={`You answered ${report.overall_correct} out of ${report.overall_total} questions correctly.`}>
                       <span className="text-xs bg-violet-50 text-violet-600 border border-violet-100 px-3 py-1.5 rounded-full font-medium cursor-help">
                         📊 {report.overall_correct}/{report.overall_total} correct
                       </span>
                     </Tooltip>
-                    <Tooltip content={`You have completed ${report.blocks_completed} practice blocks (${report.blocks_completed * 5} total questions) in this session.`}>
+                    <Tooltip content={`You have completed ${report.blocks_completed} practice blocks (${report.blocks_completed * 5} total questions).`}>
                       <span className="text-xs bg-violet-50 text-violet-600 border border-violet-100 px-3 py-1.5 rounded-full font-medium cursor-help">
-                        📝 {report.blocks_completed} blocks completed
+                        📝 {report.blocks_completed} blocks
                       </span>
                     </Tooltip>
                     {historicalScores.length >= 2 && (
@@ -387,80 +337,57 @@ export default function ReportClient({
             </div>
           </div>
 
-          {/* ── 3. Benchmark Dashboard ── */}
+          {/* 3. Benchmark Dashboard */}
           <div className="bg-white rounded-2xl border border-violet-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 bg-violet-50/50 border-b border-violet-100 flex items-center justify-between">
               <h2 className="text-sm font-bold text-violet-800 uppercase tracking-wider">Strategic Benchmark Dashboard</h2>
-              <Tooltip content="These benchmarks help you understand where you stand relative to exam requirements, peer performance, and mastery-level achievement. Hover over any marker for details.">
+              <Tooltip content="Hover over any marker on the bars for details about each benchmark.">
                 <span className="text-xs text-violet-500 font-medium cursor-help">ℹ️ How to read</span>
               </Tooltip>
             </div>
             <div className="p-6 pt-12 pb-10">
-              {/* Overall */}
-              <BenchmarkBar
-                label="Overall Performance"
-                yourScore={report.overall_score}
+              <BenchmarkBar label="Overall Performance" yourScore={report.overall_score}
                 communityAvg={report.community_avg?.overall || 0}
                 targetPro={targetBenchmarks['overall'] || 80}
                 aspirational={aspirationalBenchmarks['overall'] || 95}
-                domain="all domains"
-              />
+                domain="all domains" />
 
-              {/* Per Domain — deduplicated */}
               {domainEntries.map(([domain, vals]) => {
                 const score = vals.total > 0 ? Math.round((vals.correct / vals.total) * 100) : 0;
-                const communityDomain = report.community_avg?.[domain] || report.community_avg?.[domain.toLowerCase()] || 0;
-                const targetDomain = targetBenchmarks[domain] || targetBenchmarks[domain.toLowerCase()] || 80;
-                const aspirationalDomain = aspirationalBenchmarks[domain] || aspirationalBenchmarks[domain.toLowerCase()] || 95;
-
                 return (
-                  <BenchmarkBar
-                    key={domain}
-                    label={vals.displayName}
-                    yourScore={score}
-                    communityAvg={communityDomain}
-                    targetPro={targetDomain}
-                    aspirational={aspirationalDomain}
-                    domain={vals.displayName}
-                  />
+                  <BenchmarkBar key={domain} label={vals.displayName} yourScore={score}
+                    communityAvg={report.community_avg?.[domain] || report.community_avg?.[domain.toLowerCase()] || 0}
+                    targetPro={targetBenchmarks[domain] || targetBenchmarks[domain.toLowerCase()] || 80}
+                    aspirational={aspirationalBenchmarks[domain] || aspirationalBenchmarks[domain.toLowerCase()] || 95}
+                    domain={vals.displayName} />
                 );
               })}
 
-              {/* Legend */}
               <div className="flex flex-wrap items-center gap-5 mt-4 pt-4 border-t border-violet-50 text-xs text-gray-500">
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded-sm bg-violet-200" />
-                  <Tooltip content="Your current score — the filled bar shows your accuracy percentage.">
-                    <span className="cursor-help">Your Score</span>
-                  </Tooltip>
+                  <span>Your Score</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-indigo-400" />
-                  <Tooltip content="The average score across all learners on the PMP Expert Tutor platform.">
-                    <span className="cursor-help">Community Average</span>
-                  </Tooltip>
+                  <span>Community Average</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-emerald-400" />
-                  <Tooltip content="The Target Professional benchmark — the minimum level for PMP exam success.">
-                    <span className="cursor-help">Target Professional</span>
-                  </Tooltip>
+                  <span>Target Professional</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-purple-300" />
-                  <Tooltip content="The Elite level — mastery-grade performance beyond exam requirements.">
-                    <span className="cursor-help">Elite Level</span>
-                  </Tooltip>
+                  <span>Elite Level</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ── 4. Gap Analysis ── */}
+          {/* 4. Gap Analysis */}
           {domainEntries.some(([, vals]) => {
             const score = vals.total > 0 ? Math.round((vals.correct / vals.total) * 100) : 0;
-            const target = targetBenchmarks[vals.displayName] || targetBenchmarks[vals.displayName.toLowerCase()] || 80;
-            return score < target;
+            return score < (targetBenchmarks[vals.displayName] || targetBenchmarks[vals.displayName.toLowerCase()] || 80);
           }) && (
             <div className="bg-white rounded-2xl border border-amber-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-amber-50/50 border-b border-amber-100">
@@ -473,9 +400,8 @@ export default function ReportClient({
                   const gap = target - score;
                   if (gap <= 0) return null;
                   const sessions = Math.ceil(gap / 5);
-
                   return (
-                    <Tooltip key={domain} content={`Focus on ${vals.displayName} practice questions. Each session of 15 questions typically improves accuracy by 3-5%. At your current pace, ${sessions} targeted session${sessions > 1 ? 's' : ''} should close this gap.`}>
+                    <Tooltip key={domain} content={`Each session of 15 questions typically improves accuracy by 3-5%. At your current pace, ${sessions} targeted session${sessions > 1 ? 's' : ''} should close this gap.`}>
                       <div className="border border-amber-100 bg-amber-50/50 rounded-xl p-4 cursor-help hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-sm font-bold text-gray-800">{vals.displayName}</h4>
@@ -487,9 +413,7 @@ export default function ReportClient({
                           <span className="text-2xl font-black text-amber-600">{gap}%</span>
                           <span className="text-xs text-amber-500 mb-1">gap to target</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                          ~{sessions} focused session{sessions > 1 ? 's' : ''} needed · Current: {score}% → Target: {target}%
-                        </p>
+                        <p className="text-xs text-gray-500 mt-2">~{sessions} session{sessions > 1 ? 's' : ''} needed · {score}% → {target}%</p>
                       </div>
                     </Tooltip>
                   );
@@ -498,7 +422,7 @@ export default function ReportClient({
             </div>
           )}
 
-          {/* ── 5. Strengths ── */}
+          {/* 5. Strengths */}
           {report.strengths?.length > 0 && (
             <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-emerald-50/50 border-b border-emerald-100">
@@ -506,18 +430,13 @@ export default function ReportClient({
               </div>
               <div className="p-6 space-y-3">
                 {report.strengths.map((s, i) => (
-                  <div
-                    key={i}
-                    onClick={() => setExpandedStrength(expandedStrength === i ? null : i)}
-                    className="border border-emerald-100 bg-emerald-50/50 rounded-xl p-4 cursor-pointer hover:shadow-md transition-all"
-                  >
+                  <div key={i} onClick={() => setExpandedStrength(expandedStrength === i ? null : i)}
+                    className="border border-emerald-100 bg-emerald-50/50 rounded-xl p-4 cursor-pointer hover:shadow-md transition-all">
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-bold text-emerald-700">{s.area}</h4>
                       <span className="text-emerald-400 text-xs">{expandedStrength === i ? '▲' : '▼'}</span>
                     </div>
-                    {(expandedStrength === i) && (
-                      <p className="text-sm text-emerald-600 mt-2 leading-relaxed">{s.message}</p>
-                    )}
+                    {expandedStrength === i && <p className="text-sm text-emerald-600 mt-2 leading-relaxed">{s.message}</p>}
                     <p className="hidden print:block text-sm text-emerald-600 mt-2 leading-relaxed">{s.message}</p>
                   </div>
                 ))}
@@ -525,7 +444,7 @@ export default function ReportClient({
             </div>
           )}
 
-          {/* ── 6. Growth Areas ── */}
+          {/* 6. Growth Areas */}
           {report.growth_areas?.length > 0 && (
             <div className="bg-white rounded-2xl border border-amber-100 shadow-sm overflow-hidden print-break">
               <div className="px-6 py-4 bg-amber-50/50 border-b border-amber-100">
@@ -533,11 +452,8 @@ export default function ReportClient({
               </div>
               <div className="p-6 space-y-3">
                 {report.growth_areas.map((g, i) => (
-                  <div
-                    key={i}
-                    onClick={() => setExpandedGrowth(expandedGrowth === i ? null : i)}
-                    className="border border-amber-100 bg-amber-50/30 rounded-xl p-4 cursor-pointer hover:shadow-md transition-all"
-                  >
+                  <div key={i} onClick={() => setExpandedGrowth(expandedGrowth === i ? null : i)}
+                    className="border border-amber-100 bg-amber-50/30 rounded-xl p-4 cursor-pointer hover:shadow-md transition-all">
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-bold text-amber-700">{g.area}</h4>
                       <div className="flex items-center gap-2">
@@ -547,7 +463,7 @@ export default function ReportClient({
                         <span className="text-amber-400 text-xs">{expandedGrowth === i ? '▲' : '▼'}</span>
                       </div>
                     </div>
-                    {(expandedGrowth === i) && (
+                    {expandedGrowth === i && (
                       <div className="mt-3">
                         <p className="text-sm text-amber-700 leading-relaxed">{g.guidance}</p>
                         <Link href={"/dashboard/tutor?q=" + encodeURIComponent("Help me improve in " + g.domain_link + " for the PMP exam")}
@@ -565,7 +481,7 @@ export default function ReportClient({
             </div>
           )}
 
-          {/* ── 7. Domain Breakdown ── */}
+          {/* 7. Domain Breakdown */}
           <div className="bg-white rounded-2xl border border-violet-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 bg-violet-50/50 border-b border-violet-100">
               <h2 className="text-sm font-bold text-violet-800 uppercase tracking-wider">Domain Performance Breakdown</h2>
@@ -580,9 +496,8 @@ export default function ReportClient({
                   : score >= target - 10
                   ? 'text-amber-600 bg-amber-50/50 border-amber-100'
                   : 'text-red-500 bg-red-50/50 border-red-100';
-
                 return (
-                  <Tooltip key={domain} content={`${vals.displayName}: ${vals.correct} correct out of ${vals.total} questions (${score}%). Target: ${target}%.`}>
+                  <Tooltip key={domain} content={`${vals.displayName}: ${vals.correct}/${vals.total} correct (${score}%). Target: ${target}%.`}>
                     <div className={`rounded-xl border p-5 text-center cursor-help hover:shadow-md transition-shadow ${statusColor}`}>
                       <p className="text-xs font-bold uppercase tracking-wider mb-2 opacity-70">{vals.displayName}</p>
                       <p className="text-3xl font-black">{score}%</p>
@@ -595,7 +510,7 @@ export default function ReportClient({
             </div>
           </div>
 
-          {/* ── 8. Next Steps & Wisdom ── */}
+          {/* 8. Next Steps & Wisdom */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl border border-violet-100 shadow-sm p-6">
               <h3 className="text-sm font-bold text-violet-800 uppercase tracking-wider mb-3">📋 Next Session Recommendations</h3>
@@ -607,7 +522,7 @@ export default function ReportClient({
             </div>
           </div>
 
-          {/* ── 9. Footer ── */}
+          {/* 9. Footer */}
           <div className="bg-gradient-to-r from-violet-300 to-purple-400 rounded-2xl p-6 text-center text-white">
             <p className="text-sm leading-relaxed mb-2">{report.confidence_message}</p>
             <p className="text-white/70 text-xs">— Master Chen Wei, PMP Expert Tutor</p>
@@ -616,14 +531,9 @@ export default function ReportClient({
             </div>
           </div>
 
-          {/* Back button (no-print) */}
           <div className="text-center no-print">
-            <Link href="/dashboard/practice"
-              className="text-sm text-violet-500 hover:underline font-medium">
-              ← Back to Practice
-            </Link>
+            <Link href="/dashboard/practice" className="text-sm text-violet-500 hover:underline font-medium">← Back to Practice</Link>
           </div>
-
         </div>
       </div>
     </>
