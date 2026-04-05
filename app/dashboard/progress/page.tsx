@@ -35,6 +35,35 @@ interface RecentSession {
   accuracy: number
 }
 
+interface GuruReportItem {
+  id: string
+  overall_score: number
+  overall_correct: number
+  overall_total: number
+  framework: string
+  blocks_completed: number
+  created_at: string
+  badge_id: string | null
+}
+
+interface BadgeItem {
+  id: string
+  badge_type: string
+  badge_name: string
+  badge_description: string
+  badge_icon: string
+  domain: string | null
+  score: number
+  questions_count: number
+  earned_at: string
+}
+
+interface PortfolioData {
+  guruReports: GuruReportItem[]
+  badges: BadgeItem[]
+  stats: { totalReports: number; totalBadges: number; bestScore: number; avgScore: number }
+}
+
 interface ProgressData {
   empty: boolean
   readinessScore: number
@@ -80,12 +109,10 @@ function ReadinessRing({ score }: { score: number }) {
     <div className="flex flex-col items-center">
       <div className="relative w-28 h-28">
         <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-          {/* Background ring */}
           <circle
             cx="50" cy="50" r={RADIUS}
             fill="none" stroke="#e5e7eb" strokeWidth="9"
           />
-          {/* Progress ring */}
           <circle
             cx="50" cy="50" r={RADIUS}
             fill="none"
@@ -185,10 +212,12 @@ const DIFFICULTY_META: Record<
 export default function ProgressPage() {
   const [framework, setFramework] = useState<'pmbok7' | 'pmbok8'>('pmbok7')
   const [data, setData] = useState<ProgressData | null>(null)
+  const [portfolio, setPortfolio] = useState<PortfolioData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchProgress()
+    fetchPortfolio()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [framework])
 
@@ -202,6 +231,16 @@ export default function ProgressPage() {
       console.error('Progress fetch error:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function fetchPortfolio() {
+    try {
+      const res = await fetch('/api/progress/portfolio')
+      const json = await res.json()
+      setPortfolio(json)
+    } catch (err) {
+      console.error('Portfolio fetch error:', err)
     }
   }
 
@@ -321,15 +360,15 @@ export default function ProgressPage() {
                   Questions Answered
                 </p>
                 <p className="text-4xl font-bold text-gray-900 mt-1">
-  {(data.totalQuestions ?? 0).toLocaleString()}
-</p>
-<p className="text-sm text-gray-500 mt-1">
-  {data.totalSessions ?? 0} session
-  {(data.totalSessions ?? 0) !== 1 ? 's' : ''} completed
-</p>
-<p className="text-sm text-gray-400 mt-0.5">
-  ~{data.avgTimePerQuestion ?? 0}s avg per question
-</p>
+                  {(data.totalQuestions ?? 0).toLocaleString()}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {data.totalSessions ?? 0} session
+                  {(data.totalSessions ?? 0) !== 1 ? 's' : ''} completed
+                </p>
+                <p className="text-sm text-gray-400 mt-0.5">
+                  ~{data.avgTimePerQuestion ?? 0}s avg per question
+                </p>
               </div>
 
               {/* Study Streak */}
@@ -429,7 +468,6 @@ export default function ProgressPage() {
                   Practice sessions per day
                 </p>
 
-                {/* 10 × 3 grid */}
                 <div className="grid grid-cols-10 gap-1.5">
                   {(data.last30Days ?? []).map((day) => {
                     const intensity =
@@ -457,7 +495,6 @@ export default function ProgressPage() {
                   })}
                 </div>
 
-                {/* Legend */}
                 <div className="flex items-center gap-1.5 mt-4">
                   <span className="text-[10px] text-gray-400 mr-1">Less</span>
                   {[
@@ -471,7 +508,6 @@ export default function ProgressPage() {
                   <span className="text-[10px] text-gray-400 ml-1">More</span>
                 </div>
 
-                {/* Streak callout */}
                 {data.streak > 0 && (
                   <div className="mt-4 flex items-center gap-2 bg-amber-50 rounded-xl px-3 py-2">
                     <span className="text-lg">🔥</span>
@@ -622,6 +658,105 @@ export default function ProgressPage() {
                 </div>
               </div>
             )}
+
+            {/* ── Guru Reports History ── */}
+            {portfolio && portfolio.guruReports.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🧙‍♂️</span>
+                    <h3 className="text-base font-bold text-gray-900">Guru Progress Reports</h3>
+                  </div>
+                  <span className="text-xs bg-violet-100 text-violet-700 px-2.5 py-1 rounded-full font-medium">
+                    {portfolio.stats.totalReports} report{portfolio.stats.totalReports !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 text-center">
+                    <p className="text-2xl font-black text-violet-700">{portfolio.stats.bestScore}%</p>
+                    <p className="text-[10px] text-violet-500 font-medium uppercase">Best Score</p>
+                  </div>
+                  <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 text-center">
+                    <p className="text-2xl font-black text-violet-700">{portfolio.stats.avgScore}%</p>
+                    <p className="text-[10px] text-violet-500 font-medium uppercase">Average</p>
+                  </div>
+                  <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 text-center">
+                    <p className="text-2xl font-black text-violet-700">{portfolio.stats.totalReports}</p>
+                    <p className="text-[10px] text-violet-500 font-medium uppercase">Sessions</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {portfolio.guruReports.map((r) => {
+                    const date = new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    const color = r.overall_score >= 80 ? 'text-emerald-600' : r.overall_score >= 60 ? 'text-amber-600' : 'text-red-500'
+                    return (
+                      <Link key={r.id} href={"/dashboard/guru-report/" + r.id}
+                        className="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:border-violet-300 hover:bg-violet-50 transition-all group">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
+                            r.overall_score >= 80 ? 'bg-emerald-100 text-emerald-700' : r.overall_score >= 60 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600'
+                          }`}>
+                            {r.overall_score}%
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900 group-hover:text-violet-700 transition-colors">
+                              Session Report — {r.overall_correct}/{r.overall_total} correct
+                            </p>
+                            <p className="text-xs text-gray-400">{date} · {r.blocks_completed} blocks · {r.framework === 'pmbok8' ? 'PMBOK 8' : 'PMBOK 7'}</p>
+                          </div>
+                        </div>
+                        <span className={`text-sm font-bold ${color}`}>{r.overall_score}%</span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ── Badges Collection ── */}
+            {portfolio && portfolio.badges.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🏆</span>
+                    <h3 className="text-base font-bold text-gray-900">Badges Earned</h3>
+                  </div>
+                  <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">
+                    {portfolio.stats.totalBadges} badge{portfolio.stats.totalBadges !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {portfolio.badges.map((b) => {
+                    const date = new Date(b.earned_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    return (
+                      <div key={b.id} className="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-4 text-center hover:shadow-md transition-shadow">
+                        <div className="text-3xl mb-2">{b.badge_icon}</div>
+                        <p className="text-xs font-bold text-gray-900 mb-0.5">{b.badge_name}</p>
+                        <p className="text-[10px] text-gray-500 leading-snug">{b.badge_description}</p>
+                        <div className="mt-2 flex items-center justify-center gap-2">
+                          <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">
+                            {b.score}%
+                          </span>
+                          <span className="text-[10px] text-gray-400">{date}</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ── Certifications (Coming Soon) ── */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📜</span>
+                  <h3 className="text-base font-bold text-gray-900">Certifications</h3>
+                </div>
+                <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full font-medium">Coming Soon</span>
+              </div>
+              <p className="text-sm text-gray-500">Complete domain mastery tests and mock exams to earn downloadable certificates of achievement.</p>
+            </div>
 
             {/* Exam readiness tip banner */}
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-5 text-white flex items-center justify-between">
