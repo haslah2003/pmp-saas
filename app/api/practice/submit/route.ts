@@ -257,8 +257,9 @@ Be the most caring, wise, experienced mentor they could hope for. Make them feel
       }
     }
 
-    // If guru report is due, calculate overall 15-question score for display
+    // Calculate overall 15-question score and save guru report
     let overallScore = null;
+    let guruReportId = null;
     if (guruReportDue) {
       const { data: last15 } = await supabase
         .from('question_responses')
@@ -267,7 +268,65 @@ Be the most caring, wise, experienced mentor they could hope for. Make them feel
         .order('answered_at', { ascending: false })
         .limit(15);
       const oc = last15?.filter(r => r.is_correct).length || 0;
-      overallScore = { correct: oc, total: 15, pct: Math.round((oc / 15) * 100) };
+      const opct = Math.round((oc / 15) * 100);
+      overallScore = { correct: oc, total: 15, pct: opct };
+
+      // Calculate community averages from all learners
+      const { data: allProfiles } = await supabase
+        .from('learning_profiles')
+        .select('total_questions_answered, total_correct, domain_scores')
+        .gt('total_questions_answered', 0);
+
+      const communityAvg: Record<string, number> = {};
+      let communityOverall = 0;
+      if (allProfiles && allProfiles.length > 0) {
+        const totalC = allProfiles.reduce((s, p) => s + (p.total_correct || 0), 0);
+        const totalQ = allProfiles.reduce((s, p) => s + (p.total_questions_answered || 0), 0);
+        communityOverall = totalQ > 0 ? Math.round((totalC / totalQ) * 100) : 0;
+        communityAvg['overall'] = communityOverall;
+
+        // Per-domain community averages
+        const domainTotals: Record<string, { correct: number; total: number }> = {};
+        allProfiles.forEach(p => {
+          const ds = p.domain_scores as Record<string, { correct: number; total: number }> || {};
+          Object.entries(ds).forEach(([domain, vals]) => {
+            if (!domainTotals[domain]) domainTotals[domain] = { correct: 0, total: 0 };
+            domainTotals[domain].correct += vals.correct || 0;
+            domainTotals[domain].total += vals.total || 0;
+          });
+        });
+        Object.entries(domainTotals).forEach(([domain, vals]) => {
+          communityAvg[domain] = vals.total > 0 ? Math.round((vals.correct / vals.total) * 100) : 0;
+        });
+      }
+
+      // Save guru report to database
+      if (guruReport) {
+        const { data: savedReport } = await supabase
+          .from('guru_reports')
+          .insert({
+            user_id: user.id,
+            greeting: guruReport.greeting,
+            overall_assessment: guruReport.overall_assessment,
+            strengths: guruReport.strengths,
+            growth_areas: guruReport.growth_areas,
+            wisdom_quote: guruReport.wisdom_quote,
+            next_session_focus: guruReport.next_session_focus,
+            confidence_message: guruReport.confidence_message,
+            overall_score: opct,
+            overall_correct: oc,
+            overall_total: 15,
+            domain_scores: domainScores,
+            weak_areas: updatedWeak,
+            community_avg: communityAvg,
+            blocks_completed: newBlockCount,
+            framework,
+            badge_id: badge?.id || null,
+          })
+          .select('id')
+          .single();
+        guruReportId = savedReport?.id || null;
+      }
     }
 
     return NextResponse.json({
@@ -282,6 +341,7 @@ Be the most caring, wise, experienced mentor they could hope for. Make them feel
       blocksCompleted: newBlockCount,
       badge,
       overallScore,
+      guruReportId,
     });
   } catch (error) {
     console.error('Submit API error:', error);
