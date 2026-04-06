@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import CompanionChat from "@/components/CompanionChat";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import React from "react";
@@ -207,6 +208,9 @@ export default async function DashboardLayout({
 
       {/* Main content */}
       <main className="flex-1 overflow-y-auto p-8">{children}</main>
+
+      {/* PMP Companion — floating chatbot */}
+      <CompanionChat />
     </div>
   );
 }
