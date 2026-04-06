@@ -12,9 +12,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/practice", icon: "✏️", label: "Practice" },
   { href: "/dashboard/exam", icon: "⏱️", label: "Mock Exam" },
   { href: "/dashboard/tutor", icon: "🤖", label: "AiTuTorZ" },
-  { href: "/dashboard/tutor", icon: "🤖", label: "AiTuTorZ" },
   { href: "/dashboard/formulas", icon: "📐", label: "Formulas" },
-  { href: "/dashboard/billing", icon: "💳", label: "Billing" },
   { href: "/dashboard/billing", icon: "💳", label: "Billing" },
 ];
 
