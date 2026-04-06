@@ -22,7 +22,7 @@ function SuccessContent() {
   const plan = params.get('plan') ?? 'standard'
   const period = params.get('period') ?? 'monthly'
   const amount = params.get('amount') ?? '0'
-
+const receiptId = params.get('receiptId')
   const [showConfetti, setShowConfetti] = useState(false)
 
   useEffect(() => {
@@ -123,6 +123,14 @@ function SuccessContent() {
                 href="/dashboard/course"
                 className={`block w-full bg-gradient-to-r ${gradient} text-white text-sm font-bold py-3 rounded-xl text-center hover:opacity-90 transition-opacity`}
               >
+                {receiptId && (
+                <Link
+                  href={"/dashboard/receipt/" + receiptId}
+                  className="block w-full bg-white border border-violet-200 text-violet-700 text-sm font-semibold py-3 rounded-xl text-center hover:bg-violet-50 transition-colors"
+                >
+                  🧾 Download Payment Receipt
+                </Link>
+              )}
                 🚀 Start Learning Now
               </Link>
               <Link

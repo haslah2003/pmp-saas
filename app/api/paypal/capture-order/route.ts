@@ -78,8 +78,30 @@ console.error('User ID:', user.id)
         { status: 500 }
       )
     }
+// ── 5. Save payment receipt ─────────────────────────────────────────────
+    const { data: seqResult } = await adminSupabase.rpc('nextval', { seq_name: 'receipt_number_seq' }).single()
+    const receiptNum = 'RCP-' + String(seqResult || Date.now()).padStart(6, '0')
 
-    // ── 5. Return success data ──────────────────────────────────────────────
+    const { data: savedReceipt } = await adminSupabase
+      .from('payment_receipts')
+      .insert({
+        user_id: user.id,
+        receipt_number: receiptNum,
+        plan: planId,
+        plan_period: period,
+        amount: parseFloat(amount || '0'),
+        currency: 'USD',
+        paypal_order_id: orderId,
+        paypal_capture_id: captureId,
+       payer_email: (capture as any).payer?.email_address || '',
+        payer_name: (capture as any).payer?.name?.given_name
+          ? (capture as any).payer.name.given_name + ' ' + ((capture as any).payer.name.surname || '')
+          : '',
+        status: 'paid',
+      })
+      .select('id')
+      .single()
+    // ── 6. Return success data ──────────────────────────────────────────────
     return NextResponse.json({
       success: true,
       plan: planId,
@@ -87,6 +109,7 @@ console.error('User ID:', user.id)
       expiresAt: expiresAt.toISOString(),
       amount,
       captureId,
+      receiptId: savedReceipt?.id || null,
     })
   } catch (err) {
     console.error('PayPal capture error:', err)
