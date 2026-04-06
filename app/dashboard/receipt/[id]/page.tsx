@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import ReceiptClient from './ReceiptClient'
 
 interface Props {
@@ -13,7 +14,8 @@ export default async function ReceiptPage({ params }: Props) {
 
   if (!user) notFound()
 
-  const { data: receipt } = await supabase
+  const adminSupabase = createAdminClient()
+  const { data: receipt } = await adminSupabase
     .from('payment_receipts')
     .select('*')
     .eq('id', id)
