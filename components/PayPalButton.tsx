@@ -107,6 +107,7 @@ export default function PayPalButton({
               plan: result.plan,
               period: result.period,
               amount: result.amount,
+              ...(result.receiptId ? { receiptId: result.receiptId } : {}),
             })
             router.push(`/dashboard/payment/success?${params.toString()}`)
           } catch (err) {
