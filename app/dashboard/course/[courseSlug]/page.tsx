@@ -116,7 +116,7 @@ export default async function CoursePage({ params }: Props) {
                   className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium transition-colors"
                 >
                   <span>🤖</span>
-                  <span>Ask AI Tutor</span>
+                  <span>Ask AiTuTorZ</span>
                 </Link>
               </div>
             </div>

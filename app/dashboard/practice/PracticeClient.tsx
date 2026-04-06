@@ -283,7 +283,7 @@ function GuruPanel({ report, onClose, onLinkClick }: {
         {report.growth_areas?.length > 0 && (
           <div>
             <p className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2">🎯 Focus Areas</p>
-            <p className="text-xs text-gray-400 mb-2">Click any area to load targeted practice in the AI Tutor</p>
+            <p className="text-xs text-gray-400 mb-2">Click any area to load targeted practice in the AiTuTorZ</p>
             <div className="space-y-2">
               {report.growth_areas.map((g, i) => (
                 <button key={i} onClick={() => onLinkClick(g.domain_link)}
@@ -295,7 +295,7 @@ function GuruPanel({ report, onClose, onLinkClick }: {
                     </span>
                   </div>
                   <p className="text-red-700 text-xs mt-0.5">{g.guidance}</p>
-                  <p className="text-violet-600 text-xs mt-1 group-hover:underline">→ Open in AI Tutor</p>
+                  <p className="text-violet-600 text-xs mt-1 group-hover:underline">→ Open in AiTuTorZ</p>
                 </button>
               ))}
             </div>

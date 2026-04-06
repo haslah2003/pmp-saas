@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "PMP Expert Tutor — AI-Powered PMP Exam Prep",
   description:
     "Master the PMP exam with AI-powered tutoring grounded exclusively in PMBOK Guide 7th Edition and PMP ECO 2021. Study notes, audio narration, flashcards, mock exams, and more.",
-  keywords: "PMP, PMP exam, PMBOK, project management, certification, AI tutor",
+  keywords: "PMP, PMP exam, PMBOK, project management, certification, AiTuTorZ",
 };
 
 export default function RootLayout({

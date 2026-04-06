@@ -103,7 +103,7 @@ function SuccessContent() {
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { icon: '📖', label: 'Course Library' },
-                  { icon: '🤖', label: 'AI Tutor' },
+                  { icon: '🤖', label: 'AiTuTorZ' },
                   { icon: '🎯', label: 'Practice Engine' },
                   { icon: '📊', label: 'Progress Dashboard' },
                   { icon: '🧙', label: 'Guru Report' },

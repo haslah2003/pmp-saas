@@ -297,7 +297,7 @@ export default async function LessonPage({ params }: Props) {
                   )}`}
                   className="bg-white/20 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-white/30 transition-colors"
                 >
-                  🤖 Discuss with AI Tutor
+                  🤖 Discuss with AiTuTorZ
                 </Link>
                 <Link
                   href="/dashboard/mindmap"

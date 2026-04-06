@@ -82,7 +82,7 @@ export default function ResourcesPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Resource Library</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Manage the source documents that power AI Tutor and question generation.
+            Manage the source documents that power AiTuTorZ and question generation.
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-500 bg-white border border-gray-200 rounded-xl px-4 py-2.5">

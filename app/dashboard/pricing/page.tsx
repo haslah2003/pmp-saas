@@ -188,7 +188,7 @@ export default function PricingPage() {
               },
               {
                 q: 'Is there a free trial?',
-                a: 'Our Basic plan gives you full access to the Course Library and AI Tutor to get started.',
+                a: 'Our Basic plan gives you full access to the Course Library and AiTuTorZ to get started.',
               },
               {
                 q: 'What happens when my plan expires?',

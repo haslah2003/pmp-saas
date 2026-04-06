@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/study-studio", icon: "💡", label: "Study Studio" },
   { href: "/dashboard/practice", icon: "✏️", label: "Practice" },
   { href: "/dashboard/exam", icon: "⏱️", label: "Mock Exam" },
-  { href: "/dashboard/tutor", icon: "🤖", label: "AI Tutor" },
+  { href: "/dashboard/tutor", icon: "🤖", label: "AiTuTorZ" },
   { href: "/dashboard/billing", icon: "💳", label: "Billing" },
 ];
 

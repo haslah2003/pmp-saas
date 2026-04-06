@@ -651,7 +651,7 @@ export default function ProgressPage() {
                         </span>
                       </div>
                       <p className="text-xs text-gray-500">
-                        Open AI Tutor for a targeted lesson
+                        Open AiTuTorZ for a targeted lesson
                       </p>
                     </Link>
                   ))}

@@ -55,7 +55,7 @@ export default function LandingPage() {
         </h1>
         <p className="text-lg text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
           The only AI-powered PMP prep platform grounded exclusively in official PMI sources.
-          Study notes, audio narration, flashcards, mock exams, and an expert AI tutor —
+          Study notes, audio narration, flashcards, mock exams, and an expert AiTuTorZ —
           all from PMBOK Guide 7th Edition and PMP ECO 2021.
         </p>
         <div className="flex items-center justify-center gap-4">

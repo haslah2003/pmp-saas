@@ -32,7 +32,7 @@ const SIGNUPS_DATA = [
 
 const FEATURE_USAGE = [
   { feature: 'Course', sessions: 3420, users: 1845, avg_min: 32, premium: false, pct: 85 },
-  { feature: 'AI Tutor', sessions: 2890, users: 1560, avg_min: 18, premium: false, pct: 72 },
+  { feature: 'AiTuTorZ', sessions: 2890, users: 1560, avg_min: 18, premium: false, pct: 72 },
   { feature: 'Study Studio', sessions: 2105, users: 1230, avg_min: 26, premium: false, pct: 60 },
   { feature: 'Practice (PRO)', sessions: 1850, users: 420, avg_min: 35, premium: true, pct: 48 },
   { feature: 'Mind Map (PRO)', sessions: 1240, users: 380, avg_min: 15, premium: true, pct: 35 },

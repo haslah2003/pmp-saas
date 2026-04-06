@@ -191,7 +191,7 @@ Write a professional, warm, deeply insightful progress report as Master Chen Wei
     {"area": "strength area", "message": "specific encouraging observation"}
   ],
   "growth_areas": [
-    {"area": "area needing work", "priority": "high/medium", "guidance": "specific actionable advice", "domain_link": "domain name to link to AI tutor"}
+    {"area": "area needing work", "priority": "high/medium", "guidance": "specific actionable advice", "domain_link": "domain name to link to AiTuTorZ"}
   ],
   "wisdom_quote": "A short piece of wisdom from Master Chen Wei about this stage of the learning journey",
   "next_session_focus": "Specific recommendation for what to focus on in the next session",

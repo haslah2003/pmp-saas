@@ -161,7 +161,7 @@ useEffect(() => {
     setMessages([
       {
         role: 'assistant',
-        content: `👋 **Welcome to your PMP AI Tutor!**
+        content: `👋 **Welcome to your PMP AiTuTorZ!**
 
 I'm grounded in **${framework === 'pmbok7' ? 'PMBOK 7 + ECO 2021 + Rita Mulcahy' : 'PMBOK 8 + ECO 2026 + Rita Mulcahy'}** and ready to help you pass the PMP exam.
 
@@ -320,7 +320,7 @@ What would you like to study today?`,
             AI
           </div>
           <div>
-            <h1 className="font-semibold text-gray-900 text-sm">PMP AI Tutor</h1>
+            <h1 className="font-semibold text-gray-900 text-sm">PMP AiTuTorZ</h1>
             <p className="text-xs text-gray-500">
               Grounded in {framework === 'pmbok7' ? 'PMBOK 7 · ECO 2021' : 'PMBOK 8 · ECO 2026'} · Rita Mulcahy
             </p>
