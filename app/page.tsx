@@ -28,7 +28,7 @@ export default function LandingPage() {
           <span className="text-xl font-bold text-brand-800">PMP Expert Tutor</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/pricing" className="text-sm font-medium text-gray-600 hover:text-brand-500">
+          <Link href="/dashboard/pricing" className="text-sm font-medium text-gray-600 hover:text-brand-500">
             Pricing
           </Link>
           <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-brand-500">
@@ -66,7 +66,7 @@ export default function LandingPage() {
             Start Free — No Credit Card
           </Link>
           <Link
-            href="/pricing"
+            href="/dashboard/pricing"
             className="border-2 border-brand-200 text-brand-600 px-8 py-3.5 rounded-xl text-base font-bold hover:bg-brand-50 transition"
           >
             View Plans

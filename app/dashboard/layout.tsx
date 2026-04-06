@@ -193,7 +193,7 @@ export default async function DashboardLayout({
           </div>
           {!isPremium && (
             <Link
-              href="/pricing"
+              href="/dashboard/pricing"
               className="mt-2 flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-semibold text-white transition"
               style={{ backgroundColor: primaryColor }}
             >
