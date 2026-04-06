@@ -278,7 +278,7 @@ export default function ProgressPage() {
                 onClick={() => setFramework(fw)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   framework === fw
-                    ? 'bg-white text-indigo-600 shadow-sm'
+                    ? 'bg-white text-violet-600 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -294,7 +294,7 @@ export default function ProgressPage() {
         {loading && (
           <div className="flex items-center justify-center py-40">
             <div className="text-center">
-              <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto" />
+              <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin mx-auto" />
               <p className="mt-4 text-gray-500 text-sm">
                 Loading your progress…
               </p>
@@ -315,7 +315,7 @@ export default function ProgressPage() {
             </p>
             <Link
               href="/practice"
-              className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
+              className="bg-violet-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-violet-700 transition-colors"
             >
               Start Practicing
             </Link>
@@ -474,10 +474,10 @@ export default function ProgressPage() {
                       day.count === 0
                         ? 'bg-gray-100'
                         : day.count === 1
-                        ? 'bg-indigo-200'
+                        ? 'bg-violet-200'
                         : day.count === 2
-                        ? 'bg-indigo-400'
-                        : 'bg-indigo-600'
+                        ? 'bg-violet-400'
+                        : 'bg-violet-600'
                     const isToday = day.date === todayStr
                     return (
                       <div
@@ -487,7 +487,7 @@ export default function ProgressPage() {
                         }`}
                         className={`w-full aspect-square rounded-md ${intensity} ${
                           isToday
-                            ? 'ring-2 ring-indigo-600 ring-offset-1'
+                            ? 'ring-2 ring-violet-600 ring-offset-1'
                             : ''
                         } transition-colors cursor-default`}
                       />
@@ -499,9 +499,9 @@ export default function ProgressPage() {
                   <span className="text-[10px] text-gray-400 mr-1">Less</span>
                   {[
                     'bg-gray-100',
-                    'bg-indigo-200',
-                    'bg-indigo-400',
-                    'bg-indigo-600',
+                    'bg-violet-200',
+                    'bg-violet-400',
+                    'bg-violet-600',
                   ].map((c, i) => (
                     <div key={i} className={`w-3 h-3 rounded-sm ${c}`} />
                   ))}
@@ -529,7 +529,7 @@ export default function ProgressPage() {
                   </h2>
                   <Link
                     href="/practice"
-                    className="text-xs text-indigo-600 font-medium hover:underline"
+                    className="text-xs text-violet-600 font-medium hover:underline"
                   >
                     + New Session
                   </Link>
@@ -759,20 +759,20 @@ export default function ProgressPage() {
             </div>
 
             {/* Exam readiness tip banner */}
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-5 text-white flex items-center justify-between">
+            <div className="bg-gradient-to-r from-violet-600 to-purple-600 rounded-2xl p-5 text-white flex items-center justify-between">
               <div>
                 <p className="text-sm font-bold">
                   {data.readinessScore >= 75
                     ? '🏆 You\'re approaching exam readiness!'
                     : '📚 Keep practising — consistency is the key!'}
                 </p>
-                <p className="text-xs text-indigo-200 mt-0.5">
+                <p className="text-xs text-violet-200 mt-0.5">
                   PMP pass mark is ~61%. Aim for 75%+ to build confidence.
                 </p>
               </div>
               <Link
                 href="/practice"
-                className="bg-white text-indigo-600 text-sm font-bold px-4 py-2 rounded-xl hover:bg-indigo-50 transition-colors whitespace-nowrap ml-4"
+                className="bg-white text-violet-600 text-sm font-bold px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors whitespace-nowrap ml-4"
               >
                 Practice Now
               </Link>

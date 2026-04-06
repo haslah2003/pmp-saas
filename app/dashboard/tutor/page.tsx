@@ -76,7 +76,7 @@ function MessageBubble({
       {/* Avatar */}
       <div
         className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-          isUser ? 'bg-blue-600 text-white' : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white'
+          isUser ? 'bg-blue-600 text-white' : 'bg-gradient-to-br from-violet-500 to-purple-600 text-white'
         }`}
       >
         {isUser ? 'You' : 'AI'}
@@ -97,7 +97,7 @@ function MessageBubble({
             <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-strong:text-gray-900 prose-ul:my-1 prose-li:my-0.5">
               <ReactMarkdown>{message.content}</ReactMarkdown>
               {isStreaming && (
-                <span className="inline-block w-1.5 h-4 bg-indigo-500 rounded-sm animate-pulse ml-0.5 align-middle" />
+                <span className="inline-block w-1.5 h-4 bg-violet-500 rounded-sm animate-pulse ml-0.5 align-middle" />
               )}
             </div>
           )}
@@ -316,7 +316,7 @@ What would you like to study today?`,
       {/* ── Header ── */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
             AI
           </div>
           <div>
@@ -334,7 +334,7 @@ What would you like to study today?`,
               onClick={() => setFramework('pmbok7')}
               className={`px-3 py-1 rounded-md transition-all ${
                 framework === 'pmbok7'
-                  ? 'bg-white text-indigo-700 shadow-sm'
+                  ? 'bg-white text-violet-700 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -381,14 +381,14 @@ What would you like to study today?`,
           {/* Loading indicator */}
           {isLoading && !streamingContent && (
             <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                 AI
               </div>
               <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
                 <div className="flex gap-1 items-center">
-                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" />
+                  <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" />
                 </div>
               </div>
             </div>
@@ -408,7 +408,7 @@ What would you like to study today?`,
                 <button
                   key={suggestion}
                   onClick={() => sendMessage(suggestion)}
-                  className="text-xs bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-all"
+                  className="text-xs bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 transition-all"
                 >
                   {suggestion}
                 </button>
@@ -422,7 +422,7 @@ What would you like to study today?`,
       <div className="bg-white border-t border-gray-200 px-4 py-4 flex-shrink-0">
         <div className="max-w-3xl mx-auto">
           <div className="flex gap-3 items-end">
-            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 focus-within:border-violet-400 focus-within:ring-2 focus-within:ring-violet-100 transition-all">
               <textarea
                 ref={inputRef}
                 value={input}
@@ -439,7 +439,7 @@ What would you like to study today?`,
             <button
               onClick={() => sendMessage(input)}
               disabled={isLoading || !input.trim()}
-              className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0 shadow-sm"
+              className="w-11 h-11 rounded-xl bg-violet-600 text-white flex items-center justify-center hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0 shadow-sm"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 19V5m-7 7l7-7 7 7" />
@@ -453,16 +453,16 @@ What would you like to study today?`,
 
 {/* Contextual navigation — shown when opened from Guru panel */}
 {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('q') && messages.length > 1 && (
-  <div className="mt-3 bg-indigo-50 border border-indigo-200 rounded-xl p-3 flex items-center justify-between gap-2 flex-wrap">
-    <p className="text-xs text-indigo-700 font-medium">✅ Lesson complete! Keep the momentum going.</p>
+  <div className="mt-3 bg-violet-50 border border-violet-200 rounded-xl p-3 flex items-center justify-between gap-2 flex-wrap">
+    <p className="text-xs text-violet-700 font-medium">✅ Lesson complete! Keep the momentum going.</p>
     <div className="flex gap-2">
       <button
         onClick={() => window.close()}
-        className="text-xs bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-all font-medium">
+        className="text-xs bg-white border border-violet-200 text-violet-600 hover:bg-violet-50 px-3 py-1.5 rounded-lg transition-all font-medium">
         ← Back to Report
       </button>
       <a href="/dashboard/practice"
-        className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-all font-medium">
+        className="text-xs bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg transition-all font-medium">
         🎯 Practice This Topic
       </a>
     </div>

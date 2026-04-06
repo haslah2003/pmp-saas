@@ -161,7 +161,7 @@ function BenchmarkBar({ label, yourScore, communityAvg, targetPro, aspirational,
       {/* Print legend */}
       <div className="hidden print:flex items-center gap-4 mt-1 text-[8px] text-gray-500">
         <span>■ Your Score: {yourScore}%</span>
-        <span className="text-indigo-600">│ Community: {communityAvg}%</span>
+        <span className="text-violet-600">│ Community: {communityAvg}%</span>
         <span className="text-emerald-700">│ Target: {targetPro}%</span>
         <span className="text-purple-600">│ Elite: {aspirational}%</span>
       </div>
@@ -369,7 +369,7 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
                   <span>Your Score</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 bg-indigo-400" />
+                  <span className="w-3 h-0.5 bg-violet-400" />
                   <span>Community Average</span>
                 </div>
                 <div className="flex items-center gap-1.5">

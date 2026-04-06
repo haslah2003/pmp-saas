@@ -25,7 +25,7 @@ export default function CoursesPage() {
               { label: 'Practice CTAs', value: 'Every lesson' },
             ].map((s) => (
               <div key={s.label} className="text-center">
-                <p className="text-xl font-bold text-indigo-600">{s.value}</p>
+                <p className="text-xl font-bold text-violet-600">{s.value}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
               </div>
             ))}

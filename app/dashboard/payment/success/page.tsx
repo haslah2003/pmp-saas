@@ -13,7 +13,7 @@ const PLAN_ICONS: Record<string, string> = {
 
 const PLAN_GRADIENTS: Record<string, string> = {
   basic: 'from-blue-500 to-blue-700',
-  standard: 'from-indigo-500 to-indigo-700',
+  standard: 'from-violet-500 to-violet-700',
   professional: 'from-violet-500 to-purple-700',
 }
 
@@ -33,7 +33,7 @@ function SuccessContent() {
 
   const planName = plan.charAt(0).toUpperCase() + plan.slice(1)
   const icon = PLAN_ICONS[plan] ?? '⭐'
-  const gradient = PLAN_GRADIENTS[plan] ?? 'from-indigo-500 to-indigo-700'
+  const gradient = PLAN_GRADIENTS[plan] ?? 'from-violet-500 to-violet-700'
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
@@ -156,7 +156,7 @@ export default function SuccessPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
       </div>
     }>
       <SuccessContent />

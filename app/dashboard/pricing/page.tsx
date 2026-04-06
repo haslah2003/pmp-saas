@@ -33,7 +33,7 @@ export default function PricingPage() {
             <button
               onClick={() => setPeriod(period === 'monthly' ? 'annual' : 'monthly')}
               className={`relative w-14 h-7 rounded-full transition-colors ${
-                period === 'annual' ? 'bg-indigo-600' : 'bg-gray-200'
+                period === 'annual' ? 'bg-violet-600' : 'bg-gray-200'
               }`}
             >
               <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${
@@ -71,14 +71,14 @@ export default function PricingPage() {
                 key={plan.id}
                 className={`relative bg-white rounded-2xl border shadow-sm transition-all ${
                   plan.highlighted
-                    ? 'border-indigo-300 shadow-indigo-100 shadow-lg scale-[1.02]'
+                    ? 'border-violet-300 shadow-violet-100 shadow-lg scale-[1.02]'
                     : 'border-gray-100 hover:shadow-md'
                 }`}
               >
                 {/* Most Popular badge */}
                 {plan.highlighted && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-indigo-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow">
+                    <span className="bg-violet-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow">
                       ⭐ Most Popular
                     </span>
                   </div>

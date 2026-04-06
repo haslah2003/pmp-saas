@@ -70,7 +70,7 @@ export default async function CoursePage({ params }: Props) {
                     {idx + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                    <h3 className="font-semibold text-gray-900 group-hover:text-violet-600 transition-colors">
                       {lesson.title}
                     </h3>
                     <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">

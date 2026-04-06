@@ -52,7 +52,7 @@ export default async function LessonPage({ params }: Props) {
             <span className="text-gray-700 font-medium truncate max-w-48">{lesson.title}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isV8 ? 'bg-purple-100 text-purple-700' : 'bg-indigo-100 text-indigo-600'}`}>
+            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isV8 ? 'bg-purple-100 text-purple-700' : 'bg-violet-100 text-violet-600'}`}>
               {frameworkLabel}
             </span>
             <span className={`text-xs font-semibold px-3 py-1 rounded-full ${course.badgeColor}`}>
@@ -142,7 +142,7 @@ export default async function LessonPage({ params }: Props) {
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-lg">🔑</span>
                 <h2 className="text-base font-bold text-gray-900">Key Concepts</h2>
-                <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full ml-auto font-medium">
+                <span className="text-xs text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full ml-auto font-medium">
                   Click any card to go deeper
                 </span>
               </div>
@@ -168,7 +168,7 @@ export default async function LessonPage({ params }: Props) {
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-lg">🔍</span>
                 <h2 className="text-base font-bold text-gray-900">Deep Dive</h2>
-                <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full ml-auto font-medium">
+                <span className="text-xs text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full ml-auto font-medium">
                   Each section expandable
                 </span>
               </div>
@@ -314,20 +314,20 @@ export default async function LessonPage({ params }: Props) {
                 <Link href={`/dashboard/course/${course.slug}/${prevLesson.slug}`}
                   className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-all group text-left">
                   <p className="text-xs text-gray-400 mb-1">← Previous</p>
-                  <p className="text-sm font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-2">{prevLesson.title}</p>
+                  <p className="text-sm font-semibold text-gray-900 group-hover:text-violet-600 transition-colors line-clamp-2">{prevLesson.title}</p>
                 </Link>
               ) : <div />}
               {nextLesson ? (
                 <Link href={`/dashboard/course/${course.slug}/${nextLesson.slug}`}
                   className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-all group text-right">
                   <p className="text-xs text-gray-400 mb-1">Next →</p>
-                  <p className="text-sm font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-2">{nextLesson.title}</p>
+                  <p className="text-sm font-semibold text-gray-900 group-hover:text-violet-600 transition-colors line-clamp-2">{nextLesson.title}</p>
                 </Link>
               ) : (
                 <Link href={`/dashboard/course/${course.slug}`}
                   className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-all group text-right">
                   <p className="text-xs text-gray-400 mb-1">✓ Domain Complete</p>
-                  <p className="text-sm font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">Back to {course.shortTitle}</p>
+                  <p className="text-sm font-semibold text-gray-900 group-hover:text-violet-600 transition-colors">Back to {course.shortTitle}</p>
                 </Link>
               )}
             </div>
@@ -354,18 +354,18 @@ export default async function LessonPage({ params }: Props) {
                 ))}
               </div>
               <div className="mt-4 pt-3 border-t border-gray-50">
-                <Link href="/dashboard/course" className="text-xs text-indigo-600 font-medium hover:underline">
+                <Link href="/dashboard/course" className="text-xs text-violet-600 font-medium hover:underline">
                   ← All Domains
                 </Link>
               </div>
             </div>
 
             {/* Go Deeper hint */}
-            <div className={`rounded-2xl border p-4 ${isV8 ? 'bg-gradient-to-br from-purple-50 to-violet-50 border-purple-100' : 'bg-gradient-to-br from-indigo-50 to-violet-50 border-indigo-100'}`}>
-              <p className={`text-xs font-bold mb-1 ${isV8 ? 'text-purple-800' : 'text-indigo-800'}`}>
+            <div className={`rounded-2xl border p-4 ${isV8 ? 'bg-gradient-to-br from-purple-50 to-violet-50 border-purple-100' : 'bg-gradient-to-br from-violet-50 to-violet-50 border-violet-100'}`}>
+              <p className={`text-xs font-bold mb-1 ${isV8 ? 'text-purple-800' : 'text-violet-800'}`}>
                 ✨ Go Deeper {isV8 ? '(PMBOK 8 Mode)' : ''}
               </p>
-              <p className={`text-xs leading-relaxed ${isV8 ? 'text-purple-600' : 'text-indigo-600'}`}>
+              <p className={`text-xs leading-relaxed ${isV8 ? 'text-purple-600' : 'text-violet-600'}`}>
                 Click any <strong>Go Deeper</strong> button for AI-generated exam scenarios, case studies, and deeper analysis — grounded in <strong>{frameworkLabel}</strong>{isV8 ? ', including evolution notes from PMBOK 7' : ''}.
               </p>
             </div>

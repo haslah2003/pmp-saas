@@ -36,7 +36,7 @@ export default async function BillingPage() {
 
       {/* Current Plan Card */}
       <div className="bg-white rounded-2xl border-2 overflow-hidden shadow-sm" style={{ borderColor: currentPlan ? undefined : '#e5e7eb' }}>
-        <div className={`px-6 py-5 ${isFreePlan ? 'bg-gray-50' : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'}`}>
+        <div className={`px-6 py-5 ${isFreePlan ? 'bg-gray-50' : 'bg-gradient-to-r from-violet-600 to-purple-600 text-white'}`}>
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-xs font-semibold uppercase tracking-wider ${isFreePlan ? 'text-gray-400' : 'text-white/70'}`}>Current Plan</p>
@@ -80,11 +80,11 @@ export default async function BillingPage() {
           )}
           <div className="pt-2">
             {isFreePlan || isExpired ? (
-              <Link href="/dashboard/pricing" className="block text-center py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+              <Link href="/dashboard/pricing" className="block text-center py-2.5 rounded-xl text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors">
                 Upgrade to Premium
               </Link>
             ) : (
-              <Link href="/dashboard/pricing" className="block text-center py-2.5 rounded-xl text-sm font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-colors">
+              <Link href="/dashboard/pricing" className="block text-center py-2.5 rounded-xl text-sm font-semibold text-violet-700 bg-violet-50 hover:bg-violet-100 transition-colors">
                 Change Plan
               </Link>
             )}

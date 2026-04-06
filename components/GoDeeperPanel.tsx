@@ -21,7 +21,7 @@ function renderMarkdown(text: string) {
         <ul key={`list-${key}`} className="space-y-1.5 my-2 ml-1">
           {listBuffer.map((item, i) => (
             <li key={i} className="flex items-start gap-2 text-sm text-gray-700 leading-relaxed">
-              <span className="text-indigo-400 mt-1 flex-shrink-0">•</span>
+              <span className="text-violet-400 mt-1 flex-shrink-0">•</span>
               <span>{item}</span>
             </li>
           ))}
@@ -49,8 +49,8 @@ function renderMarkdown(text: string) {
     } else if (line.startsWith('> ')) {
       flushList(String(i))
       elements.push(
-        <div key={i} className="border-l-4 border-indigo-300 pl-3 my-2 bg-indigo-50 rounded-r-lg py-2 pr-2">
-          <p className="text-xs text-indigo-700 italic">{line.replace('> ', '')}</p>
+        <div key={i} className="border-l-4 border-violet-300 pl-3 my-2 bg-violet-50 rounded-r-lg py-2 pr-2">
+          <p className="text-xs text-violet-700 italic">{line.replace('> ', '')}</p>
         </div>
       )
     } else if (line.match(/^[-*] /)) {
@@ -61,7 +61,7 @@ function renderMarkdown(text: string) {
       const content = line.replace(/^\d+\. /, '')
       elements.push(
         <div key={i} className="flex items-start gap-2 my-1.5">
-          <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+          <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
             {num}
           </span>
           <p className="text-sm text-gray-700 leading-relaxed">{content}</p>
@@ -202,30 +202,30 @@ export default function GoDeeperPanel({
     <div className="mt-3">
       <button
         onClick={loadDeeper}
-        className="group flex items-center gap-2 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+        className="group flex items-center gap-2 text-xs font-semibold text-violet-600 hover:text-violet-800 transition-colors"
       >
-        <span className="w-5 h-5 rounded-full bg-indigo-100 group-hover:bg-indigo-200 flex items-center justify-center transition-colors text-indigo-600 font-bold text-sm leading-none">
+        <span className="w-5 h-5 rounded-full bg-violet-100 group-hover:bg-violet-200 flex items-center justify-center transition-colors text-violet-600 font-bold text-sm leading-none">
           {isExpanded ? '−' : '+'}
         </span>
         <span>{isExpanded ? 'Collapse' : 'Go Deeper'}</span>
         {!isExpanded && (
-          <span className="text-indigo-400 font-normal hidden sm:inline">
+          <span className="text-violet-400 font-normal hidden sm:inline">
             — {SECTION_LABELS[sectionType]}
           </span>
         )}
       </button>
 
       {isExpanded && (
-        <div className="mt-3 rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-violet-50 overflow-hidden">
+        <div className="mt-3 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-violet-50 overflow-hidden">
           {/* Panel header */}
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-indigo-100 bg-white/60">
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isV8 ? 'bg-gradient-to-br from-violet-500 to-purple-700' : 'bg-gradient-to-br from-indigo-500 to-violet-600'}`}>
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-violet-100 bg-white/60">
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isV8 ? 'bg-gradient-to-br from-violet-500 to-purple-700' : 'bg-gradient-to-br from-violet-500 to-violet-600'}`}>
               <span className="text-white text-[10px] font-bold">AI</span>
             </div>
-            <p className="text-xs font-semibold text-indigo-800">
+            <p className="text-xs font-semibold text-violet-800">
               Deep AI Analysis — {lessonTitle}
             </p>
-            <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full font-medium ${isV8 ? 'bg-purple-100 text-purple-700' : 'bg-indigo-100 text-indigo-600'}`}>
+            <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full font-medium ${isV8 ? 'bg-purple-100 text-purple-700' : 'bg-violet-100 text-violet-600'}`}>
               {badge}
             </span>
           </div>
@@ -248,12 +248,12 @@ export default function GoDeeperPanel({
                   {[0, 1, 2].map((i) => (
                     <div
                       key={i}
-                      className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce"
+                      className="w-2 h-2 rounded-full bg-violet-400 animate-bounce"
                       style={{ animationDelay: `${i * 0.15}s` }}
                     />
                   ))}
                 </div>
-                <span className="text-xs text-indigo-600">
+                <span className="text-xs text-violet-600">
                   {LOADING_MESSAGES[sectionType]} ({badge})
                 </span>
               </div>
@@ -263,13 +263,13 @@ export default function GoDeeperPanel({
               <div className="space-y-0.5">
                 {renderMarkdown(aiContent)}
                 {isLoading && (
-                  <span className="inline-block w-1.5 h-4 bg-indigo-500 animate-pulse ml-0.5 rounded-sm" />
+                  <span className="inline-block w-1.5 h-4 bg-violet-500 animate-pulse ml-0.5 rounded-sm" />
                 )}
               </div>
             )}
 
             {!isLoading && aiContent && (
-              <div className="mt-5 pt-4 border-t border-indigo-100">
+              <div className="mt-5 pt-4 border-t border-violet-100">
                 <p className="text-xs font-semibold text-gray-600 mb-2">
                   💬 Ask a follow-up question
                 </p>
@@ -280,38 +280,38 @@ export default function GoDeeperPanel({
                     onChange={(e) => setFollowUp(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && sendFollowUp()}
                     placeholder="e.g. How does this apply in an agile project?"
-                    className="flex-1 text-xs border border-indigo-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder:text-gray-400"
+                    className="flex-1 text-xs border border-violet-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-violet-300 placeholder:text-gray-400"
                   />
                   <button
                     onClick={sendFollowUp}
                     disabled={!followUp.trim() || followUpLoading}
-                    className="bg-indigo-600 text-white text-xs font-semibold px-4 py-2 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors flex-shrink-0"
+                    className="bg-violet-600 text-white text-xs font-semibold px-4 py-2 rounded-xl hover:bg-violet-700 disabled:opacity-50 transition-colors flex-shrink-0"
                   >
                     {followUpLoading ? '...' : 'Ask'}
                   </button>
                 </div>
 
                 {(followUpContent || followUpLoading) && (
-                  <div className="mt-3 bg-white rounded-xl border border-indigo-100 p-3">
+                  <div className="mt-3 bg-white rounded-xl border border-violet-100 p-3">
                     {followUpLoading && !followUpContent && (
                       <div className="flex items-center gap-2">
                         <div className="flex gap-1">
                           {[0, 1, 2].map((i) => (
                             <div
                               key={i}
-                              className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"
+                              className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce"
                               style={{ animationDelay: `${i * 0.15}s` }}
                             />
                           ))}
                         </div>
-                        <span className="text-xs text-indigo-500">Thinking...</span>
+                        <span className="text-xs text-violet-500">Thinking...</span>
                       </div>
                     )}
                     {followUpContent && (
                       <div className="space-y-0.5">
                         {renderMarkdown(followUpContent)}
                         {followUpLoading && (
-                          <span className="inline-block w-1.5 h-4 bg-indigo-500 animate-pulse ml-0.5 rounded-sm" />
+                          <span className="inline-block w-1.5 h-4 bg-violet-500 animate-pulse ml-0.5 rounded-sm" />
                         )}
                       </div>
                     )}

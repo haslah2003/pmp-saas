@@ -120,7 +120,7 @@ export default function AdminQuestionsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Total Questions</p>
-          <p className="text-3xl font-bold text-indigo-600 mt-1">
+          <p className="text-3xl font-bold text-violet-600 mt-1">
             {loadingStats ? '...' : totalQuestions}
           </p>
         </div>
@@ -150,14 +150,14 @@ export default function AdminQuestionsPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">ECO Domain</label>
             <div className="space-y-2">
               {DOMAINS.map(d => (
-                <label key={d.value} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${domain === d.value ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                <label key={d.value} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${domain === d.value ? 'border-violet-500 bg-violet-50' : 'border-gray-200 hover:border-gray-300'}`}>
                   <input
                     type="radio"
                     name="domain"
                     value={d.value}
                     checked={domain === d.value}
                     onChange={e => setDomain(e.target.value)}
-                    className="text-indigo-600"
+                    className="text-violet-600"
                   />
                   <div>
                     <span className="text-sm font-medium text-gray-900">{d.label}</span>
@@ -173,14 +173,14 @@ export default function AdminQuestionsPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty Level</label>
             <div className="grid grid-cols-2 gap-2">
               {DIFFICULTIES.map(d => (
-                <label key={d.value} className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors ${difficulty === d.value ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                <label key={d.value} className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors ${difficulty === d.value ? 'border-violet-500 bg-violet-50' : 'border-gray-200 hover:border-gray-300'}`}>
                   <input
                     type="radio"
                     name="difficulty"
                     value={d.value}
                     checked={difficulty === d.value}
                     onChange={e => setDifficulty(e.target.value)}
-                    className="text-indigo-600"
+                    className="text-violet-600"
                   />
                   <div>
                     <span className="text-xs font-medium text-gray-900">{d.label}</span>
@@ -225,7 +225,7 @@ export default function AdminQuestionsPage() {
 
           {/* Summary */}
           <div className="bg-gray-50 rounded-lg p-3 mb-4 text-sm text-gray-600">
-            Will generate <strong className="text-indigo-600">{count * variants} questions</strong> total
+            Will generate <strong className="text-violet-600">{count * variants} questions</strong> total
             ({count} × {variants} variants) for <strong>{domainLabel(domain)}</strong> at <strong>{diffLabel(difficulty)}</strong> level
           </div>
 
@@ -250,7 +250,7 @@ export default function AdminQuestionsPage() {
           <button
             onClick={handleGenerate}
             disabled={generating}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
           >
             {generating ? (
               <>
@@ -269,7 +269,7 @@ export default function AdminQuestionsPage() {
             <h2 className="text-lg font-semibold text-gray-900">📊 Question Breakdown</h2>
             <button
               onClick={loadStats}
-              className="text-xs text-indigo-600 hover:text-indigo-700"
+              className="text-xs text-violet-600 hover:text-violet-700"
             >
               Refresh
             </button>
@@ -277,7 +277,7 @@ export default function AdminQuestionsPage() {
 
           {loadingStats ? (
             <div className="flex items-center justify-center h-40">
-              <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : stats.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
@@ -302,14 +302,14 @@ export default function AdminQuestionsPage() {
                       <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
                         <td className="py-2 text-gray-700">{domainLabel(s.domain)}</td>
                         <td className="py-2 text-gray-500">{diffLabel(s.difficulty)}</td>
-                        <td className="py-2 text-right font-semibold text-indigo-600">{s.count}</td>
+                        <td className="py-2 text-right font-semibold text-violet-600">{s.count}</td>
                       </tr>
                     ))}
                 </tbody>
                 <tfoot>
                   <tr className="border-t-2 border-gray-200">
                     <td colSpan={2} className="py-2 font-semibold text-gray-900">Total</td>
-                    <td className="py-2 text-right font-bold text-indigo-700">{totalQuestions}</td>
+                    <td className="py-2 text-right font-bold text-violet-700">{totalQuestions}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -332,7 +332,7 @@ export default function AdminQuestionsPage() {
                   </div>
                   <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-indigo-500 rounded-full transition-all"
+                      className="h-full bg-violet-500 rounded-full transition-all"
                       style={{ width: `${Math.min(100, (item.current / item.target) * 100)}%` }}
                     />
                   </div>

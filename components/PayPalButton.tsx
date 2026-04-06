@@ -134,7 +134,7 @@ export default function PayPalButton({
     <div className="w-full">
       {processing && (
         <div className="flex items-center justify-center gap-2 py-3 mb-2">
-          <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />
+          <div className="w-4 h-4 border-2 border-violet-300 border-t-violet-600 rounded-full animate-spin" />
           <span className="text-sm text-gray-600">Processing payment...</span>
         </div>
       )}

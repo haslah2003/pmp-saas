@@ -73,7 +73,7 @@ export default async function AdminBillingPage() {
                       <p className="text-xs text-gray-400">{p.email}</p>
                     </td>
                     <td className="px-6 py-3.5">
-                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${isFree ? 'bg-gray-100 text-gray-500' : 'bg-indigo-100 text-indigo-700'}`}>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${isFree ? 'bg-gray-100 text-gray-500' : 'bg-violet-100 text-violet-700'}`}>
                         {isFree ? 'Free' : (p.plan || 'free')}
                       </span>
                     </td>

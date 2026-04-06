@@ -472,7 +472,7 @@ WHY: [Brief rationale]`,
         {sections.map(sec => (
           <button key={sec.id} onClick={() => setActiveSection(sec.id)}
             className={cn('flex-1 flex items-center justify-center gap-2 py-3 text-xs font-semibold transition-colors',
-              activeSection === sec.id ? 'text-indigo-700 border-b-2 border-indigo-600 bg-indigo-50/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              activeSection === sec.id ? 'text-violet-700 border-b-2 border-violet-600 bg-violet-50/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             )}>
             <span>{sec.icon}</span><span>{sec.label}</span>
             {sec.count > 0 && <span className="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">{sec.count}</span>}
@@ -502,8 +502,8 @@ WHY: [Brief rationale]`,
             {activeSection === 'terms' && (
               <div className="space-y-3">
                 {terms.length > 0 ? terms.map((t, i) => (
-                  <div key={i} className="p-3 rounded-xl border border-gray-100 hover:border-indigo-200 transition-colors">
-                    <p className="text-sm font-bold text-indigo-700">{t.term}</p>
+                  <div key={i} className="p-3 rounded-xl border border-gray-100 hover:border-violet-200 transition-colors">
+                    <p className="text-sm font-bold text-violet-700">{t.term}</p>
                     <p className="text-sm text-gray-600 leading-relaxed mt-1">{t.definition}</p>
                   </div>
                 )) : <p className="text-sm text-gray-500 text-center py-4">No terms generated.</p>}
@@ -523,7 +523,7 @@ WHY: [Brief rationale]`,
                             onClick={() => !answered && setSelectedAnswers(prev => ({ ...prev, [qIdx]: oIdx }))}
                             disabled={answered}
                             className={cn('w-full text-left p-3 rounded-xl text-sm transition-all border',
-                              !answered && 'hover:bg-indigo-50 hover:border-indigo-200 border-gray-200',
+                              !answered && 'hover:bg-violet-50 hover:border-violet-200 border-gray-200',
                               answered && oIdx === selectedAnswers[qIdx] && oIdx === q.correct && 'bg-emerald-50 border-emerald-300',
                               answered && oIdx === selectedAnswers[qIdx] && oIdx !== q.correct && 'bg-red-50 border-red-300',
                               answered && oIdx !== selectedAnswers[qIdx] && oIdx === q.correct && 'bg-emerald-50 border-emerald-200',
@@ -581,7 +581,7 @@ function AudioLoadingMessage() {
   return (
     <div className={`text-center transition-opacity duration-300 ${fade ? 'opacity-100' : 'opacity-0'}`}>
       <p className="text-sm font-semibold text-gray-800">{msg.text}</p>
-      <p className="text-xs mt-1.5 font-medium text-indigo-600">{msg.sub}</p>
+      <p className="text-xs mt-1.5 font-medium text-violet-600">{msg.sub}</p>
     </div>
   );
 }
@@ -703,7 +703,7 @@ function AudioTab() {
                 <p className="text-xs text-gray-400">AI Narration — PMBOK 7 + ECO 2021</p>
               </div>
               <button onClick={() => setShowScript(!showScript)}
-                className={cn('text-xs font-medium px-3 py-1.5 rounded-lg transition-colors', showScript ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')}>
+                className={cn('text-xs font-medium px-3 py-1.5 rounded-lg transition-colors', showScript ? 'bg-violet-100 text-violet-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')}>
                 {showScript ? 'Hide Script' : 'Show Script'}
               </button>
             </div>
@@ -775,11 +775,11 @@ function AudioTab() {
               <button key={topic.id} onClick={() => generateAudio(topic)}
                 disabled={isGenerating && activeId !== topic.id}
                 className={cn('w-full flex items-center gap-4 p-4 rounded-xl transition-all text-left',
-                  isActive ? 'bg-indigo-50 border border-indigo-200' : 'hover:bg-gray-50 border border-transparent',
+                  isActive ? 'bg-violet-50 border border-violet-200' : 'hover:bg-gray-50 border border-transparent',
                   isGenerating && activeId !== topic.id && 'opacity-50',
                 )}>
                 <div className={cn('w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-colors shadow-sm',
-                  isActive ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500')}>
+                  isActive ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-500')}>
                   {isCurrentlyPlaying ? (
                     <div className="flex items-end gap-0.5 h-4">
                       <div className="w-1 bg-white rounded-full animate-pulse" style={{ height: '60%' }} />
@@ -794,7 +794,7 @@ function AudioTab() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={cn('text-sm font-semibold truncate', isActive ? 'text-indigo-700' : 'text-gray-900')}>{topic.title}</p>
+                  <p className={cn('text-sm font-semibold truncate', isActive ? 'text-violet-700' : 'text-gray-900')}>{topic.title}</p>
                   <p className="text-xs text-gray-400">AI-generated narration</p>
                 </div>
                 <Badge variant="default">{topic.domain}</Badge>
