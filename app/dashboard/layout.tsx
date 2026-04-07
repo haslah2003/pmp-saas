@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/tutor", icon: "🤖", label: "AiTuTorZ" },
   { href: "/dashboard/formulas", icon: "📐", label: "Formulas" },
   { href: "/dashboard/processes", icon: "🔄", label: "Processes" },
+  { href: "/dashboard/artifacts", icon: "📋", label: "Artifacts" },
   { href: "/dashboard/billing", icon: "💳", label: "Billing" },
 ];
 
