@@ -10,18 +10,21 @@ import type { MindMapNode, MindMapMode } from '@/types';
 const PrintStyles = () => (
   <style jsx global>{`
     @media print {
-      @page { margin: 0.5in; size: A4; }
+      @page { margin: 0.4in; size: A4; }
       html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .no-print { display: none !important; }
-      .print-expand { display: block !important; }
-      .lg\\:col-span-3 { width: 100% !important; max-width: 100% !important; }
+      aside { display: none !important; }
+      main { padding: 0 !important; margin: 0 !important; }
       .lg\\:col-span-7 { display: none !important; }
       .grid.lg\\:grid-cols-10 { display: block !important; }
+      .lg\\:col-span-3 { width: 100% !important; max-width: 100% !important; grid-column: span 10 !important; }
+      .flex.h-screen { display: block !important; }
       button { pointer-events: none; }
+      [title="PMP Companion"] { display: none !important; }
+      .fixed { display: none !important; position: static !important; }
     }
   `}</style>
-);
-// ── Motivational Loading Messages ────────────────────────────────────────────
+);// ── Motivational Loading Messages ────────────────────────────────────────────
 
 const PM_MESSAGES = [
   { text: "Crafting expert-level insights just for you...", sub: "Great PMs never stop learning" },
