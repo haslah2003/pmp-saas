@@ -6,7 +6,21 @@ import { cn, getDomainColor } from '@/lib/utils';
 import { PMBOK7_DOMAINS, ECO_MINDMAP, PMBOK7_PRINCIPLES } from '@/lib/pmp-data';
 import type { MindMapNode, MindMapMode } from '@/types';
 
-
+// ── Print Styles ─────────────────────────────────────────────────────────────
+const PrintStyles = () => (
+  <style jsx global>{`
+    @media print {
+      @page { margin: 0.5in; size: A4; }
+      html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .no-print { display: none !important; }
+      .print-expand { display: block !important; }
+      .lg\\:col-span-3 { width: 100% !important; max-width: 100% !important; }
+      .lg\\:col-span-7 { display: none !important; }
+      .grid.lg\\:grid-cols-10 { display: block !important; }
+      button { pointer-events: none; }
+    }
+  `}</style>
+);
 // ── Motivational Loading Messages ────────────────────────────────────────────
 
 const PM_MESSAGES = [
@@ -412,12 +426,20 @@ export default function MindMapClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <PrintStyles />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Mind Map Explorer</h1>
           <p className="text-sm text-gray-500 mt-1">Visualize and explore PMP knowledge domains</p>
         </div>
-        <Tabs
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => window.print()}
+            className="text-sm bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-xl font-semibold transition-all flex items-center gap-2 no-print"
+          >
+            🖨️ Export PDF
+          </button>
+          <Tabs
           tabs={[
             { id: 'pmbok7', label: 'PMBOK 7 Domains', icon: <span className="text-xs">📘</span> },
             { id: 'eco2021', label: 'ECO 2021 Tasks', icon: <span className="text-xs">📋</span> },
@@ -425,6 +447,7 @@ export default function MindMapClient() {
           activeTab={mode}
           onChange={handleModeChange}
         />
+              </div>
       </div>
       <div className="grid lg:grid-cols-10 gap-6">
         {/* Left: MindMap Tree */}
