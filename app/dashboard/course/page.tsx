@@ -1,7 +1,22 @@
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 import { COURSES, TOTAL_LESSONS } from '@/lib/courses-data'
+import { COURSES_AR } from '@/lib/courses-data-ar'
 
-export default function CoursesPage() {
+export default async function CoursesPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let language = 'en'
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('language')
+      .eq('id', user.id)
+      .single()
+    if (profile?.language) language = profile.language
+  }
+  const activeCourses = language === 'ar' ? COURSES_AR : COURSES
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ── Header ── */}
@@ -36,7 +51,7 @@ export default function CoursesPage() {
       {/* ── Course Grid ── */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {COURSES.map((course, idx) => (
+          {activeCourses.map((course, idx) => (
             <Link
               key={course.slug}
               href={`/dashboard/course/${course.slug}`}

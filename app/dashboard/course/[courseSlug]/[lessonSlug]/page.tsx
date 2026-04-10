@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getLessonBySlug, COURSES } from '@/lib/courses-data'
+import { getLessonBySlugAr } from '@/lib/courses-data-ar'
 import { createClient } from '@/lib/supabase/server'
 import GoDeeperPanel from '@/components/GoDeeperPanel'
 
@@ -16,25 +17,29 @@ export function generateStaticParams() {
 
 export default async function LessonPage({ params }: Props) {
   const { courseSlug, lessonSlug } = await params
-  const result = getLessonBySlug(courseSlug, lessonSlug)
+  // Read user's active framework from profile
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let framework = 'pmbok7'
+  let language = 'en'
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('preferred_framework, language')
+      .eq('id', user.id)
+      .single()
+    if (profile?.preferred_framework) framework = profile.preferred_framework
+    if (profile?.language) language = profile.language
+  }
+
+  const result = language === 'ar'
+    ? getLessonBySlugAr(courseSlug, lessonSlug)
+    : getLessonBySlug(courseSlug, lessonSlug)
   if (!result) notFound()
 
   const { course, lesson, index } = result
   const prevLesson = index > 0 ? course.lessons[index - 1] : null
   const nextLesson = index < course.lessons.length - 1 ? course.lessons[index + 1] : null
-
-  // Read user's active framework from profile
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  let framework = 'pmbok7'
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('preferred_framework')
-      .eq('id', user.id)
-      .single()
-    if (profile?.preferred_framework) framework = profile.preferred_framework
-  }
 
   const isV8 = framework === 'pmbok8'
   const frameworkLabel = isV8 ? 'PMBOK 8 + ECO 2026' : 'PMBOK 7 + ECO 2021'

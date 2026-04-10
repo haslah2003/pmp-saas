@@ -1,6 +1,8 @@
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { getCourseBySlug, COURSES } from '@/lib/courses-data'
+import { getCourseBySlugAr } from '@/lib/courses-data-ar'
 
 interface Props {
   params: Promise<{ courseSlug: string }>
@@ -12,7 +14,22 @@ export function generateStaticParams() {
 
 export default async function CoursePage({ params }: Props) {
   const { courseSlug } = await params
-  const course = getCourseBySlug(courseSlug)
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let language = 'en'
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('language')
+      .eq('id', user.id)
+      .single()
+    if (profile?.language) language = profile.language
+  }
+
+  const course = language === 'ar'
+    ? getCourseBySlugAr(courseSlug)
+    : getCourseBySlug(courseSlug)
   if (!course) notFound()
 
   const totalMinutes = course.lessons.reduce((s, l) => s + l.estimatedMinutes, 0)
