@@ -20,3 +20,10 @@ body {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
 }
+/* RTL Support */
+[dir="rtl"] {
+  text-align: right;
+}
+[dir="rtl"] .flex {
+  /* flex direction stays the same, RTL handles text direction */
+}
