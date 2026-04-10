@@ -527,7 +527,7 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
             <p className="text-sm leading-relaxed mb-2">{report.confidence_message}</p>
             <p className="text-white/70 text-xs">— Master Chen Wei, PMP Expert Tutor</p>
             <div className="mt-4 pt-4 border-t border-white/20 text-[10px] text-white/50">
-              Report ID: {report.id.slice(0, 8)} · Generated {reportDate} · PMP Expert Tutor Platform · pmp-saas.vercel.app
+              Report ID: {report.id.slice(0, 8)} · Generated {reportDate} · PMP Expert Tutor Platform · pmp.aitutorsz.com
             </div>
           </div>
 

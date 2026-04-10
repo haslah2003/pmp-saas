@@ -132,7 +132,7 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">From</p>
                 <p className="text-sm font-bold text-gray-900">{siteName}</p>
                 <p className="text-xs text-gray-500">AiTuTorZ Platform</p>
-                <p className="text-xs text-gray-500">pmp-saas.vercel.app</p>
+                <p className="text-xs text-gray-500">pmp.aitutorsz.com</p>
               </div>
             </div>
 
@@ -217,7 +217,7 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
             {/* ═══ Footer ═══ */}
             <div className="px-6 py-3 bg-gray-50 text-center">
               <p className="text-[9px] text-gray-400 leading-relaxed">
-                This is an official receipt from {siteName} (AiTuTorZ Platform) · pmp-saas.vercel.app
+                This is an official receipt from {siteName} (AiTuTorZ Platform) · pmp.aitutorsz.com
                 <br />
                 For billing inquiries, contact support@pmpexperttutor.com
               </p>
