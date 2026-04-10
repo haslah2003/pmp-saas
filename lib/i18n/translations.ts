@@ -1,4 +1,4 @@
-export type Locale = 'en' | 'ar' | 'fr'
+export type Locale = 'en' | 'ar'
 
 export const RTL_LOCALES: Locale[] = ['ar']
 
