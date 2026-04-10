@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LandingLanguageSelector from "@/components/LandingLanguageSelector";
 
 const features = [
   { icon: "🗺️", title: "Interactive Mind Map", desc: "Visual overview of PMBOK 7th Edition and all 35 ECO tasks" },
@@ -31,6 +32,7 @@ export default function LandingPage() {
           <Link href="/dashboard/pricing" className="text-sm font-medium text-gray-600 hover:text-brand-500">
             Pricing
           </Link>
+          <LandingLanguageSelector />
           <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-brand-500">
             Log In
           </Link>
