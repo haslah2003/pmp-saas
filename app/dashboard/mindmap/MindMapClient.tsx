@@ -92,6 +92,7 @@ function GoDeeperSidebar({
           lessonTitle: node.label,
           domain: node.id,
           framework: 'pmbok7',
+          language: typeof window !== 'undefined' ? (document.cookie.match(/lang=([^;]+)/)?.[1] || 'en') : 'en',
         }),
       });
       if (!res.body) throw new Error('No body');
@@ -129,6 +130,7 @@ function GoDeeperSidebar({
           lessonTitle: node.label,
           domain: node.id,
           framework: 'pmbok7',
+          language: typeof window !== 'undefined' ? (document.cookie.match(/lang=([^;]+)/)?.[1] || 'en') : 'en',
         }),
       });
       if (!res.body) throw new Error('No body');

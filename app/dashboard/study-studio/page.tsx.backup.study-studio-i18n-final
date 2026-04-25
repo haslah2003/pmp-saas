@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Card, Tabs, Button, Badge, Progress } from '@/components/ui';
-import { cn } from '@/lib/utils';
+import { cn, shuffleArray } from '@/lib/utils';
 import { SAMPLE_QUESTIONS } from '@/lib/pmp-data';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { StudyTab } from '@/types';
@@ -11,65 +11,30 @@ import type { StudyTab } from '@/types';
 function NotesTab() {
   const { t, isArabic } = useLanguage();
   const [note, setNote] = useState('');
-
-  // Important: this is intentionally computed on every render.
-  // Do not store language-dependent labels inside useState([...]),
-  // because useState initializers do not re-run when the language changes.
-  const savedNotes = [
-    {
-      id: '1',
-      topic: isArabic ? 'استراتيجيات تفاعل أصحاب المصلحة' : 'Stakeholder Engagement',
-      content: isArabic
-        ? 'الاستراتيجيات الرئيسية: التحديد المبكر، تحليل القوة/الاهتمام، تطوير خطط التفاعل، والمراقبة المستمرة.'
-        : 'Key strategies: identify early, analyze power/interest, develop engagement plans, monitor continuously.',
-      tags: isArabic ? ['المعنيون', 'PMBOK7'] : ['stakeholders', 'pmbok7'],
-      date: isArabic ? 'منذ ساعتين' : '2 hours ago',
-    },
-    {
-      id: '2',
-      topic: isArabic ? 'القيادة الخادمة' : 'Servant Leadership',
-      content: isArabic
-        ? 'التركيز على احتياجات الفريق، إزالة العوائق، والتوجيه بالتدريب بدلاً من الأوامر المباشرة.'
-        : 'Focus on team needs, remove impediments, coaching over directing. Essential for agile environments.',
-      tags: isArabic ? ['الفريق', 'القيادة'] : ['team', 'leadership'],
-      date: isArabic ? 'منذ يوم' : '1 day ago',
-    },
-    {
-      id: '3',
-      topic: isArabic ? 'معادلات القيمة المكتسبة EVM' : 'EVM Formulas',
-      content: 'CPI = EV/AC, SPI = EV/PV, EAC = BAC/CPI, ETC = EAC - AC, VAC = BAC - EAC, TCPI = (BAC-EV)/(BAC-AC)',
-      tags: isArabic ? ['القياس', 'المعادلات'] : ['measurement', 'formulas'],
-      date: isArabic ? 'منذ 3 أيام' : '3 days ago',
-    },
-  ];
+  const [savedNotes] = useState([
+    { id: '1', topic: isArabic ? 'استراتيجيات تفاعل أصحاب المصلحة' : 'Stakeholder Engagement', content: isArabic ? 'الاستراتيجيات الرئيسية: تحديد مبكر، تحليل القوة/الاهتمام، تطوير خطط التفاعل، المراقبة المستمرة.' : 'Key strategies: identify early, analyze power/interest, develop engagement plans, monitor continuously.', tags: isArabic ? ['أصحاب-المصلحة', 'pmbok7'] : ['stakeholders', 'pmbok7'], date: isArabic ? 'منذ ساعتين' : '2 hours ago' },
+    { id: '2', topic: isArabic ? 'القيادة الخادمة' : 'Servant Leadership', content: isArabic ? 'التركيز على احتياجات الفريق، إزالة العقبات، التدريب بدلاً من التوجيه. ضروري للبيئات الرشيقة.' : 'Focus on team needs, remove impediments, coaching over directing. Essential for agile environments.', tags: isArabic ? ['فريق', 'قيادة'] : ['team', 'leadership'], date: isArabic ? 'منذ يوم' : '1 day ago' },
+    { id: '3', topic: isArabic ? 'صيغ EVM' : 'EVM Formulas', content: isArabic ? 'CPI = EV/AC, SPI = EV/PV, EAC = BAC/CPI, ETC = EAC - AC, VAC = BAC - EAC, TCPI = (BAC-EV)/(BAC-AC)' : 'CPI = EV/AC, SPI = EV/PV, EAC = BAC/CPI, ETC = EAC - AC, VAC = BAC - EAC, TCPI = (BAC-EV)/(BAC-AC)', tags: isArabic ? ['قياس', 'صيغ'] : ['measurement', 'formulas'], date: isArabic ? 'منذ 3 أيام' : '3 days ago' },
+  ]);
 
   return (
     <div className="grid lg:grid-cols-5 gap-6">
       <div className="lg:col-span-3">
         <Card padding="lg">
           <h3 className="font-bold mb-4">{t('studio.new_note')}</h3>
-          <input
-            type="text"
-            placeholder={t('studio.topic_placeholder')}
-            className="w-full px-4 py-2.5 rounded-lg border border-surface-200 text-sm mb-3 focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 outline-none"
-          />
+          <input type="text" placeholder={t('studio.topic_placeholder')} className="w-full px-4 py-2.5 rounded-lg border border-surface-200 text-sm mb-3 focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 outline-none" />
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder={t('studio.note_placeholder')}
             className="w-full px-4 py-3 rounded-lg border border-surface-200 text-sm min-h-[200px] resize-y focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 outline-none"
           />
-          <div className="flex items-center justify-between mt-4 gap-3">
-            <input
-              type="text"
-              placeholder={t('studio.tags_placeholder')}
-              className="px-3 py-2 rounded-lg border border-surface-200 text-xs w-60 focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 outline-none"
-            />
+          <div className="flex items-center justify-between mt-4">
+            <input type="text" placeholder={t('studio.tags_placeholder')} className="px-3 py-2 rounded-lg border border-surface-200 text-xs w-60 focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 outline-none" />
             <Button>{t('studio.save_note')}</Button>
           </div>
         </Card>
       </div>
-
       <div className="lg:col-span-2 space-y-3">
         <h3 className="font-bold text-brand-900">{t('studio.saved_notes')}</h3>
         {savedNotes.map((n) => (
@@ -77,9 +42,7 @@ function NotesTab() {
             <h4 className="font-semibold text-sm">{n.topic}</h4>
             <p className="text-xs text-brand-900/50 mt-1 line-clamp-2">{n.content}</p>
             <div className="flex items-center gap-2 mt-3">
-              {n.tags.map((tag) => (
-                <Badge key={tag} variant="default">{tag}</Badge>
-              ))}
+              {n.tags.map((t) => <Badge key={t} variant="default">{t}</Badge>)}
               <span className="text-[10px] text-brand-900/30 ml-auto">{n.date}</span>
             </div>
           </Card>
@@ -681,7 +644,7 @@ function AudioTab() {
       });
       if (!res.ok) {
         const err = await res.json();
-        setError(err.upgrade ? (isArabic ? 'يتطلب سرد الصوت اشتراك Premium.' : isArabic ? 'يتطلب السرد الصوتي اشتراكًا مميزًا.' : 'Audio narration requires a Premium subscription.') : (err.error || (isArabic ? 'فشل إنشاء الصوت.' : isArabic ? 'تعذر توليد الصوت.' : 'Failed to generate audio.')));
+        setError(err.upgrade ? (isArabic ? 'يتطلب سرد الصوت اشتراك Premium.' : 'Audio narration requires a Premium subscription.') : (err.error || (isArabic ? 'فشل إنشاء الصوت.' : 'Failed to generate audio.')));
         setIsGenerating(false); return;
       }
       const data = await res.json();
@@ -692,9 +655,9 @@ function AudioTab() {
         setTimeout(() => { audioRef.current?.play().then(() => setIsPlaying(true)).catch(() => {}); }, 200);
       } else if (data.script) {
         setShowScript(true);
-        setError(isArabic ? 'تحويل الصوت غير متاح. يتم عرض النص أدناه.' : isArabic ? 'تحويل الصوت غير متاح حاليًا. تم عرض النص أدناه.' : 'Audio conversion unavailable. Script is shown below.');
+        setError(isArabic ? 'تحويل الصوت غير متاح. يتم عرض النص أدناه.' : 'Audio conversion unavailable. Script is shown below.');
       }
-    } catch { setError(isArabic ? 'خطأ في الشبكة. يرجى المحاولة مجدداً.' : isArabic ? 'خطأ في الشبكة. يرجى المحاولة مرة أخرى.' : 'Network error. Please try again.'); }
+    } catch { setError(isArabic ? 'خطأ في الشبكة. يرجى المحاولة مجدداً.' : 'Network error. Please try again.'); }
     finally { setIsGenerating(false); }
   }
 
@@ -978,7 +941,6 @@ export default function StudyStudioPage() {
         <h1 className="text-2xl font-bold text-brand-900">{t('studio.title')}</h1>
         <p className="text-sm text-brand-900/50 mt-1">{t('studio.subtitle')}</p>
       </div>
-
       <Tabs
         tabs={[
           { id: 'notes', label: t('studio.notes'), icon: <span>📝</span> },
@@ -989,7 +951,6 @@ export default function StudyStudioPage() {
         activeTab={activeTab}
         onChange={(id) => setActiveTab(id as StudyTab)}
       />
-
       <div className="animate-fade-in">
         {activeTab === 'notes' && <NotesTab />}
         {activeTab === 'audio' && <AudioTab />}

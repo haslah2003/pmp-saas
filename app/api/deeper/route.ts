@@ -176,11 +176,12 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { sectionType, content, lessonTitle, domain, framework = 'pmbok7' } = await req.json()
+  const { sectionType, content, lessonTitle, domain, framework = 'pmbok7', language = 'en' } = await req.json()
 
   // ── Cache Check: serve instantly if already generated ──
   const contentStr = typeof content === 'string' ? content : JSON.stringify(content)
-  const cacheKey = `deeper:${sectionType}:${lessonTitle}:${contentStr}`.toLowerCase().replace(/[^a-z0-9:]/g, '-').slice(0, 190)
+  const langPrefix = language === 'ar' ? 'ar:' : ''
+  const cacheKey = `deeper:${langPrefix}${sectionType}:${lessonTitle}:${contentStr}`.toLowerCase().replace(/[^a-z0-9:]/g, '-').slice(0, 190)
   
   const { data: cached } = await supabase
     .from('content_cache')
@@ -204,7 +205,7 @@ export async function POST(req: NextRequest) {
     max_tokens: 2500,
     system: `You are generating deep educational content for a PMP exam preparation platform. 
 Framework in use: ${FRAMEWORK_BADGE[framework] ?? FRAMEWORK_BADGE.pmbok7}.
-Always ground your analysis in the specified framework. Be precise, exam-focused, and genuinely educational.`,
+Always ground your analysis in the specified framework. Be precise, exam-focused, and genuinely educational.${language === 'ar' ? ' IMPORTANT: Write your ENTIRE response in Arabic (Modern Standard Arabic). Use Arabic for all explanations, examples, and analysis. Keep technical terms like PMBOK, PMP, ECO, PMI in English but write everything else in Arabic. Use right-to-left friendly formatting.' : ''}`,
     messages: [{ role: 'user', content: prompt }],
   })
 

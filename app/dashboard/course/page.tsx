@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
+import { t, type Locale } from '@/lib/i18n/translations'
 import { createClient } from '@/lib/supabase/server'
 import { COURSES, TOTAL_LESSONS } from '@/lib/courses-data'
 import { COURSES_AR } from '@/lib/courses-data-ar'
@@ -6,8 +8,11 @@ import { COURSES_AR } from '@/lib/courses-data-ar'
 export default async function CoursesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  let language = 'en'
-  if (user) {
+  const cookieStore = await cookies()
+  const cookieLocale = cookieStore.get('pmp_locale')?.value
+  let language = cookieLocale === 'ar' ? 'ar' : 'en'
+
+  if (user && cookieLocale !== 'ar' && cookieLocale !== 'en') {
     const { data: profile } = await supabase
       .from('profiles')
       .select('language')
@@ -18,26 +23,25 @@ export default async function CoursesPage() {
   const activeCourses = language === 'ar' ? COURSES_AR : COURSES
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" dir={language === "ar" ? "rtl" : "ltr"}>
       {/* ── Header ── */}
       <div className="bg-white border-b border-gray-100 px-6 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-3xl">🎓</span>
-            <h1 className="text-3xl font-bold text-gray-900">PMP Course Library</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{t(language as Locale, 'course.library_title')}</h1>
           </div>
           <p className="text-gray-500 mt-1 max-w-2xl">
-            Master all 8 PMBOK 7 Performance Domains through structured lessons, exam tips,
-            and Rita Mulcahy insights. {TOTAL_LESSONS} lessons across {COURSES.length} domains.
+            {t(language as Locale, 'course.library_desc')} {TOTAL_LESSONS} {t(language as Locale, 'course.lessons')} — {COURSES.length} {t(language as Locale, 'course.perf_domains')}.
           </p>
 
           {/* Stats strip */}
           <div className="flex items-center gap-6 mt-5">
             {[
-              { label: 'Performance Domains', value: COURSES.length },
-              { label: 'Total Lessons', value: TOTAL_LESSONS },
-              { label: 'Avg. per Lesson', value: '18 min' },
-              { label: 'Practice CTAs', value: 'Every lesson' },
+              { label: t(language as Locale, 'course.perf_domains'), value: COURSES.length },
+              { label: t(language as Locale, 'course.total_lessons'), value: TOTAL_LESSONS },
+              { label: t(language as Locale, 'course.avg_per_lesson'), value: '18 ' + t(language as Locale, 'course.min') },
+              { label: t(language as Locale, 'course.practice_ctas'), value: t(language as Locale, 'course.every_lesson') },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-xl font-bold text-violet-600">{s.value}</p>
@@ -64,7 +68,7 @@ export default async function CoursesPage() {
                     <span className="text-3xl">{course.icon}</span>
                     <div>
                       <p className="text-xs font-semibold text-white/70 uppercase tracking-widest">
-                        Domain {idx + 1}
+                        {t(language as Locale, 'course.domain')} {idx + 1}
                       </p>
                       <h2 className="text-lg font-bold leading-tight mt-0.5">
                         {course.shortTitle}
@@ -72,7 +76,7 @@ export default async function CoursesPage() {
                     </div>
                   </div>
                   <span className="bg-white/20 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
-                    {course.lessons.length} lessons
+                    {course.lessons.length} {t(language as Locale, 'course.lessons')}
                   </span>
                 </div>
               </div>
@@ -108,12 +112,12 @@ export default async function CoursesPage() {
                 {/* CTA */}
                 <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
                   <div className="flex items-center gap-3 text-xs text-gray-400">
-                    <span>📖 Lessons</span>
-                    <span>🎯 Practice</span>
-                    <span>🗺️ Mind Map</span>
+                    <span>📖 {t(language as Locale, 'course.lessons_label')}</span>
+                    <span>🎯 {t(language as Locale, 'course.practice_label')}</span>
+                    <span>🗺️ {t(language as Locale, 'course.mindmap_label')}</span>
                   </div>
                   <span className={`text-xs font-semibold ${course.textColor} group-hover:translate-x-0.5 transition-transform`}>
-                    Start →
+                    {t(language as Locale, 'course.start')} →
                   </span>
                 </div>
               </div>

@@ -137,6 +137,89 @@ export type TranslationKeys = {
   'pricing.get_plan': string
   'pricing.most_popular': string
 
+
+  // ── Course Library ──
+  'course.library_title': string
+  'course.library_desc': string
+  'course.perf_domains': string
+  'course.total_lessons': string
+  'course.avg_per_lesson': string
+  'course.practice_ctas': string
+  'course.every_lesson': string
+  'course.domain': string
+  'course.lessons': string
+  'course.lessons_label': string
+  'course.practice_label': string
+  'course.mindmap_label': string
+  'course.start': string
+  'course.course_library': string
+  'course.lessons_in_domain': string
+  'course.min': string
+  'course.key_concepts': string
+  'course.exam_tips': string
+  'course.quick_actions': string
+  'course.practice_domain': string
+  'course.view_mindmap': string
+  'course.ask_tutor': string
+  'course.what_learn': string
+  'course.all_domains': string
+  'course.min_total': string
+  'course.deep_dive_topics': string
+  'course.pitfalls': string
+  'course.overview': string
+  'course.click_deeper': string
+  'course.deep_dive': string
+  'course.exam_tips_section': string
+  'course.rita_insight': string
+  'course.common_pitfalls': string
+  'course.lesson_of': string
+  'course.go_deeper_cta': string
+  'course.learning_outcomes': string
+
+  // ── Practice Page ──
+  'practice.locked_title': string
+  'practice.locked_desc': string
+  'practice.upgrade': string
+  'practice.adaptive_engine': string
+  'practice.choose_framework': string
+  'practice.choose_difficulty': string
+  'practice.filter_domain': string
+  'practice.start_session': string
+  'practice.entry': string
+  'practice.entry_desc': string
+  'practice.paced': string
+  'practice.paced_desc': string
+  'practice.difficult': string
+  'practice.difficult_desc': string
+  'practice.challenging': string
+  'practice.challenging_desc': string
+  'practice.all_domains': string
+  'practice.people': string
+  'practice.process': string
+  'practice.business': string
+  'practice.questions_per_block': string
+
+  // ── Study Studio ──
+  'studio.title': string
+  'studio.subtitle': string
+  'studio.notes': string
+  'studio.audio': string
+  'studio.flashcards': string
+  'studio.quiz': string
+  'studio.new_note': string
+  'studio.topic_placeholder': string
+  'studio.note_placeholder': string
+  'studio.tags_placeholder': string
+  'studio.save_note': string
+  'studio.saved_notes': string
+
+  // ── Go Deeper Panel ──
+  'deeper.go_deeper': string
+  'deeper.loading': string
+  'deeper.followup_placeholder': string
+  'deeper.ask': string
+  'deeper.collapse': string
+
   // ── Receipt ──
   'receipt.title': string
   'receipt.billed_to': string
@@ -276,6 +359,89 @@ const en: TranslationKeys = {
   'pricing.get_plan': 'Get',
   'pricing.most_popular': 'Most Popular',
 
+
+  // Course Library
+  'course.library_title': 'PMP Course Library',
+  'course.library_desc': 'Master all 8 PMBOK 7 Performance Domains through structured lessons, exam tips, and Rita Mulcahy insights.',
+  'course.perf_domains': 'Performance Domains',
+  'course.total_lessons': 'Total Lessons',
+  'course.avg_per_lesson': 'Avg. per Lesson',
+  'course.practice_ctas': 'Practice CTAs',
+  'course.every_lesson': 'Every lesson',
+  'course.domain': 'Domain',
+  'course.lessons': 'lessons',
+  'course.lessons_label': 'Lessons',
+  'course.practice_label': 'Practice',
+  'course.mindmap_label': 'Mind Map',
+  'course.start': 'Start',
+  'course.course_library': 'Course Library',
+  'course.lessons_in_domain': 'Lessons in this Domain',
+  'course.min': 'min',
+  'course.key_concepts': 'key concepts',
+  'course.exam_tips': 'exam tips',
+  'course.quick_actions': 'Quick Actions',
+  'course.practice_domain': 'Practice This Domain',
+  'course.view_mindmap': 'View Mind Map',
+  'course.ask_tutor': 'Ask AiTuTorZ',
+  'course.what_learn': "What You'll Learn",
+  'course.all_domains': 'All Domains',
+  'course.min_total': 'min total',
+  'course.deep_dive_topics': 'deep dive topics',
+  'course.pitfalls': 'pitfalls to avoid',
+  'course.overview': 'Overview',
+  'course.click_deeper': 'Click any card to go deeper',
+  'course.deep_dive': 'Deep Dive',
+  'course.exam_tips_section': 'Exam Tips',
+  'course.rita_insight': "Rita Mulcahy's Insight",
+  'course.common_pitfalls': 'Common Pitfalls',
+  'course.lesson_of': 'Lesson',
+  'course.go_deeper_cta': 'Click Go Deeper on any section for AI-powered analysis, case studies & more',
+  'course.learning_outcomes': 'Learning Outcomes',
+
+  // Practice Page
+  'practice.locked_title': 'Practice Question Bank',
+  'practice.locked_desc': 'Unlock domain-filtered practice questions with detailed explanations.',
+  'practice.upgrade': 'Upgrade to Premium',
+  'practice.adaptive_engine': 'Adaptive Learning Engine',
+  'practice.choose_framework': 'Choose your framework',
+  'practice.choose_difficulty': 'Choose your difficulty level',
+  'practice.filter_domain': 'Filter by domain',
+  'practice.start_session': 'Start Practice Session',
+  'practice.entry': 'Entry',
+  'practice.entry_desc': 'Easy — Build your foundation',
+  'practice.paced': 'Paced',
+  'practice.paced_desc': 'Moderate — Apply your knowledge',
+  'practice.difficult': 'Difficult',
+  'practice.difficult_desc': 'Real exam-style questions',
+  'practice.challenging': 'Challenging',
+  'practice.challenging_desc': 'Professional level mastery',
+  'practice.all_domains': 'All Domains',
+  'practice.people': 'People',
+  'practice.process': 'Process',
+  'practice.business': 'Business Environment',
+  'practice.questions_per_block': 'questions per block',
+
+  // Study Studio
+  'studio.title': 'Study Studio',
+  'studio.subtitle': 'Your personal learning workspace — take notes, listen, review flashcards, and test yourself.',
+  'studio.notes': 'Notes',
+  'studio.audio': 'Audio',
+  'studio.flashcards': 'Flashcards',
+  'studio.quiz': 'Quick Quiz',
+  'studio.new_note': 'New Study Note',
+  'studio.topic_placeholder': 'Topic (e.g., Risk Management)',
+  'studio.note_placeholder': 'Write your notes here... Markdown supported.',
+  'studio.tags_placeholder': 'Tags (comma separated)',
+  'studio.save_note': 'Save Note',
+  'studio.saved_notes': 'Saved Notes',
+
+  // Go Deeper Panel
+  'deeper.go_deeper': 'Go Deeper',
+  'deeper.loading': 'Generating deep analysis...',
+  'deeper.followup_placeholder': 'Ask a follow-up question...',
+  'deeper.ask': 'Ask',
+  'deeper.collapse': 'Collapse',
+
   // Receipt
   'receipt.title': 'Payment Receipt',
   'receipt.billed_to': 'Billed To',
@@ -414,6 +580,89 @@ const ar: TranslationKeys = {
   'pricing.annual': 'سنوي',
   'pricing.get_plan': 'اشترك في',
   'pricing.most_popular': 'الأكثر شعبية',
+
+
+  // Course Library
+  'course.library_title': 'مكتبة دورات PMP',
+  'course.library_desc': 'أتقن جميع مجالات الأداء الثمانية في PMBOK 7 من خلال دروس منظمة ونصائح للاختبار ورؤى ريتا مولكاهي.',
+  'course.perf_domains': 'مجالات الأداء',
+  'course.total_lessons': 'إجمالي الدروس',
+  'course.avg_per_lesson': 'المعدل لكل درس',
+  'course.practice_ctas': 'تمارين عملية',
+  'course.every_lesson': 'كل درس',
+  'course.domain': 'المجال',
+  'course.lessons': 'دروس',
+  'course.lessons_label': 'الدروس',
+  'course.practice_label': 'التمرين',
+  'course.mindmap_label': 'الخريطة الذهنية',
+  'course.start': 'ابدأ',
+  'course.course_library': 'مكتبة الدورات',
+  'course.lessons_in_domain': 'الدروس في هذا المجال',
+  'course.min': 'دقيقة',
+  'course.key_concepts': 'مفاهيم رئيسية',
+  'course.exam_tips': 'نصائح للاختبار',
+  'course.quick_actions': 'إجراءات سريعة',
+  'course.practice_domain': 'تمرين هذا المجال',
+  'course.view_mindmap': 'عرض الخريطة الذهنية',
+  'course.ask_tutor': 'اسأل AiTuTorZ',
+  'course.what_learn': 'ماذا ستتعلم',
+  'course.all_domains': 'جميع المجالات',
+  'course.min_total': 'دقيقة إجمالي',
+  'course.deep_dive_topics': 'موضوعات معمقة',
+  'course.pitfalls': 'أخطاء يجب تجنبها',
+  'course.overview': 'نظرة عامة',
+  'course.click_deeper': 'انقر على أي بطاقة للتعمق أكثر',
+  'course.deep_dive': 'تعمق',
+  'course.exam_tips_section': 'نصائح الاختبار',
+  'course.rita_insight': 'رؤية ريتا مولكاهي',
+  'course.common_pitfalls': 'الأخطاء الشائعة',
+  'course.lesson_of': 'الدرس',
+  'course.go_deeper_cta': 'انقر على تعمق أكثر في أي قسم للحصول على تحليل بالذكاء الاصطناعي ودراسات حالة والمزيد',
+  'course.learning_outcomes': 'مخرجات التعلم',
+
+  // Practice Page
+  'practice.locked_title': 'بنك أسئلة التمرين',
+  'practice.locked_desc': 'افتح أسئلة التمرين المصنفة حسب المجال مع شروحات مفصلة.',
+  'practice.upgrade': 'ترقية إلى بريميوم',
+  'practice.adaptive_engine': 'محرك التعلم التكيفي',
+  'practice.choose_framework': 'اختر إطار العمل',
+  'practice.choose_difficulty': 'اختر مستوى الصعوبة',
+  'practice.filter_domain': 'تصفية حسب المجال',
+  'practice.start_session': 'ابدأ جلسة التمرين',
+  'practice.entry': 'مبتدئ',
+  'practice.entry_desc': 'سهل — ابنِ أساسك',
+  'practice.paced': 'متدرج',
+  'practice.paced_desc': 'متوسط — طبّق معرفتك',
+  'practice.difficult': 'صعب',
+  'practice.difficult_desc': 'أسئلة بأسلوب الاختبار الحقيقي',
+  'practice.challenging': 'تحدي',
+  'practice.challenging_desc': 'إتقان المستوى المهني',
+  'practice.all_domains': 'جميع المجالات',
+  'practice.people': 'الأشخاص',
+  'practice.process': 'العمليات',
+  'practice.business': 'بيئة الأعمال',
+  'practice.questions_per_block': 'أسئلة لكل مجموعة',
+
+  // Study Studio
+  'studio.title': 'استوديو الدراسة',
+  'studio.subtitle': 'مساحة التعلم الشخصية — دوّن ملاحظاتك، استمع، راجع البطاقات التعليمية، واختبر نفسك.',
+  'studio.notes': 'الملاحظات',
+  'studio.audio': 'الصوت',
+  'studio.flashcards': 'البطاقات التعليمية',
+  'studio.quiz': 'اختبار سريع',
+  'studio.new_note': 'ملاحظة دراسية جديدة',
+  'studio.topic_placeholder': 'الموضوع (مثال: إدارة المخاطر)',
+  'studio.note_placeholder': 'اكتب ملاحظاتك هنا... يدعم Markdown.',
+  'studio.tags_placeholder': 'الوسوم (مفصولة بفاصلة)',
+  'studio.save_note': 'حفظ الملاحظة',
+  'studio.saved_notes': 'الملاحظات المحفوظة',
+
+  // Go Deeper Panel
+  'deeper.go_deeper': 'تعمق أكثر',
+  'deeper.loading': 'جارِ إنشاء التحليل المعمق...',
+  'deeper.followup_placeholder': 'اطرح سؤال متابعة...',
+  'deeper.ask': 'اسأل',
+  'deeper.collapse': 'طي',
 
   // Receipt
   'receipt.title': 'إيصال الدفع',

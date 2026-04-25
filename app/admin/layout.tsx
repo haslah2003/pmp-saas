@@ -36,6 +36,7 @@ export default async function AdminLayout({
 
   const ADMIN_NAV = [
     { href: "/admin/analytics", icon: "📊", label: "Analytics" },
+    { href: "/admin/content-manager", icon: "⚡", label: "Content Manager" },
     { href: "/admin/branding", icon: "🎨", label: "Branding" },
     { href: "/admin/media", icon: "🖼️", label: "Media Library" },
     { href: "/admin/resources", icon: "📚", label: "Resource Library" },

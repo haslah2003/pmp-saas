@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { cookies } from 'next/headers'
 import { t, type Locale } from '@/lib/i18n/translations'
 import { notFound } from 'next/navigation'
 import { getLessonBySlug, COURSES } from '@/lib/courses-data'
@@ -19,26 +18,17 @@ export default async function LessonPage({ params }: Props) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   let framework = 'pmbok7'
-
-  const cookieStore = await cookies()
-  const cookieLocale = cookieStore.get('pmp_locale')?.value
-  let language = (cookieLocale === 'ar' ? 'ar' : 'en') as Locale
-
+  let language = 'en'
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('preferred_framework, language')
       .eq('id', user.id)
       .single()
-
     if (profile?.preferred_framework) framework = profile.preferred_framework
-
-    if (cookieLocale !== 'ar' && cookieLocale !== 'en') {
-      language = (profile?.language === 'ar' ? 'ar' : 'en') as Locale
-    }
+    if (profile?.language) language = profile.language
   }
-
-  const loc = language
+  const loc = language as Locale
   const isAr = language === 'ar'
 
   const result = language === 'ar'
@@ -303,23 +293,21 @@ export default async function LessonPage({ params }: Props) {
                   href={`/dashboard/practice?domain=${encodeURIComponent(course.shortTitle)}`}
                   className="bg-white text-gray-900 text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors"
                 >
-                  {isAr ? '🎯 تدرّب على هذا المجال' : '🎯 Practice This Domain'}
+                  🎯 Practice This Domain
                 </Link>
                 <Link
                   href={`/dashboard/tutor?topic=${encodeURIComponent(
-                    isAr
-                      ? `اشرح ${lesson.title} بعمق مع أمثلة مركزة على الاختبار وأنماط الأسئلة المتوقعة في اختبار PMP.`
-                      : `Explain ${lesson.title} in depth with exam-focused examples and question patterns I should expect on the PMP exam.`
+                    `Explain ${lesson.title} in depth with exam-focused examples and question patterns I should expect on the PMP exam.`
                   )}`}
                   className="bg-white/20 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-white/30 transition-colors"
                 >
-                  {isAr ? '🤖 ناقش مع AiTuTorZ' : '🤖 Discuss with AiTuTorZ'}
+                  🤖 Discuss with AiTuTorZ
                 </Link>
                 <Link
                   href="/dashboard/mindmap"
                   className="bg-white/20 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-white/30 transition-colors"
                 >
-                  {isAr ? '🗺️ عرض الخريطة الذهنية' : '🗺️ View Mind Map'}
+                  🗺️ View Mind Map
                 </Link>
               </div>
             </div>

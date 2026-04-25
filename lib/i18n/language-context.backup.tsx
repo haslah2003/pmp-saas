@@ -43,36 +43,42 @@ export function LanguageProvider({
 }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [locale, setLocaleState] = useState<Locale>(normalizeLocale(initialLocale))
+
+  const safeInitialLocale = normalizeLocale(initialLocale)
+  const [locale, setLocaleState] = useState<Locale>(safeInitialLocale)
 
   const setLocale = useCallback(
     async (newLocale: Locale) => {
-      const safeLocale = normalizeLocale(newLocale)
+      const safeNewLocale = normalizeLocale(newLocale)
+      const previousLocale = locale
 
-      setLocaleState(safeLocale)
-
-      document.cookie = `pmp_locale=${safeLocale}; path=/; max-age=31536000; SameSite=Lax`
+      // Immediate client-side update for Sidebar and other client components
+      setLocaleState(safeNewLocale)
 
       try {
         const response = await fetch('/api/language', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ language: safeLocale }),
-          cache: 'no-store',
+          body: JSON.stringify({ language: safeNewLocale }),
         })
 
         if (!response.ok) {
-          console.error('Failed to save language preference')
+          throw new Error('Failed to save language preference')
         }
-      } catch (error) {
-        console.error('Language update request failed:', error)
-      }
 
-      startTransition(() => {
-        router.refresh()
-      })
+        // Critical fix:
+        // Force Next.js Server Components to re-render and re-read profiles.language.
+        startTransition(() => {
+          router.refresh()
+        })
+      } catch (error) {
+        console.error('Language update failed:', error)
+
+        // Roll back client UI if the database update fails
+        setLocaleState(previousLocale)
+      }
     },
-    [router]
+    [router, locale]
   )
 
   const dir = isRTL(locale) ? 'rtl' : 'ltr'
@@ -111,8 +117,10 @@ export function LanguageProvider({
 
 export function useLanguage() {
   const context = useContext(LanguageContext)
+
   if (!context) {
     throw new Error('useLanguage must be used within LanguageProvider')
   }
+
   return context
 }
