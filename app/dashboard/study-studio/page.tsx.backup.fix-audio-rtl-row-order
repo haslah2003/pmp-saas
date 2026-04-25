@@ -848,7 +848,7 @@ function AudioTab() {
             return (
               <button key={topic.id} onClick={() => generateAudio(topic)}
                 disabled={isGenerating && activeId !== topic.id}
-                className={cn('w-full flex items-center gap-4 p-4 rounded-xl transition-all', isArabic ? 'text-right' : 'text-left',
+                className={cn('w-full flex items-center gap-4 p-4 rounded-xl transition-all', isArabic ? 'text-right flex-row-reverse' : 'text-left',
                   isActive ? 'bg-violet-50 border border-violet-200' : 'hover:bg-gray-50 border border-transparent',
                   isGenerating && activeId !== topic.id && 'opacity-50',
                 )}>
