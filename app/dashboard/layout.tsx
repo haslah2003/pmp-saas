@@ -4,6 +4,7 @@ import React from "react";
 import { DashboardLanguageWrapper } from "@/components/DashboardLanguageWrapper";
 import Sidebar from "@/components/Sidebar";
 import CompanionChat from "@/components/CompanionChat";
+import DashboardArabicTextBridge from "@/components/DashboardArabicTextBridge";
 import type { Locale } from "@/lib/i18n/translations";
 
 async function getBranding() {
@@ -52,6 +53,7 @@ export default async function DashboardLayout({
 
   return (
     <DashboardLanguageWrapper initialLocale={locale}>
+      <DashboardArabicTextBridge />
       <div className="flex h-screen bg-gray-50" dir={dir}>
         <Sidebar
           logoUrl={logoUrl}
