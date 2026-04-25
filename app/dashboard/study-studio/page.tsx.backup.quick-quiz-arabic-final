@@ -933,198 +933,57 @@ function QuizTab() {
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
-
-  const ARABIC_SAMPLE_QUESTIONS = [
-    {
-      source: 'ECO2021',
-      difficulty: 'medium',
-      stem: 'يلاحظ مدير المشروع وجود خلاف بين عضوين في الفريق حول النهج التقني. ما الذي ينبغي على مدير المشروع فعله أولًا؟',
-      options: [
-        { key: 'A', text: 'تصعيد المشكلة إلى راعي المشروع' },
-        { key: 'B', text: 'تقييم مصدر الخلاف ومرحلته' },
-        { key: 'C', text: 'إبعاد عضوي الفريق من المشروع' },
-        { key: 'D', text: 'توثيق الخلاف في سجل المشكلات' },
-      ],
-      correct_key: 'B',
-      explanation: 'ينبغي على مدير المشروع أولًا فهم مصدر الخلاف ومرحلته قبل اختيار أسلوب المعالجة المناسب. التصعيد أو الإبعاد أو التوثيق فقط لا يعالج السبب الجذري للخلاف.',
-    },
-    {
-      source: 'PMBOK7',
-      difficulty: 'easy',
-      stem: 'ما الغرض الأساسي من تحديد أصحاب المصلحة في بداية المشروع؟',
-      options: [
-        { key: 'A', text: 'تحديد جميع الأشخاص أو الجهات التي قد تؤثر في المشروع أو تتأثر به' },
-        { key: 'B', text: 'اختيار أعضاء فريق المشروع فقط' },
-        { key: 'C', text: 'حصر الجهات التي تمول المشروع فقط' },
-        { key: 'D', text: 'إلغاء الحاجة إلى خطة التواصل' },
-      ],
-      correct_key: 'A',
-      explanation: 'تحديد أصحاب المصلحة يهدف إلى معرفة كل من يمكن أن يؤثر في المشروع أو يتأثر بنتائجه، حتى تتم إدارة توقعاتهم وتواصلهم بفعالية.',
-    },
-    {
-      source: 'PMBOK7',
-      difficulty: 'medium',
-      stem: 'إذا كان مؤشر أداء التكلفة CPI أقل من 1.0، فماذا يعني ذلك غالبًا؟',
-      options: [
-        { key: 'A', text: 'المشروع أقل من الميزانية' },
-        { key: 'B', text: 'المشروع أعلى من الميزانية' },
-        { key: 'C', text: 'المشروع متقدم على الجدول الزمني' },
-        { key: 'D', text: 'لا توجد علاقة بين CPI والتكلفة' },
-      ],
-      correct_key: 'B',
-      explanation: 'عندما يكون CPI أقل من 1.0 فهذا يعني أن قيمة العمل المنجز أقل من التكلفة الفعلية، أي أن المشروع يتجاوز الميزانية.',
-    },
-    {
-      source: 'ECO2021',
-      difficulty: 'medium',
-      stem: 'في بيئة أجايل، ما السلوك الأقرب إلى القيادة الخادمة؟',
-      options: [
-        { key: 'A', text: 'إعطاء أوامر تفصيلية للفريق يوميًا' },
-        { key: 'B', text: 'إزالة العوائق وتمكين الفريق من اتخاذ القرار' },
-        { key: 'C', text: 'التركيز فقط على التقارير الرسمية' },
-        { key: 'D', text: 'تجنب التواصل مع الفريق' },
-      ],
-      correct_key: 'B',
-      explanation: 'القيادة الخادمة تركز على دعم الفريق، إزالة العوائق، التمكين، والتوجيه بدل التحكم التفصيلي.',
-    },
-    {
-      source: 'PMBOK7',
-      difficulty: 'hard',
-      stem: 'عند وجود حالة عدم يقين عالية في المشروع، ما التصرف الأفضل لمدير المشروع؟',
-      options: [
-        { key: 'A', text: 'تجاهل عدم اليقين حتى تظهر المشكلة' },
-        { key: 'B', text: 'استخدام نهج تكيفي ومراجعة المخاطر بشكل مستمر' },
-        { key: 'C', text: 'إغلاق المشروع فورًا' },
-        { key: 'D', text: 'منع أصحاب المصلحة من تقديم ملاحظاتهم' },
-      ],
-      correct_key: 'B',
-      explanation: 'عند ارتفاع عدم اليقين، يكون النهج التكيفي وإدارة المخاطر المستمرة أكثر ملاءمة من تجاهل المخاطر أو التعامل معها برد فعل متأخر.',
-    },
-  ];
-
-  const questions = isArabic ? ARABIC_SAMPLE_QUESTIONS : SAMPLE_QUESTIONS;
+  const questions = SAMPLE_QUESTIONS;
   const q = questions[currentQ];
 
-  const difficultyLabel = isArabic
-    ? q.difficulty === 'easy'
-      ? 'سهل'
-      : q.difficulty === 'hard'
-        ? 'صعب'
-        : 'متوسط'
-    : q.difficulty;
-
-  const handleSubmit = () => {
-    if (!selected) return;
-    setSubmitted(true);
-    if (selected === q.correct_key) setScore(score + 1);
-  };
-
-  const handleNext = () => {
-    setSelected(null);
-    setSubmitted(false);
-    setCurrentQ(Math.min(questions.length - 1, currentQ + 1));
-  };
+  const handleSubmit = () => { if (!selected) return; setSubmitted(true); if (selected === q.correct_key) setScore(score + 1); };
+  const handleNext = () => { setSelected(null); setSubmitted(false); setCurrentQ(Math.min(questions.length - 1, currentQ + 1)); };
 
   return (
-    <div dir={isArabic ? 'rtl' : 'ltr'} className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <Badge variant="info">
-          {isArabic ? `السؤال ${currentQ + 1} من ${questions.length}` : `Question ${currentQ + 1} of ${questions.length}`}
-        </Badge>
-        <Badge variant={score > 0 ? 'success' : 'default'}>
-          {isArabic ? `النتيجة: ${score}/${currentQ + (submitted ? 1 : 0)}` : `Score: ${score}/${currentQ + (submitted ? 1 : 0)}`}
-        </Badge>
+        <Badge variant="info">{isArabic ? `السؤال ${currentQ + 1} من ${questions.length}` : `Question ${currentQ + 1} of ${questions.length}`}</Badge>
+        <Badge variant={score > 0 ? 'success' : 'default'}>{isArabic ? `النتيجة: ${score}/${currentQ + (submitted ? 1 : 0)}` : `Score: ${score}/${currentQ + (submitted ? 1 : 0)}`}</Badge>
       </div>
-
       <Card padding="lg">
         <div className="flex items-center gap-2 mb-4">
           <Badge variant="default">{q.source.toUpperCase()}</Badge>
-          <Badge variant={q.difficulty === 'easy' ? 'success' : q.difficulty === 'hard' ? 'danger' : 'warning'}>
-            {difficultyLabel}
-          </Badge>
+          <Badge variant={q.difficulty === 'easy' ? 'success' : q.difficulty === 'hard' ? 'danger' : 'warning'}>{q.difficulty}</Badge>
         </div>
-
-        <h3 className="text-lg font-semibold text-brand-900 mb-6 leading-relaxed text-center">
-          {q.stem}
-        </h3>
-
+        <h3 className="text-lg font-semibold text-brand-900 mb-6 leading-relaxed">{q.stem}</h3>
         <div className="space-y-3">
           {q.options.map((opt) => {
             const isSelected = selected === opt.key;
             const isCorrect = submitted && opt.key === q.correct_key;
             const isWrong = submitted && isSelected && opt.key !== q.correct_key;
-
             return (
-              <button
-                key={opt.key}
-                onClick={() => !submitted && setSelected(opt.key)}
-                disabled={submitted}
-                className={cn(
-                  'quiz-option w-full flex items-center gap-3',
-                  isArabic ? 'text-right' : 'text-left',
-                  !submitted && isSelected && 'quiz-option-selected',
-                  isCorrect && 'quiz-option-correct',
-                  isWrong && 'quiz-option-incorrect'
-                )}
-              >
-                <span
-                  className={cn(
-                    'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0',
-                    isCorrect
-                      ? 'bg-emerald-500 text-white'
-                      : isWrong
-                        ? 'bg-red-400 text-white'
-                        : isSelected
-                          ? 'bg-brand-500 text-white'
-                          : 'bg-surface-100 text-brand-900/50'
-                  )}
-                >
-                  {opt.key}
-                </span>
-                <span className="text-sm flex-1">{opt.text}</span>
+              <button key={opt.key} onClick={() => !submitted && setSelected(opt.key)} disabled={submitted}
+                className={cn('quiz-option w-full text-left', !submitted && isSelected && 'quiz-option-selected', isCorrect && 'quiz-option-correct', isWrong && 'quiz-option-incorrect')}>
+                <span className={cn('w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0',
+                  isCorrect ? 'bg-emerald-500 text-white' : isWrong ? 'bg-red-400 text-white' : isSelected ? 'bg-brand-500 text-white' : 'bg-surface-100 text-brand-900/50'
+                )}>{opt.key}</span>
+                <span className="text-sm">{opt.text}</span>
               </button>
             );
           })}
         </div>
-
         {submitted && (
-          <div
-            className={cn(
-              'mt-6 p-4 rounded-xl',
-              selected === q.correct_key
-                ? 'bg-emerald-50 border border-emerald-200'
-                : 'bg-red-50 border border-red-200'
-            )}
-          >
-            <p className="text-sm font-semibold mb-1">
-              {selected === q.correct_key
-                ? isArabic
-                  ? '✅ صحيح!'
-                  : '✅ Correct!'
-                : isArabic
-                  ? `❌ غير صحيح — الإجابة الصحيحة: ${q.correct_key}`
-                  : `❌ Incorrect — Correct answer: ${q.correct_key}`}
-            </p>
-            <p className="text-sm text-brand-900/70 leading-relaxed">{q.explanation}</p>
+          <div className={cn('mt-6 p-4 rounded-xl', selected === q.correct_key ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200')}>
+            <p className="text-sm font-semibold mb-1">{selected === q.correct_key ? (isArabic ? '✅ صحيح!' : '✅ Correct!') : (isArabic ? `❌ غير صحيح — الإجابة الصحيحة: ${q.correct_key}` : `❌ Incorrect — Correct answer: ${q.correct_key}`)}</p>
+            <p className="text-sm text-brand-900/70">{q.explanation}</p>
           </div>
         )}
-
         <div className="flex justify-end mt-6 gap-3">
           {!submitted ? (
-            <Button onClick={handleSubmit} disabled={!selected}>
-              {isArabic ? 'إرسال الإجابة' : 'Submit Answer'}
-            </Button>
+            <Button onClick={handleSubmit} disabled={!selected}>{isArabic ? 'إرسال الإجابة' : 'Submit Answer'}</Button>
           ) : (
-            <Button onClick={handleNext} disabled={currentQ >= questions.length - 1}>
-              {isArabic ? 'السؤال التالي ←' : 'Next Question →'}
-            </Button>
+            <Button onClick={handleNext} disabled={currentQ >= questions.length - 1}>{isArabic ? 'السؤال التالي ←' : 'Next Question →'}</Button>
           )}
         </div>
       </Card>
     </div>
   );
 }
-
 
 // ── Study Studio Page ───────────────────────────────────────────────────────
 export default function StudyStudioPage() {
