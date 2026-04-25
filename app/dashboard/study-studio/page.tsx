@@ -4,37 +4,39 @@ import React, { useState } from 'react';
 import { Card, Tabs, Button, Badge, Progress } from '@/components/ui';
 import { cn, shuffleArray } from '@/lib/utils';
 import { SAMPLE_QUESTIONS } from '@/lib/pmp-data';
+import { useLanguage } from '@/lib/i18n/language-context';
 import type { StudyTab } from '@/types';
 
 // ── Notes Tab ───────────────────────────────────────────────────────────────
 function NotesTab() {
+  const { t, isArabic } = useLanguage();
   const [note, setNote] = useState('');
   const [savedNotes] = useState([
-    { id: '1', topic: 'Stakeholder Engagement', content: 'Key strategies: identify early, analyze power/interest, develop engagement plans, monitor continuously.', tags: ['stakeholders', 'pmbok7'], date: '2 hours ago' },
-    { id: '2', topic: 'Servant Leadership', content: 'Focus on team needs, remove impediments, coaching over directing. Essential for agile environments.', tags: ['team', 'leadership'], date: '1 day ago' },
-    { id: '3', topic: 'EVM Formulas', content: 'CPI = EV/AC, SPI = EV/PV, EAC = BAC/CPI, ETC = EAC - AC, VAC = BAC - EAC, TCPI = (BAC-EV)/(BAC-AC)', tags: ['measurement', 'formulas'], date: '3 days ago' },
+    { id: '1', topic: isArabic ? 'استراتيجيات تفاعل أصحاب المصلحة' : 'Stakeholder Engagement', content: isArabic ? 'الاستراتيجيات الرئيسية: تحديد مبكر، تحليل القوة/الاهتمام، تطوير خطط التفاعل، المراقبة المستمرة.' : 'Key strategies: identify early, analyze power/interest, develop engagement plans, monitor continuously.', tags: isArabic ? ['أصحاب-المصلحة', 'pmbok7'] : ['stakeholders', 'pmbok7'], date: isArabic ? 'منذ ساعتين' : '2 hours ago' },
+    { id: '2', topic: isArabic ? 'القيادة الخادمة' : 'Servant Leadership', content: isArabic ? 'التركيز على احتياجات الفريق، إزالة العقبات، التدريب بدلاً من التوجيه. ضروري للبيئات الرشيقة.' : 'Focus on team needs, remove impediments, coaching over directing. Essential for agile environments.', tags: isArabic ? ['فريق', 'قيادة'] : ['team', 'leadership'], date: isArabic ? 'منذ يوم' : '1 day ago' },
+    { id: '3', topic: isArabic ? 'صيغ EVM' : 'EVM Formulas', content: isArabic ? 'CPI = EV/AC, SPI = EV/PV, EAC = BAC/CPI, ETC = EAC - AC, VAC = BAC - EAC, TCPI = (BAC-EV)/(BAC-AC)' : 'CPI = EV/AC, SPI = EV/PV, EAC = BAC/CPI, ETC = EAC - AC, VAC = BAC - EAC, TCPI = (BAC-EV)/(BAC-AC)', tags: isArabic ? ['قياس', 'صيغ'] : ['measurement', 'formulas'], date: isArabic ? 'منذ 3 أيام' : '3 days ago' },
   ]);
 
   return (
     <div className="grid lg:grid-cols-5 gap-6">
       <div className="lg:col-span-3">
         <Card padding="lg">
-          <h3 className="font-bold mb-4">New Study Note</h3>
-          <input type="text" placeholder="Topic (e.g., Risk Management)" className="w-full px-4 py-2.5 rounded-lg border border-surface-200 text-sm mb-3 focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 outline-none" />
+          <h3 className="font-bold mb-4">{t('studio.new_note')}</h3>
+          <input type="text" placeholder={t('studio.topic_placeholder')} className="w-full px-4 py-2.5 rounded-lg border border-surface-200 text-sm mb-3 focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 outline-none" />
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Write your notes here... Markdown supported."
+            placeholder={t('studio.note_placeholder')}
             className="w-full px-4 py-3 rounded-lg border border-surface-200 text-sm min-h-[200px] resize-y focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 outline-none"
           />
           <div className="flex items-center justify-between mt-4">
-            <input type="text" placeholder="Tags (comma separated)" className="px-3 py-2 rounded-lg border border-surface-200 text-xs w-60 focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 outline-none" />
-            <Button>Save Note</Button>
+            <input type="text" placeholder={t('studio.tags_placeholder')} className="px-3 py-2 rounded-lg border border-surface-200 text-xs w-60 focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 outline-none" />
+            <Button>{t('studio.save_note')}</Button>
           </div>
         </Card>
       </div>
       <div className="lg:col-span-2 space-y-3">
-        <h3 className="font-bold text-brand-900">Saved Notes</h3>
+        <h3 className="font-bold text-brand-900">{t('studio.saved_notes')}</h3>
         {savedNotes.map((n) => (
           <Card key={n.id} hover padding="sm" className="cursor-pointer">
             <h4 className="font-semibold text-sm">{n.topic}</h4>
@@ -74,6 +76,7 @@ function SlidePlayer({
   audioRef: React.RefObject<HTMLAudioElement | null>;
   isPlaying: boolean; duration: number; currentTime: number;
 }) {
+  const { isArabic } = useLanguage();
   const [slides, setSlides] = React.useState<Slide[]>([]);
   const [currentSlide, setCurrentSlide] = React.useState(0);
   const [isGenerating, setIsGenerating] = React.useState(true);
@@ -206,19 +209,19 @@ HIGHLIGHT: You are building real expertise`,
   function buildFallbackSlides(): Slide[] {
     const paragraphs = script.split('\n\n').filter(p => p.trim().length > 40);
     const slides: Slide[] = [
-      { title: topic, points: ['PMBOK Guide 7th Edition 2021', 'PMP ECO January 2021', 'Expert-level analysis'], type: 'intro', highlight: 'Your gateway to PMP mastery' },
+      { title: topic, points: isArabic ? ['دليل PMBOK الطبعة السابعة 2021', 'PMP ECO يناير 2021', 'تحليل على مستوى خبير'] : ['PMBOK Guide 7th Edition 2021', 'PMP ECO January 2021', 'Expert-level analysis'], type: 'intro', highlight: isArabic ? 'بوابتك إلى إتقان PMP' : 'Your gateway to PMP mastery' },
     ];
     paragraphs.slice(0, 4).forEach((p, i) => {
       const sentences = p.split('. ').filter(s => s.length > 15 && s.length < 120).slice(0, 3);
       if (sentences.length > 0) {
         slides.push({
-          title: i === 0 ? 'Core Concepts' : i === 1 ? 'Key Framework' : i === 2 ? 'In Practice' : 'Deep Insight',
+          title: i === 0 ? (isArabic ? 'المفاهيم الأساسية' : 'Core Concepts') : i === 1 ? (isArabic ? 'الإطار الرئيسي' : 'Key Framework') : i === 2 ? (isArabic ? 'في الممارسة' : 'In Practice') : (isArabic ? 'رؤية عميقة' : 'Deep Insight'),
           points: sentences.map(s => s.trim().replace(/\.$/, '')),
           type: i === 0 ? 'concept' : i === 1 ? 'framework' : 'example',
         });
       }
     });
-    slides.push({ title: 'Key Takeaways', points: ['Review and reflect', 'Apply to practice questions', 'Connect to your PM experience'], type: 'summary', highlight: 'You are building real PM expertise here' });
+    slides.push({ title: isArabic ? 'النقاط الرئيسية' : 'Key Takeaways', points: isArabic ? ['راجع وتأمل', 'طبّق على أسئلة الممارسة', 'ربط بتجربتك في إدارة المشاريع'] : ['Review and reflect', 'Apply to practice questions', 'Connect to your PM experience'], type: 'summary', highlight: isArabic ? 'أنت تبني خبرة حقيقية في إدارة المشاريع هنا' : 'You are building real PM expertise here' });
     return slides;
   }
 
@@ -246,7 +249,7 @@ HIGHLIGHT: You are building real expertise`,
             <div className="h-3 bg-white/5 rounded w-5/6" />
             <div className="h-3 bg-white/10 rounded w-4/5" />
           </div>
-          <p className="text-white/30 text-xs mt-8">Preparing presentation slides...</p>
+          <p className="text-white/30 text-xs mt-8">{isArabic ? 'تحضير شرائح العرض التقديمي...' : 'Preparing presentation slides...'}</p>
         </div>
       </div>
     );
@@ -301,7 +304,7 @@ HIGHLIGHT: You are building real expertise`,
               <div className="w-0.5 bg-red-500 rounded-full animate-pulse" style={{ height: '100%', animationDelay: '0.2s' }} />
               <div className="w-0.5 bg-red-500 rounded-full animate-pulse" style={{ height: '60%', animationDelay: '0.4s' }} />
             </div>
-            <span className="text-[10px] text-red-500 font-semibold">LIVE</span>
+            <span className="text-[10px] text-red-500 font-semibold">{isArabic ? 'مباشر' : 'LIVE'}</span>
           </div>
         )}
       </div>
@@ -314,7 +317,7 @@ HIGHLIGHT: You are building real expertise`,
             <span className="mr-1">{SLIDE_ICONS[s.type]}</span>{i + 1}
           </button>
         ))}
-        <span className="ml-auto text-[10px] text-[#C5A572] font-medium flex-shrink-0">PMBOK 7 + ECO 2021</span>
+        <span className="ml-auto text-[10px] text-[#C5A572] font-medium flex-shrink-0">{isArabic ? 'PMBOK 7 + ECO 2021' : 'PMBOK 7 + ECO 2021'}</span>
       </div>
     </div>
   );
@@ -323,6 +326,7 @@ HIGHLIGHT: You are building real expertise`,
 // ── Learning Companion Panel ─────────────────────────────────────────────────
 
 function LearningCompanion({ script, topic, domain }: { script: string; topic: string; domain: string }) {
+  const { isArabic } = useLanguage();
   const [activeSection, setActiveSection] = React.useState<'takeaways' | 'terms' | 'quiz'>('takeaways');
   const [isLoading, setIsLoading] = React.useState(false);
   const [takeaways, setTakeaways] = React.useState<string[]>([]);
@@ -401,7 +405,7 @@ WHY: [Brief rationale]`,
       }
       parseMaterials(acc);
     } catch {
-      setTakeaways(['Review the audio lesson for key concepts.']);
+      setTakeaways([isArabic ? 'راجع درس الصوت للحصول على المفاهيم الأساسية.' : 'Review the audio lesson for key concepts.']);
     } finally {
       setIsLoading(false);
     }
@@ -447,15 +451,15 @@ WHY: [Brief rationale]`,
       q.push({ question: currentQ, options: currentOpts, correct: currentAnswer >= 0 ? currentAnswer : 0, rationale: currentWhy });
     }
 
-    setTakeaways(t.length > 0 ? t : ['Review the audio lesson for key concepts.']);
+    setTakeaways(t.length > 0 ? t : [isArabic ? 'راجع درس الصوت للحصول على المفاهيم الأساسية.' : 'Review the audio lesson for key concepts.']);
     setTerms(tr);
     setQuiz(q);
   }
 
   const sections = [
-    { id: 'takeaways' as const, label: 'Key Takeaways', icon: '💡', count: takeaways.length },
-    { id: 'terms' as const, label: 'Key Terms', icon: '📖', count: terms.length },
-    { id: 'quiz' as const, label: 'Check Understanding', icon: '✅', count: quiz.length },
+    { id: 'takeaways' as const, label: isArabic ? 'الوجبات الجاهزة الرئيسية' : 'Key Takeaways', icon: '💡', count: takeaways.length },
+    { id: 'terms' as const, label: isArabic ? 'المصطلحات الرئيسية' : 'Key Terms', icon: '📖', count: terms.length },
+    { id: 'quiz' as const, label: isArabic ? 'اختبر فهمك' : 'Check Understanding', icon: '✅', count: quiz.length },
   ];
 
   const score = quiz.reduce((s, q, i) => s + (selectedAnswers[i] === q.correct ? 1 : 0), 0);
@@ -465,8 +469,8 @@ WHY: [Brief rationale]`,
     <Card padding="none">
       <div className="border-b border-gray-100 px-5 py-3 flex items-center gap-2">
         <span className="text-base">🎓</span>
-        <h3 className="font-bold text-sm text-gray-900">Learning Companion</h3>
-        <span className="text-xs text-gray-400 ml-1">— Reinforce what you just heard</span>
+        <h3 className="font-bold text-sm text-gray-900">{isArabic ? 'الرفيق التعليمي' : 'Learning Companion'}</h3>
+        <span className="text-xs text-gray-400 ml-1">— {isArabic ? 'عزز ما سمعته للتو' : 'Reinforce what you just heard'}</span>
       </div>
       <div className="flex border-b border-gray-100">
         {sections.map(sec => (
@@ -485,7 +489,7 @@ WHY: [Brief rationale]`,
             <div className="h-4 bg-gray-200 rounded-md w-3/4" />
             <div className="h-3 bg-gray-100 rounded-md w-full" />
             <div className="h-3 bg-gray-200 rounded-md w-5/6" />
-            <p className="text-xs text-gray-400 text-center pt-2">Generating learning materials...</p>
+            <p className="text-xs text-gray-400 text-center pt-2">{isArabic ? 'إنشاء مواد التعلم...' : 'Generating learning materials...'}</p>
           </div>
         ) : (
           <>
@@ -506,7 +510,7 @@ WHY: [Brief rationale]`,
                     <p className="text-sm font-bold text-violet-700">{t.term}</p>
                     <p className="text-sm text-gray-600 leading-relaxed mt-1">{t.definition}</p>
                   </div>
-                )) : <p className="text-sm text-gray-500 text-center py-4">No terms generated.</p>}
+                )) : <p className="text-sm text-gray-500 text-center py-4">{isArabic ? 'لم يتم إنشاء مصطلحات.' : 'No terms generated.'}</p>}
               </div>
             )}
             {activeSection === 'quiz' && (
@@ -537,16 +541,16 @@ WHY: [Brief rationale]`,
                       </div>
                       {answered && q.rationale && (
                         <div className={cn('p-3 rounded-xl text-xs leading-relaxed mt-2', isCorrect ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800')}>
-                          <span className="font-bold">{isCorrect ? '✓ Correct!' : '✗ Not quite.'}</span> {q.rationale}
+                          <span className="font-bold">{isCorrect ? (isArabic ? '✓ صحيح!' : '✓ Correct!') : (isArabic ? '✗ ليس تماماً.' : '✗ Not quite.')}</span> {q.rationale}
                         </div>
                       )}
                     </div>
                   );
-                }) : <p className="text-sm text-gray-500 text-center py-4">No quiz generated.</p>}
+                }) : <p className="text-sm text-gray-500 text-center py-4">{isArabic ? 'لم يتم إنشاء اختبار.' : 'No quiz generated.'}</p>}
                 {quiz.length > 0 && totalAnswered === quiz.length && (
                   <div className={cn('p-4 rounded-xl text-center', score === quiz.length ? 'bg-emerald-50 border border-emerald-200' : 'bg-blue-50 border border-blue-200')}>
-                    <p className="text-lg font-bold">{score === quiz.length ? '🎉 Perfect Score!' : `📊 Score: ${score}/${quiz.length}`}</p>
-                    <p className="text-xs text-gray-500 mt-1">{score === quiz.length ? 'You have mastered this concept!' : 'Review the rationale and listen again to strengthen understanding.'}</p>
+                    <p className="text-lg font-bold">{score === quiz.length ? (isArabic ? '🎉 درجة مثالية!' : '🎉 Perfect Score!') : (isArabic ? `📊 النتيجة: ${score}/${quiz.length}` : `📊 Score: ${score}/${quiz.length}`)}</p>
+                    <p className="text-xs text-gray-500 mt-1">{score === quiz.length ? (isArabic ? 'لقد أتقنت هذا المفهوم!' : 'You have mastered this concept!') : (isArabic ? 'راجع الأساس المنطقي واستمع مرة أخرى لتقوية الفهم.' : 'Review the rationale and listen again to strengthen understanding.')}</p>
                   </div>
                 )}
               </div>
@@ -560,24 +564,35 @@ WHY: [Brief rationale]`,
 
 // ── Audio Loading Messages ────────────────────────────────────────────────────
 
-const AUDIO_LOADING_MESSAGES = [
+const AUDIO_LOADING_MESSAGES_EN = [
   { text: "Our AI narrator is preparing your lesson...", sub: "Studio-quality voice powered by ElevenLabs" },
   { text: "Writing the narration script from PMBOK 7...", sub: "Every word grounded in official PMI sources" },
   { text: "Converting knowledge into an audio experience...", sub: "Listen, learn, and absorb at your own pace" },
   { text: "Crafting a personalized audio lesson...", sub: "The best PMs learn through multiple channels" },
 ];
 
+const AUDIO_LOADING_MESSAGES_AR = [
+  { text: "راويك الذكي يحضر درسك...", sub: "صوت بجودة الاستوديو من ElevenLabs" },
+  { text: "كتابة نص السرد من PMBOK 7...", sub: "كل كلمة مستندة إلى مصادر PMI الرسمية" },
+  { text: "تحويل المعرفة إلى تجربة صوتية...", sub: "استمع وتعلم واستوعب بسرعتك الخاصة" },
+  { text: "صياغة درس صوتي شخصي...", sub: "أفضل مديري المشاريع يتعلمون عبر قنوات متعددة" },
+];
+
 function AudioLoadingMessage() {
+  const { isArabic } = useLanguage();
   const [index, setIndex] = React.useState(0);
   const [fade, setFade] = React.useState(true);
+  const messages = isArabic ? AUDIO_LOADING_MESSAGES_AR : AUDIO_LOADING_MESSAGES_EN;
+  
   React.useEffect(() => {
     const interval = setInterval(() => {
       setFade(false);
-      setTimeout(() => { setIndex(prev => (prev + 1) % AUDIO_LOADING_MESSAGES.length); setFade(true); }, 300);
+      setTimeout(() => { setIndex(prev => (prev + 1) % messages.length); setFade(true); }, 300);
     }, 3500);
     return () => clearInterval(interval);
-  }, []);
-  const msg = AUDIO_LOADING_MESSAGES[index];
+  }, [messages.length]);
+  
+  const msg = messages[index];
   return (
     <div className={`text-center transition-opacity duration-300 ${fade ? 'opacity-100' : 'opacity-0'}`}>
       <p className="text-sm font-semibold text-gray-800">{msg.text}</p>
@@ -589,17 +604,18 @@ function AudioLoadingMessage() {
 // ── Audio Tab ────────────────────────────────────────────────────────────────
 
 const AUDIO_TOPICS = [
-  { id: '1', title: 'PMBOK 7 Overview — Principles & Domains', domain: 'all', icon: '📘' },
-  { id: '2', title: 'Stakeholder Engagement Strategies', domain: 'stakeholders', icon: '🤝' },
-  { id: '3', title: 'Agile vs Predictive — When to Use What', domain: 'development-approach', icon: '🔄' },
-  { id: '4', title: 'Earned Value Management Deep Dive', domain: 'measurement', icon: '📊' },
-  { id: '5', title: 'ECO People Domain — Task Walkthrough', domain: 'people', icon: '👥' },
-  { id: '6', title: 'Risk Management & Uncertainty', domain: 'uncertainty', icon: '⚡' },
-  { id: '7', title: 'Team Performance & Servant Leadership', domain: 'team', icon: '👤' },
-  { id: '8', title: 'Planning: Scope, Schedule & Budget', domain: 'planning', icon: '📋' },
+  { id: '1', title_en: 'PMBOK 7 Overview — Principles & Domains', title_ar: 'نظرة عامة على PMBOK 7 — المبادئ والمجالات', domain: 'all', icon: '📘' },
+  { id: '2', title_en: 'Stakeholder Engagement Strategies', title_ar: 'استراتيجيات تفاعل أصحاب المصلحة', domain: 'stakeholders', icon: '🤝' },
+  { id: '3', title_en: 'Agile vs Predictive — When to Use What', title_ar: 'أجايل مقابل التنبؤي — متى تستخدم أي', domain: 'development-approach', icon: '🔄' },
+  { id: '4', title_en: 'Earned Value Management Deep Dive', title_ar: 'غوص عميق في إدارة القيمة المكتسبة', domain: 'measurement', icon: '📊' },
+  { id: '5', title_en: 'ECO People Domain — Task Walkthrough', title_ar: 'مجال الأشخاص ECO — شرح المهام', domain: 'people', icon: '👥' },
+  { id: '6', title_en: 'Risk Management & Uncertainty', title_ar: 'إدارة المخاطر وعدم اليقين', domain: 'uncertainty', icon: '⚡' },
+  { id: '7', title_en: 'Team Performance & Servant Leadership', title_ar: 'أداء الفريق والقيادة الخادمة', domain: 'team', icon: '👤' },
+  { id: '8', title_en: 'Planning: Scope, Schedule & Budget', title_ar: 'التخطيط: النطاق والجدول الزمني والميزانية', domain: 'planning', icon: '📋' },
 ];
 
 function AudioTab() {
+  const { isArabic, t } = useLanguage();
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [script, setScript] = React.useState('');
@@ -613,6 +629,7 @@ function AudioTab() {
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   async function generateAudio(topic: typeof AUDIO_TOPICS[0]) {
+    const topicTitle = isArabic ? topic.title_ar : topic.title_en;
     if (activeId === topic.id && audioSrc) { togglePlay(); return; }
     setActiveId(topic.id);
     setIsGenerating(true);
@@ -623,11 +640,11 @@ function AudioTab() {
       const res = await fetch('/api/tts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: topic.title }),
+        body: JSON.stringify({ topic: topicTitle }),
       });
       if (!res.ok) {
         const err = await res.json();
-        setError(err.upgrade ? 'Audio narration requires a Premium subscription.' : (err.error || 'Failed to generate audio.'));
+        setError(err.upgrade ? (isArabic ? 'يتطلب سرد الصوت اشتراك Premium.' : 'Audio narration requires a Premium subscription.') : (err.error || (isArabic ? 'فشل إنشاء الصوت.' : 'Failed to generate audio.')));
         setIsGenerating(false); return;
       }
       const data = await res.json();
@@ -638,9 +655,9 @@ function AudioTab() {
         setTimeout(() => { audioRef.current?.play().then(() => setIsPlaying(true)).catch(() => {}); }, 200);
       } else if (data.script) {
         setShowScript(true);
-        setError('Audio conversion unavailable. Script is shown below.');
+        setError(isArabic ? 'تحويل الصوت غير متاح. يتم عرض النص أدناه.' : 'Audio conversion unavailable. Script is shown below.');
       }
-    } catch { setError('Network error. Please try again.'); }
+    } catch { setError(isArabic ? 'خطأ في الشبكة. يرجى المحاولة مجدداً.' : 'Network error. Please try again.'); }
     finally { setIsGenerating(false); }
   }
 
@@ -669,6 +686,7 @@ function AudioTab() {
   }
 
   const activeTopic = AUDIO_TOPICS.find(t => t.id === activeId);
+  const activeTopicTitle = activeTopic ? (isArabic ? activeTopic.title_ar : activeTopic.title_en) : '';
 
   return (
     <div className="space-y-4">
@@ -682,7 +700,7 @@ function AudioTab() {
 
       {/* Slide Player */}
       {activeId && !isGenerating && script && (
-        <SlidePlayer script={script} topic={activeTopic?.title || ''} audioRef={audioRef} isPlaying={isPlaying} duration={duration} currentTime={currentTime} />
+        <SlidePlayer script={script} topic={activeTopicTitle} audioRef={audioRef} isPlaying={isPlaying} duration={duration} currentTime={currentTime} />
       )}
 
       {/* Audio Controls */}
@@ -699,12 +717,12 @@ function AudioTab() {
                 )}
               </button>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-gray-900 truncate">{activeTopic?.title}</p>
-                <p className="text-xs text-gray-400">AI Narration — PMBOK 7 + ECO 2021</p>
+                <p className="text-sm font-bold text-gray-900 truncate">{activeTopicTitle}</p>
+                <p className="text-xs text-gray-400">{isArabic ? 'السرد الذكي — PMBOK 7 + ECO 2021' : 'AI Narration — PMBOK 7 + ECO 2021'}</p>
               </div>
               <button onClick={() => setShowScript(!showScript)}
                 className={cn('text-xs font-medium px-3 py-1.5 rounded-lg transition-colors', showScript ? 'bg-violet-100 text-violet-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')}>
-                {showScript ? 'Hide Script' : 'Show Script'}
+                {showScript ? (isArabic ? 'إخفاء النص' : 'Hide Script') : (isArabic ? 'عرض النص' : 'Show Script')}
               </button>
             </div>
             {audioSrc && (
@@ -721,7 +739,7 @@ function AudioTab() {
           </div>
           {showScript && script && (
             <div className="border-t border-gray-100 px-5 py-4 bg-gray-50 max-h-60 overflow-y-auto">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Narration Script</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{isArabic ? 'نص السرد' : 'Narration Script'}</p>
               <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{script}</p>
             </div>
           )}
@@ -730,7 +748,7 @@ function AudioTab() {
 
       {/* Learning Companion */}
       {activeId && !isGenerating && script && (
-        <LearningCompanion script={script} topic={activeTopic?.title || ''} domain={activeTopic?.domain || ''} />
+        <LearningCompanion script={script} topic={activeTopicTitle} domain={activeTopic?.domain || ''} />
       )}
 
       {/* Loading state */}
@@ -763,12 +781,13 @@ function AudioTab() {
       {/* Lesson List */}
       <Card padding="lg">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold">Audio Lessons</h3>
-          <Badge variant="info">Powered by ElevenLabs TTS</Badge>
+          <h3 className="font-bold">{isArabic ? 'دروس صوتية' : 'Audio Lessons'}</h3>
+          <Badge variant="info">{isArabic ? 'مدعوم بواسطة ElevenLabs TTS' : 'Powered by ElevenLabs TTS'}</Badge>
         </div>
-        <p className="text-sm text-brand-900/50 mb-6">Click any lesson to generate an AI-narrated audio experience.</p>
+        <p className="text-sm text-brand-900/50 mb-6">{isArabic ? 'انقر على أي درس لإنشاء تجربة صوتية مروية بالذكاء الاصطناعي.' : 'Click any lesson to generate an AI-narrated audio experience.'}</p>
         <div className="space-y-1">
           {AUDIO_TOPICS.map(topic => {
+            const topicTitle = isArabic ? topic.title_ar : topic.title_en;
             const isActive = activeId === topic.id;
             const isCurrentlyPlaying = isActive && isPlaying;
             return (
@@ -794,8 +813,8 @@ function AudioTab() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={cn('text-sm font-semibold truncate', isActive ? 'text-violet-700' : 'text-gray-900')}>{topic.title}</p>
-                  <p className="text-xs text-gray-400">AI-generated narration</p>
+                  <p className={cn('text-sm font-semibold truncate', isActive ? 'text-violet-700' : 'text-gray-900')}>{topicTitle}</p>
+                  <p className="text-xs text-gray-400">{isArabic ? 'سرد مُنشأ بالذكاء الاصطناعي' : 'AI-generated narration'}</p>
                 </div>
                 <Badge variant="default">{topic.domain}</Badge>
               </button>
@@ -809,26 +828,27 @@ function AudioTab() {
 
 // ── Flashcards Tab ──────────────────────────────────────────────────────────
 function FlashcardsTab() {
+  const { isArabic } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const cards = [
-    { front: 'What are the 8 Performance Domains in PMBOK 7?', back: 'Stakeholders, Team, Development Approach & Life Cycle, Planning, Project Work, Delivery, Measurement, Uncertainty' },
-    { front: 'What percentage of the PMP exam covers the People domain (ECO 2021)?', back: '42% — 14 tasks covering leadership, team management, conflict resolution, and stakeholder collaboration' },
-    { front: 'Define CPI in Earned Value Management', back: 'Cost Performance Index = EV / AC. CPI > 1.0 means under budget, CPI < 1.0 means over budget.' },
-    { front: 'What is Servant Leadership?', back: 'A leadership philosophy where the leader\'s primary goal is to serve the team. Focus on removing impediments, coaching, and empowering team members.' },
-    { front: 'Name 3 conflict resolution techniques', back: 'Collaborate/Problem Solve (best), Compromise/Reconcile, Withdraw/Avoid, Smooth/Accommodate, Force/Direct' },
+    { front: isArabic ? 'ما هي المجالات الأداء الثمانية في PMBOK 7؟' : 'What are the 8 Performance Domains in PMBOK 7?', back: isArabic ? 'أصحاب المصلحة، الفريق، نهج التطوير ودورة الحياة، التخطيط، عمل المشروع، التسليم، القياس، عدم اليقين' : 'Stakeholders, Team, Development Approach & Life Cycle, Planning, Project Work, Delivery, Measurement, Uncertainty' },
+    { front: isArabic ? 'ما نسبة امتحان PMP التي تغطي مجال الأشخاص (ECO 2021)؟' : 'What percentage of the PMP exam covers the People domain (ECO 2021)?', back: isArabic ? '42٪ — 14 مهمة تغطي القيادة وإدارة الفريق وحل النزاعات والتعاون مع أصحاب المصلحة' : '42% — 14 tasks covering leadership, team management, conflict resolution, and stakeholder collaboration' },
+    { front: isArabic ? 'عرّف CPI في إدارة القيمة المكتسبة' : 'Define CPI in Earned Value Management', back: isArabic ? 'مؤشر الأداء في الكلفة = EV / AC. CPI > 1.0 يعني أقل من الميزانية، CPI < 1.0 يعني أكثر من الميزانية.' : 'Cost Performance Index = EV / AC. CPI > 1.0 means under budget, CPI < 1.0 means over budget.' },
+    { front: isArabic ? 'ما هي القيادة الخادمة؟' : 'What is Servant Leadership?', back: isArabic ? 'فلسفة قيادية حيث يكون الهدف الأساسي للقائد هو خدمة الفريق. التركيز على إزالة العقبات والتدريب وتمكين أعضاء الفريق.' : 'A leadership philosophy where the leader\'s primary goal is to serve the team. Focus on removing impediments, coaching, and empowering team members.' },
+    { front: isArabic ? 'اذكر 3 تقنيات لحل النزاعات' : 'Name 3 conflict resolution techniques', back: isArabic ? 'التعاون/حل المشاكل (الأفضل)، التسوية/المصالحة، الانسحاب/التجنب، التنعيم/الاستيعاب، الإجبار/التوجيه المباشر' : 'Collaborate/Problem Solve (best), Compromise/Reconcile, Withdraw/Avoid, Smooth/Accommodate, Force/Direct' },
   ];
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-sm font-medium text-brand-900/50">Card {currentIndex + 1} of {cards.length}</span>
+          <span className="text-sm font-medium text-brand-900/50">{isArabic ? `البطاقة ${currentIndex + 1} من ${cards.length}` : `Card ${currentIndex + 1} of ${cards.length}`}</span>
           <Progress value={currentIndex + 1} max={cards.length} className="w-40 mt-1" size="sm" />
         </div>
         <div className="flex gap-2">
-          <Badge variant="success">Know: 12</Badge>
-          <Badge variant="danger">Review: 8</Badge>
+          <Badge variant="success">{isArabic ? 'معروف: 12' : 'Know: 12'}</Badge>
+          <Badge variant="danger">{isArabic ? 'مراجعة: 8' : 'Review: 8'}</Badge>
         </div>
       </div>
       <div onClick={() => setFlipped(!flipped)} className="relative cursor-pointer select-none" style={{ perspective: '1200px', minHeight: '320px' }}>
@@ -836,16 +856,16 @@ function FlashcardsTab() {
           flipped ? 'bg-gradient-to-br from-brand-500 to-brand-600 text-white shadow-elevated' : 'bg-white border-2 border-surface-200 shadow-card'
         )} style={{ transformStyle: 'preserve-3d' }}>
           <div>
-            <p className="text-xs font-semibold text-brand-900/30 mb-4 uppercase tracking-wider">{flipped ? '✨ Answer' : 'Question'}</p>
+            <p className="text-xs font-semibold text-brand-900/30 mb-4 uppercase tracking-wider">{flipped ? (isArabic ? '✨ الإجابة' : '✨ Answer') : (isArabic ? 'السؤال' : 'Question')}</p>
             <p className={cn('text-lg font-semibold leading-relaxed', flipped ? 'text-white' : 'text-brand-900')}>{flipped ? cards[currentIndex].back : cards[currentIndex].front}</p>
-            <p className="text-xs mt-6 opacity-50">{flipped ? 'Click to see question' : 'Click to reveal answer'}</p>
+            <p className="text-xs mt-6 opacity-50">{flipped ? (isArabic ? 'انقر لرؤية السؤال' : 'Click to see question') : (isArabic ? 'انقر للكشف عن الإجابة' : 'Click to reveal answer')}</p>
           </div>
         </div>
       </div>
       <div className="flex items-center justify-center gap-3">
-        <Button variant="danger" size="sm" onClick={() => { setFlipped(false); setCurrentIndex(Math.max(0, currentIndex - 1)); }}>← Previous</Button>
-        <Button variant="secondary" onClick={() => { setFlipped(false); setCurrentIndex(Math.min(cards.length - 1, currentIndex + 1)); }}>Still Learning</Button>
-        <Button variant="primary" onClick={() => { setFlipped(false); setCurrentIndex(Math.min(cards.length - 1, currentIndex + 1)); }}>Got It! →</Button>
+        <Button variant="danger" size="sm" onClick={() => { setFlipped(false); setCurrentIndex(Math.max(0, currentIndex - 1)); }}>{isArabic ? '← السابق' : '← Previous'}</Button>
+        <Button variant="secondary" onClick={() => { setFlipped(false); setCurrentIndex(Math.min(cards.length - 1, currentIndex + 1)); }}>{isArabic ? 'لا تزال تتعلم' : 'Still Learning'}</Button>
+        <Button variant="primary" onClick={() => { setFlipped(false); setCurrentIndex(Math.min(cards.length - 1, currentIndex + 1)); }}>{isArabic ? 'حصلت عليها! →' : 'Got It! →'}</Button>
       </div>
     </div>
   );
@@ -853,6 +873,7 @@ function FlashcardsTab() {
 
 // ── Quiz Tab ────────────────────────────────────────────────────────────────
 function QuizTab() {
+  const { isArabic } = useLanguage();
   const [currentQ, setCurrentQ] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -866,8 +887,8 @@ function QuizTab() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <Badge variant="info">Question {currentQ + 1} of {questions.length}</Badge>
-        <Badge variant={score > 0 ? 'success' : 'default'}>Score: {score}/{currentQ + (submitted ? 1 : 0)}</Badge>
+        <Badge variant="info">{isArabic ? `السؤال ${currentQ + 1} من ${questions.length}` : `Question ${currentQ + 1} of ${questions.length}`}</Badge>
+        <Badge variant={score > 0 ? 'success' : 'default'}>{isArabic ? `النتيجة: ${score}/${currentQ + (submitted ? 1 : 0)}` : `Score: ${score}/${currentQ + (submitted ? 1 : 0)}`}</Badge>
       </div>
       <Card padding="lg">
         <div className="flex items-center gap-2 mb-4">
@@ -893,15 +914,15 @@ function QuizTab() {
         </div>
         {submitted && (
           <div className={cn('mt-6 p-4 rounded-xl', selected === q.correct_key ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200')}>
-            <p className="text-sm font-semibold mb-1">{selected === q.correct_key ? '✅ Correct!' : `❌ Incorrect — Correct answer: ${q.correct_key}`}</p>
+            <p className="text-sm font-semibold mb-1">{selected === q.correct_key ? (isArabic ? '✅ صحيح!' : '✅ Correct!') : (isArabic ? `❌ غير صحيح — الإجابة الصحيحة: ${q.correct_key}` : `❌ Incorrect — Correct answer: ${q.correct_key}`)}</p>
             <p className="text-sm text-brand-900/70">{q.explanation}</p>
           </div>
         )}
         <div className="flex justify-end mt-6 gap-3">
           {!submitted ? (
-            <Button onClick={handleSubmit} disabled={!selected}>Submit Answer</Button>
+            <Button onClick={handleSubmit} disabled={!selected}>{isArabic ? 'إرسال الإجابة' : 'Submit Answer'}</Button>
           ) : (
-            <Button onClick={handleNext} disabled={currentQ >= questions.length - 1}>Next Question →</Button>
+            <Button onClick={handleNext} disabled={currentQ >= questions.length - 1}>{isArabic ? 'السؤال التالي ←' : 'Next Question →'}</Button>
           )}
         </div>
       </Card>
@@ -911,20 +932,21 @@ function QuizTab() {
 
 // ── Study Studio Page ───────────────────────────────────────────────────────
 export default function StudyStudioPage() {
+  const { t, isArabic } = useLanguage();
   const [activeTab, setActiveTab] = useState<StudyTab>('notes');
 
   return (
-    <div className="space-y-6">
+    <div dir={isArabic ? 'rtl' : 'ltr'} className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-900">Study Studio</h1>
-        <p className="text-sm text-brand-900/50 mt-1">Your personal learning workspace — take notes, listen, review flashcards, and test yourself.</p>
+        <h1 className="text-2xl font-bold text-brand-900">{t('studio.title')}</h1>
+        <p className="text-sm text-brand-900/50 mt-1">{t('studio.subtitle')}</p>
       </div>
       <Tabs
         tabs={[
-          { id: 'notes', label: 'Notes', icon: <span>📝</span> },
-          { id: 'audio', label: 'Audio', icon: <span>🎧</span> },
-          { id: 'flashcards', label: 'Flashcards', icon: <span>🃏</span> },
-          { id: 'quiz', label: 'Quick Quiz', icon: <span>❓</span> },
+          { id: 'notes', label: t('studio.notes'), icon: <span>📝</span> },
+          { id: 'audio', label: t('studio.audio'), icon: <span>🎧</span> },
+          { id: 'flashcards', label: t('studio.flashcards'), icon: <span>🃏</span> },
+          { id: 'quiz', label: t('studio.quiz'), icon: <span>❓</span> },
         ]}
         activeTab={activeTab}
         onChange={(id) => setActiveTab(id as StudyTab)}
