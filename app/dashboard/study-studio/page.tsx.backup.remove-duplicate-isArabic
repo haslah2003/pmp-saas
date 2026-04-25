@@ -670,6 +670,7 @@ function getAudioDomainLabel(domain: string, isArabic: boolean) {
 
 
 function AudioTab() {
+  const { isArabic } = useLanguage();
   const { isArabic, t } = useLanguage();
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);

@@ -651,24 +651,6 @@ const AUDIO_TOPICS = [
   { id: '8', title_en: 'Planning: Scope, Schedule & Budget', title_ar: 'التخطيط: النطاق والجدول الزمني والميزانية', domain: 'planning', icon: '📋' },
 ];
 
-const AUDIO_DOMAIN_LABELS: Record<string, { en: string; ar: string }> = {
-  all: { en: 'all', ar: 'عام' },
-  stakeholders: { en: 'stakeholders', ar: 'المعنيون' },
-  'development-approach': { en: 'development approach', ar: 'منهج التطوير' },
-  measurement: { en: 'measurement', ar: 'القياس' },
-  people: { en: 'people', ar: 'الأشخاص' },
-  uncertainty: { en: 'uncertainty', ar: 'عدم اليقين' },
-  team: { en: 'team', ar: 'الفريق' },
-  planning: { en: 'planning', ar: 'التخطيط' },
-};
-
-function getAudioDomainLabel(domain: string, isArabic: boolean) {
-  const label = AUDIO_DOMAIN_LABELS[domain];
-  if (!label) return domain;
-  return isArabic ? label.ar : label.en;
-}
-
-
 function AudioTab() {
   const { isArabic, t } = useLanguage();
   const [activeId, setActiveId] = React.useState<string | null>(null);
@@ -837,7 +819,7 @@ function AudioTab() {
       <Card padding="lg">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold">{isArabic ? 'دروس صوتية' : 'Audio Lessons'}</h3>
-          <Badge variant="info">{isArabic ? 'مدعوم بتقنية ElevenLabs TTS' : 'Powered by ElevenLabs TTS'}</Badge>
+          <Badge variant="info">{isArabic ? 'مدعوم بواسطة ElevenLabs TTS' : 'Powered by ElevenLabs TTS'}</Badge>
         </div>
         <p className="text-sm text-brand-900/50 mb-6">{isArabic ? 'انقر على أي درس لإنشاء تجربة صوتية مروية بالذكاء الاصطناعي.' : 'Click any lesson to generate an AI-narrated audio experience.'}</p>
         <div className="space-y-1">
@@ -848,7 +830,7 @@ function AudioTab() {
             return (
               <button key={topic.id} onClick={() => generateAudio(topic)}
                 disabled={isGenerating && activeId !== topic.id}
-                className={cn('w-full flex items-center gap-4 p-4 rounded-xl transition-all', isArabic ? 'text-right flex-row-reverse' : 'text-left',
+                className={cn('w-full flex items-center gap-4 p-4 rounded-xl transition-all text-left',
                   isActive ? 'bg-violet-50 border border-violet-200' : 'hover:bg-gray-50 border border-transparent',
                   isGenerating && activeId !== topic.id && 'opacity-50',
                 )}>
@@ -871,7 +853,7 @@ function AudioTab() {
                   <p className={cn('text-sm font-semibold truncate', isActive ? 'text-violet-700' : 'text-gray-900')}>{topicTitle}</p>
                   <p className="text-xs text-gray-400">{isArabic ? 'سرد مُنشأ بالذكاء الاصطناعي' : 'AI-generated narration'}</p>
                 </div>
-                <Badge variant="default">{getAudioDomainLabel(topic.domain, isArabic)}</Badge>
+                <Badge variant="default">{topic.domain}</Badge>
               </button>
             );
           })}
