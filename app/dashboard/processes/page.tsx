@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useLanguage } from '@/lib/i18n/language-context'
+import { dt, rtlDir, rtlClass } from '@/lib/i18n/dashboard-content'
 import Link from 'next/link'
 
 // ─── Data ─────────────────────────────────────────────────────────
@@ -213,6 +215,7 @@ function FlowArrow() {
 function ProcessGroupCard({ group, isActive, onClick }: {
   group: typeof PROCESS_GROUPS[0]; isActive: boolean; onClick: () => void
 }) {
+  const { isArabic } = useLanguage()
   return (
     <button
       onClick={onClick}
@@ -229,8 +232,8 @@ function ProcessGroupCard({ group, isActive, onClick }: {
           {group.icon}
         </div>
         <div>
-          <h3 className="text-sm font-bold text-gray-900">{group.name}</h3>
-          <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-1">{group.description}</p>
+          <h3 className="text-sm font-bold text-gray-900">{dt(group.name, isArabic)}</h3>
+          <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-1">{dt(group.description, isArabic)}</p>
         </div>
       </div>
     </button>
@@ -241,6 +244,7 @@ function ProcessGroupCard({ group, isActive, onClick }: {
 function KaBadge({ ka, isActive, onClick }: {
   ka: typeof KNOWLEDGE_AREAS[0]; isActive: boolean; onClick: () => void
 }) {
+  const { isArabic } = useLanguage()
   return (
     <button
       onClick={onClick}
@@ -251,13 +255,14 @@ function KaBadge({ ka, isActive, onClick }: {
       }`}
       style={isActive ? { backgroundColor: ka.color, borderColor: ka.color } : {}}
     >
-      {ka.icon} {ka.name}
+      {ka.icon} {dt(ka.name, isArabic)}
     </button>
   )
 }
 
 // ─── Main Page ────────────────────────────────────────────────────
 export default function ProcessesPage() {
+  const { isArabic } = useLanguage()
   const [activeGroup, setActiveGroup] = useState<string | null>(null)
   const [activeKA, setActiveKA] = useState<string | null>(null)
 
@@ -274,13 +279,13 @@ export default function ProcessesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div dir={rtlDir(isArabic)} className={`min-h-screen bg-gray-50 ${rtlClass(isArabic)}`}>
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-6 py-5 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">🔄 Process Relationships</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Interactive map of how PMP processes connect and flow</p>
+            <h1 className="text-2xl font-bold text-gray-900">{dt('Process Relationships 🔄', isArabic)}</h1>
+            <p className="text-sm text-gray-500 mt-0.5">{dt('Interactive map of how PMP processes connect and flow', isArabic)}</p>
           </div>
           <Link href="/dashboard" className="text-sm text-violet-600 hover:underline font-medium">← Dashboard</Link>
         </div>
@@ -290,8 +295,8 @@ export default function ProcessesPage() {
 
         {/* Process Flow — Visual Timeline */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">Process Group Flow</h2>
-          <p className="text-xs text-gray-400 mb-4">Click any process group to explore its activities, outputs, and exam tips.</p>
+          <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">{dt('Process Group Flow', isArabic)}</h2>
+          <p className="text-xs text-gray-400 mb-4">{dt('Click any process group to explore its activities, outputs, and exam tips.', isArabic)}</p>
 
           {/* Flow diagram */}
           <div className="flex flex-col items-center">
@@ -322,20 +327,20 @@ export default function ProcessesPage() {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{selectedGroup.icon}</span>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">{selectedGroup.name}</h2>
-                  <p className="text-sm text-gray-500">{selectedGroup.description}</p>
+                  <h2 className="text-lg font-bold text-gray-900">{dt(selectedGroup.name, isArabic)}</h2>
+                  <p className="text-sm text-gray-500">{dt(selectedGroup.description, isArabic)}</p>
                 </div>
               </div>
             </div>
             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Key Activities */}
               <div>
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">📌 Key Activities</h3>
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{`📌 ${dt('Key Activities', isArabic)}`}</h3>
                 <div className="space-y-2">
                   {selectedGroup.keyActivities.map((a, i) => (
                     <div key={i} className="flex items-start gap-2">
                       <span className="text-violet-400 mt-0.5 text-xs">▸</span>
-                      <span className="text-sm text-gray-700">{a}</span>
+                      <span className="text-sm text-gray-700">{dt(a, isArabic)}</span>
                     </div>
                   ))}
                 </div>
@@ -343,20 +348,20 @@ export default function ProcessesPage() {
 
               {/* Key Outputs */}
               <div>
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">📤 Key Outputs</h3>
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{`📤 ${dt('Key Outputs', isArabic)}`}</h3>
                 <div className="space-y-2">
                   {selectedGroup.keyOutputs.map((o, i) => (
-                    <div key={i} className="bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-700">{o}</div>
+                    <div key={i} className="bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-700">{dt(o, isArabic)}</div>
                   ))}
                 </div>
 
                 {/* Knowledge Areas in this group */}
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mt-4 mb-2">🔗 Knowledge Areas</h3>
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mt-4 mb-2">{`🔗 ${dt('Knowledge Areas', isArabic)}`}</h3>
                 <div className="flex flex-wrap gap-1.5">
                   {getKAsForGroup(selectedGroup.id).map(ka => (
                     <span key={ka.id} className="text-[10px] font-semibold px-2 py-1 rounded-full"
                       style={{ backgroundColor: ka.color + '15', color: ka.color }}>
-                      {ka.icon} {ka.name}
+                      {ka.icon} {dt(ka.name, isArabic)}
                     </span>
                   ))}
                 </div>
@@ -364,9 +369,9 @@ export default function ProcessesPage() {
 
               {/* Exam Tip */}
               <div>
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">🎯 Exam Tip</h3>
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{`🎯 ${dt('Exam Tip', isArabic)}`}</h3>
                 <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
-                  <p className="text-sm text-amber-800 leading-relaxed">{selectedGroup.examTip}</p>
+                  <p className="text-sm text-amber-800 leading-relaxed">{dt(selectedGroup.examTip, isArabic)}</p>
                 </div>
               </div>
             </div>
@@ -375,8 +380,8 @@ export default function ProcessesPage() {
 
         {/* Knowledge Areas Grid */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-2">Knowledge Areas</h2>
-          <p className="text-xs text-gray-400 mb-4">Click any knowledge area to see which process groups it spans and its key processes.</p>
+          <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-2">{dt('Knowledge Areas', isArabic)}</h2>
+          <p className="text-xs text-gray-400 mb-4">{dt('Click any knowledge area to see which process groups it spans and its key processes.', isArabic)}</p>
 
           <div className="flex flex-wrap gap-2 mb-4">
             {KNOWLEDGE_AREAS.map(ka => (
@@ -395,19 +400,19 @@ export default function ProcessesPage() {
               <div className="px-5 py-3 border-b" style={{ backgroundColor: selectedKA.color + '08', borderColor: selectedKA.color + '20' }}>
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{selectedKA.icon}</span>
-                  <h3 className="text-sm font-bold text-gray-900">{selectedKA.name} Management</h3>
+                  <h3 className="text-sm font-bold text-gray-900">{dt(selectedKA.name, isArabic)} Management</h3>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">{selectedKA.description}</p>
+                <p className="text-xs text-gray-500 mt-1">{dt(selectedKA.description, isArabic)}</p>
               </div>
               <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-5">
                 {/* Process Groups */}
                 <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Active In</h4>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{dt('Active In', isArabic)}</h4>
                   <div className="space-y-1.5">
                     {getGroupsForKA(selectedKA.id).map(g => (
                       <div key={g.id} className="flex items-center gap-2 text-sm">
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: g.color }} />
-                        <span className="text-gray-700 font-medium">{g.name}</span>
+                        <span className="text-gray-700 font-medium">{dt(g.name, isArabic)}</span>
                       </div>
                     ))}
                   </div>
@@ -415,19 +420,19 @@ export default function ProcessesPage() {
 
                 {/* Key Processes */}
                 <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Key Processes</h4>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{dt('Key Processes', isArabic)}</h4>
                   <div className="space-y-1.5">
                     {selectedKA.keyProcesses.map((p, i) => (
-                      <div key={i} className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-1.5">{p}</div>
+                      <div key={i} className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-1.5">{dt(p, isArabic)}</div>
                     ))}
                   </div>
                 </div>
 
                 {/* Exam Tip */}
                 <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">🎯 Exam Tip</h4>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{`🎯 ${dt('Exam Tip', isArabic)}`}</h4>
                   <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
-                    <p className="text-sm text-amber-800 leading-relaxed">{selectedKA.examTip}</p>
+                    <p className="text-sm text-amber-800 leading-relaxed">{dt(selectedKA.examTip, isArabic)}</p>
                   </div>
                 </div>
               </div>
@@ -437,16 +442,16 @@ export default function ProcessesPage() {
 
         {/* Interactive Matrix */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 overflow-x-auto">
-          <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-2">Process Group × Knowledge Area Matrix</h2>
-          <p className="text-xs text-gray-400 mb-4">Shows which knowledge areas have processes in each process group.</p>
+          <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-2">{dt('Process Group × Knowledge Area Matrix', isArabic)}</h2>
+          <p className="text-xs text-gray-400 mb-4">{dt('Shows which knowledge areas have processes in each process group.', isArabic)}</p>
 
           <table className="w-full text-xs">
             <thead>
               <tr>
-                <th className="text-left px-3 py-2 text-gray-500 font-bold uppercase tracking-wider">Knowledge Area</th>
+                <th className="text-left px-3 py-2 text-gray-500 font-bold uppercase tracking-wider">{dt('Knowledge Area', isArabic)}</th>
                 {PROCESS_GROUPS.map(g => (
                   <th key={g.id} className="text-center px-3 py-2 font-bold uppercase tracking-wider" style={{ color: g.color }}>
-                    {g.icon}<br/>{g.name}
+                    {g.icon}<br/>{dt(g.name, isArabic)}
                   </th>
                 ))}
               </tr>
@@ -454,7 +459,7 @@ export default function ProcessesPage() {
             <tbody>
               {KNOWLEDGE_AREAS.map(ka => (
                 <tr key={ka.id} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                  <td className="px-3 py-2.5 font-semibold text-gray-700">{ka.icon} {ka.name}</td>
+                  <td className="px-3 py-2.5 font-semibold text-gray-700">{ka.icon} {dt(ka.name, isArabic)}</td>
                   {PROCESS_GROUPS.map(g => {
                     const active = ka.processGroups.includes(g.id)
                     return (
@@ -492,8 +497,8 @@ export default function ProcessesPage() {
 
         {/* CTA */}
         <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl p-5 text-white text-center">
-          <p className="text-sm font-bold mb-1">Test your process knowledge!</p>
-          <p className="text-xs text-violet-200 mb-3">Practice questions that test process group and knowledge area relationships.</p>
+          <p className="text-sm font-bold mb-1">{dt('Test your process knowledge!', isArabic)}</p>
+          <p className="text-xs text-violet-200 mb-3">{dt('Practice questions that test process group and knowledge area relationships.', isArabic)}</p>
           <div className="flex justify-center gap-3">
             <Link href="/dashboard/practice"
               className="bg-white text-violet-600 text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-violet-50 transition-colors">

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useLanguage } from '@/lib/i18n/language-context';
+import { dt, rtlDir, rtlClass } from '@/lib/i18n/dashboard-content';
 import { createClient } from '@/lib/supabase/client';
 import ReactMarkdown from 'react-markdown';
 
@@ -39,6 +41,7 @@ const SUGGESTED_PMBOK8 = [
 // ─── Source Badge ─────────────────────────────────────────────────────────────
 
 function SourceBadge({ framework }: { framework: 'pmbok7' | 'pmbok8' }) {
+  const { isArabic } = useLanguage();
   const sources =
     framework === 'pmbok7'
       ? ['PMBOK 7', 'ECO 2021', 'Rita Mulcahy']
@@ -48,7 +51,7 @@ function SourceBadge({ framework }: { framework: 'pmbok7' | 'pmbok8' }) {
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
-      <span className="text-xs text-gray-400">Sources:</span>
+      <span className="text-xs text-gray-400">{dt('Sources:', isArabic)}</span>
       {sources.map((src, i) => (
         <span key={src} className={`text-xs font-medium px-2 py-0.5 rounded-full ${colors[i]}`}>
           {src}
@@ -121,6 +124,7 @@ function MessageBubble({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function TutorPage() {
+  const { isArabic } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -161,14 +165,24 @@ useEffect(() => {
     setMessages([
       {
         role: 'assistant',
-        content: `👋 **Welcome to your PMP AiTuTorZ!**
+        content: isArabic ? `👋 **مرحبًا بك في معلّم PMP الذكي!**
+
+أنا مبني على **${framework === 'pmbok7' ? 'PMBOK 7 + ECO 2021 + Rita Mulcahy' : 'PMBOK 8 + ECO 2026 + Rita Mulcahy'}** وجاهز لمساعدتك على اجتياز اختبار PMP.
+
+يمكنني مساعدتك في:
+- 📚 **فهم المفاهيم** من جميع مصادر الاختبار الرئيسية
+- ✅ **التدرب على الأسئلة** مع شروحات تفصيلية
+- 🎯 **تطبيق تقنيات ريتا** للأسئلة الصعبة
+- 💡 **تذكّر الأطر** باستخدام وسائل التذكر والأمثلة
+
+ماذا تريد أن تدرس اليوم؟` : `👋 **Welcome to your PMP AiTuTorZ!**
 
 I'm grounded in **${framework === 'pmbok7' ? 'PMBOK 7 + ECO 2021 + Rita Mulcahy' : 'PMBOK 8 + ECO 2026 + Rita Mulcahy'}** and ready to help you pass the PMP exam.
 
 I can help you:
 - 📚 **Understand concepts** from all key exam sources
 - ✅ **Practice questions** with detailed explanations
-- 🎯 **Apply Rita's techniques** for tricky questions
+- 🎯 **Apply Rita\'s techniques** for tricky questions
 - 💡 **Remember frameworks** with mnemonics and examples
 
 What would you like to study today?`,
@@ -220,6 +234,7 @@ What would you like to study today?`,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          language: isArabic ? 'ar' : 'en',
           messages: updatedMessages.map(({ role, content }) => ({ role, content })),
           framework,
         }),
@@ -301,7 +316,7 @@ What would you like to study today?`,
       setMessages([
         {
           role: 'assistant',
-          content: `👋 **Chat cleared! Ready for a fresh start.**\n\nWhat would you like to study?`,
+          content: isArabic ? `👋 **تم مسح المحادثة! جاهز لبداية جديدة.**\n\nماذا تريد أن تدرس؟` : `👋 **Chat cleared! Ready for a fresh start.**\n\nWhat would you like to study?`,
           timestamp: new Date(),
         },
       ]);
@@ -312,7 +327,7 @@ What would you like to study today?`,
   const showSuggestions = messages.length <= 1;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-gray-50">
+    <div dir={rtlDir(isArabic)} className={`flex flex-col h-[calc(100vh-4rem)] bg-gray-50 ${rtlClass(isArabic)}`}>
       {/* ── Header ── */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -320,9 +335,9 @@ What would you like to study today?`,
             AI
           </div>
           <div>
-            <h1 className="font-semibold text-gray-900 text-sm">PMP AiTuTorZ</h1>
+            <h1 className="font-semibold text-gray-900 text-sm">{dt('PMP AiTuTorZ', isArabic)}</h1>
             <p className="text-xs text-gray-500">
-              Grounded in {framework === 'pmbok7' ? 'PMBOK 7 · ECO 2021' : 'PMBOK 8 · ECO 2026'} · Rita Mulcahy
+              {dt('Grounded in', isArabic)} {framework === 'pmbok7' ? 'PMBOK 7 · ECO 2021' : 'PMBOK 8 · ECO 2026'} · Rita Mulcahy
             </p>
           </div>
         </div>
@@ -402,15 +417,15 @@ What would you like to study today?`,
       {showSuggestions && (
         <div className="px-4 pb-3 flex-shrink-0">
           <div className="max-w-3xl mx-auto">
-            <p className="text-xs text-gray-400 mb-2 font-medium">Suggested questions</p>
+            <p className="text-xs text-gray-400 mb-2 font-medium">{dt('Suggested questions', isArabic)}</p>
             <div className="flex gap-2 flex-wrap">
               {suggestions.slice(0, 4).map((suggestion) => (
                 <button
-                  key={suggestion}
+                  key={dt(suggestion, isArabic)}
                   onClick={() => sendMessage(suggestion)}
                   className="text-xs bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 transition-all"
                 >
-                  {suggestion}
+                  {dt(suggestion, isArabic)}
                 </button>
               ))}
             </div>
@@ -428,7 +443,7 @@ What would you like to study today?`,
                 value={input}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask anything about the PMP exam… (Enter to send, Shift+Enter for new line)"
+                placeholder={dt('Ask anything about the PMP exam… (Enter to send, Shift+Enter for new line)', isArabic)}
                 rows={1}
                 className="w-full bg-transparent text-sm text-gray-800 placeholder-gray-400 resize-none outline-none leading-relaxed"
                 style={{ maxHeight: '120px' }}
@@ -448,13 +463,13 @@ What would you like to study today?`,
           </div>
 
           <p className="text-xs text-gray-400 text-center mt-2">
-  AI responses are for exam preparation only. Always verify with official PMI materials.
+  {dt('AI responses are for exam preparation only. Always verify with official PMI materials.', isArabic)}
 </p>
 
 {/* Contextual navigation — shown when opened from Guru panel */}
 {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('q') && messages.length > 1 && (
   <div className="mt-3 bg-violet-50 border border-violet-200 rounded-xl p-3 flex items-center justify-between gap-2 flex-wrap">
-    <p className="text-xs text-violet-700 font-medium">✅ Lesson complete! Keep the momentum going.</p>
+    <p className="text-xs text-violet-700 font-medium">{`✅ ${dt('Lesson complete! Keep the momentum going.', isArabic)}`}</p>
     <div className="flex gap-2">
       <button
         onClick={() => window.close()}

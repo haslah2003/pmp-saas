@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLanguage } from '@/lib/i18n/language-context';
+import { dt, rtlDir, rtlClass } from '@/lib/i18n/dashboard-content';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -320,6 +322,7 @@ function GuruPanel({ report, onClose, onLinkClick }: {
 // ─── Main Practice Component ──────────────────────────────────────────────────
 
 export default function PracticeClient() {
+  const { isArabic } = useLanguage();
   const [mode, setMode] = useState<'setup' | 'question' | 'wrapup' | 'loading'>('setup');
   const [difficulty, setDifficulty] = useState('entry');
   const [domain, setDomain] = useState('all');
@@ -362,7 +365,7 @@ export default function PracticeClient() {
       setSessionId(data.session.id);
       await loadBlock(data.session.id, []);
     } catch {
-      setError('Failed to start session. Please try again.');
+      setError(dt('Failed to start session. Please try again.', isArabic));
     } finally {
       setIsLoading(false);
     }
@@ -383,7 +386,7 @@ export default function PracticeClient() {
       setBlockResults([]);
       setMode('question');
     } catch {
-      setError('Could not load questions. Please check your connection.');
+      setError(dt('Could not load questions. Please check your connection.', isArabic));
       setMode('setup');
     } finally {
       setIsLoading(false);
@@ -447,7 +450,7 @@ export default function PracticeClient() {
         }
         setMode('wrapup');
       } catch {
-        setError('Failed to submit block. Please try again.');
+        setError(dt('Failed to submit block. Please try again.', isArabic));
         setMode('question');
       }
     }
@@ -471,10 +474,10 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
   // ── Setup Screen ──
   if (mode === 'setup') {
     return (
-      <div className="max-w-2xl mx-auto py-8 px-4">
+      <div dir={rtlDir(isArabic)} className={`max-w-2xl mx-auto py-8 px-4 ${rtlClass(isArabic)}`}>
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Practice Questions</h1>
-          <p className="text-gray-500">Adaptive Learning Engine · PMBOK 7 & 8</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{dt('Practice Questions', isArabic)}</h1>
+          <p className="text-gray-500">{dt('Adaptive Learning Engine · PMBOK 7 & 8', isArabic)}</p>
         </div>
 
         {error && (
@@ -483,7 +486,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
 
         {/* Framework Switcher */}
         <div className="mb-6">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Choose your framework</p>
+          <p className="text-sm font-semibold text-gray-700 mb-3">{dt('Choose your framework', isArabic)}</p>
           <div className="flex items-center bg-gray-100 rounded-xl p-1">
             <button onClick={() => setFramework('pmbok7')}
               className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
@@ -502,18 +505,18 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
 
         {/* Difficulty */}
         <div className="mb-6">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Choose your difficulty level</p>
+          <p className="text-sm font-semibold text-gray-700 mb-3">{dt('Choose your difficulty level', isArabic)}</p>
           <div className="grid grid-cols-2 gap-3">
             {DIFFICULTIES.map(d => (
               <button key={d.id} onClick={() => setDifficulty(d.id)}
-                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                className={`p-4 rounded-xl border-2 ${rtlClass(isArabic)} transition-all ${
                   difficulty === d.id ? 'border-violet-500 bg-violet-50' : 'border-gray-200 hover:border-gray-300 bg-white'
                 }`}>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">{d.emoji}</span>
-                  <span className="font-semibold text-gray-900 text-sm">{d.label}</span>
+                  <span className="font-semibold text-gray-900 text-sm">{dt(d.label, isArabic)}</span>
                 </div>
-                <p className="text-xs text-gray-500">{d.desc}</p>
+                <p className="text-xs text-gray-500">{dt(d.desc, isArabic)}</p>
               </button>
             ))}
           </div>
@@ -521,14 +524,14 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
 
         {/* Domain */}
         <div className="mb-8">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Filter by domain</p>
+          <p className="text-sm font-semibold text-gray-700 mb-3">{dt('Filter by domain', isArabic)}</p>
           <div className="flex flex-wrap gap-2">
             {DOMAINS.map(d => (
               <button key={d.id} onClick={() => setDomain(d.id)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   domain === d.id ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}>
-                {d.label}
+                {dt(d.label, isArabic)}
               </button>
             ))}
           </div>
@@ -536,11 +539,11 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
 
         <button onClick={startSession} disabled={isLoading}
           className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold py-4 rounded-xl transition-all disabled:opacity-50 text-lg">
-          {isLoading ? 'Starting…' : '🚀 Start Practice Session'}
+          {isLoading ? dt('Starting…', isArabic) : dt('🚀 Start Practice Session', isArabic)}
         </button>
 
         <p className="text-center text-xs text-gray-400 mt-4">
-          5 questions per block · AI wrap-up after each block · Guru report after 15 questions
+          {dt('5 questions per block · AI wrap-up after each block · Guru report after 15 questions', isArabic)}
         </p>
       </div>
     );
@@ -552,7 +555,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500 text-sm">Preparing your questions…</p>
+          <p className="text-gray-500 text-sm">{dt('Preparing your questions…', isArabic)}</p>
         </div>
       </div>
     );
@@ -572,7 +575,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
       <div className={`max-w-2xl mx-auto py-6 px-4 ${showGuru ? 'mr-96' : ''} transition-all`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <button onClick={() => setMode('setup')} className="text-gray-400 hover:text-gray-600 text-sm">← Back</button>
+            <button onClick={() => setMode('setup')} className="text-gray-400 hover:text-gray-600 text-sm">{isArabic ? 'رجوع ←' : '← Back'}</button>
             <span className="text-xs text-gray-400">Block {blockNumber} · Q{currentQ + 1}/5</span>
           </div>
           <div className="flex items-center gap-2">
@@ -604,7 +607,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
         </div>
 
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm mb-4">
-          <p className="text-gray-900 font-medium text-base leading-relaxed">{currentQuestion.question_text}</p>
+          <p className="text-gray-900 font-medium text-base leading-relaxed">{dt(currentQuestion.question_text, isArabic)}</p>
         </div>
 
         <div className="space-y-3 mb-6">
@@ -630,7 +633,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
                   }`}>
                     {submitted && isCorrect ? '✓' : submitted && isSelected && !isCorrect ? '✗' : ANSWER_LABELS[key]}
                   </span>
-                  <span className="text-gray-800 text-sm leading-relaxed">{optionTexts[key]}</span>
+                  <span className="text-gray-800 text-sm leading-relaxed">{dt(optionTexts[key], isArabic)}</span>
                 </div>
               </button>
             );
@@ -641,12 +644,12 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
           <div className="space-y-3 mb-6">
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
               <p className="text-xs font-semibold text-blue-700 mb-1">📖 Explanation</p>
-              <p className="text-blue-800 text-sm leading-relaxed">{currentQuestion.explanation}</p>
+              <p className="text-blue-800 text-sm leading-relaxed">{dt(currentQuestion.explanation, isArabic)}</p>
             </div>
             {currentQuestion.rita_tip && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <p className="text-xs font-semibold text-amber-700 mb-1">💡 Rita&apos;s Tip</p>
-                <p className="text-amber-800 text-sm leading-relaxed">{currentQuestion.rita_tip}</p>
+                <p className="text-amber-800 text-sm leading-relaxed">{dt(currentQuestion.rita_tip, isArabic)}</p>
               </div>
             )}
             <div className="flex gap-2 text-xs text-gray-400">

@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useLanguage } from '@/lib/i18n/language-context';
+import { dt, rtlDir, rtlClass } from '@/lib/i18n/dashboard-content';
 import { Card, Badge, Button, Progress } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { SAMPLE_QUESTIONS } from '@/lib/pmp-data';
@@ -8,6 +10,7 @@ import { SAMPLE_QUESTIONS } from '@/lib/pmp-data';
 type ExamState = 'intro' | 'active' | 'break' | 'results';
 
 export default function MockExamPage() {
+  const { isArabic } = useLanguage();
   const [examState, setExamState] = useState<ExamState>('intro');
   const [currentQ, setCurrentQ] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -45,31 +48,31 @@ export default function MockExamPage() {
 
   if (examState === 'intro') {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div><h1 className="text-2xl font-bold">PMP Mock Exam</h1><p className="text-sm text-gray-500 mt-1">Simulate the real PMP exam experience</p></div>
+      <div dir={rtlDir(isArabic)} className={`max-w-2xl mx-auto space-y-6 ${rtlClass(isArabic)}`}>
+        <div><h1 className="text-2xl font-bold">{dt('PMP Mock Exam', isArabic)}</h1><p className="text-sm text-gray-500 mt-1">{dt('Simulate the real PMP exam experience', isArabic)}</p></div>
         <Card padding="lg">
           <div className="text-center py-8">
             <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center mb-6 text-3xl">⏱️</div>
-            <h2 className="text-xl font-bold mb-2">Ready for the Challenge?</h2>
-            <p className="text-sm text-gray-500 max-w-md mx-auto mb-6">180 questions in 230 minutes, split into two sections with a 10-minute break.</p>
+            <h2 className="text-xl font-bold mb-2">{dt('Ready for the Challenge?', isArabic)}</h2>
+            <p className="text-sm text-gray-500 max-w-md mx-auto mb-6">{dt('180 questions in 230 minutes, split into two sections with a 10-minute break.', isArabic)}</p>
             <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto mb-8">
-              <div className="text-center"><p className="text-2xl font-bold">180</p><p className="text-xs text-gray-400">Questions</p></div>
-              <div className="text-center"><p className="text-2xl font-bold">230</p><p className="text-xs text-gray-400">Minutes</p></div>
-              <div className="text-center"><p className="text-2xl font-bold">2</p><p className="text-xs text-gray-400">Sections</p></div>
+              <div className="text-center"><p className="text-2xl font-bold">180</p><p className="text-xs text-gray-400">{dt('Questions', isArabic)}</p></div>
+              <div className="text-center"><p className="text-2xl font-bold">230</p><p className="text-xs text-gray-400">{dt('Minutes', isArabic)}</p></div>
+              <div className="text-center"><p className="text-2xl font-bold">2</p><p className="text-xs text-gray-400">{dt('Sections', isArabic)}</p></div>
             </div>
-            <p className="text-xs text-gray-300 mb-6">Demo: 10 questions. Full 180 in production.</p>
-            <Button size="lg" onClick={() => setExamState('active')}>Begin Exam</Button>
+            <p className="text-xs text-gray-300 mb-6">{dt('Demo: 10 questions. Full 180 in production.', isArabic)}</p>
+            <Button size="lg" onClick={() => setExamState('active')}>{dt('Begin Exam', isArabic)}</Button>
           </div>
         </Card>
         <Card padding="lg">
-          <h3 className="font-bold mb-4">Previous Attempts</h3>
+          <h3 className="font-bold mb-4">{dt('Previous Attempts', isArabic)}</h3>
           <div className="space-y-2">
             {[{ date: 'Mar 18, 2026', score: 74, passed: true }, { date: 'Mar 10, 2026', score: 62, passed: false }, { date: 'Feb 28, 2026', score: 58, passed: false }].map((a, i) => (
               <div key={i} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
                 <span className="text-sm">{a.date}</span>
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-bold">{a.score}%</span>
-                  <Badge variant={a.passed ? 'success' : 'danger'}>{a.passed ? 'PASS' : 'FAIL'}</Badge>
+                  <Badge variant={a.passed ? 'success' : 'danger'}>{a.passed ? dt('PASS', isArabic) : dt('FAIL', isArabic)}</Badge>
                 </div>
               </div>
             ))}
@@ -86,11 +89,11 @@ export default function MockExamPage() {
       <div className="max-w-2xl mx-auto space-y-6">
         <Card padding="lg" className="text-center">
           <div className={cn('w-28 h-28 mx-auto rounded-full flex items-center justify-center text-4xl font-bold mb-4', passed ? 'bg-emerald-50 text-emerald-600 ring-4 ring-emerald-200' : 'bg-red-50 text-red-500 ring-4 ring-red-200')}>{pct}%</div>
-          <h2 className="text-2xl font-bold mb-1">{passed ? '🎉 You Passed!' : 'Keep Going!'}</h2>
-          <p className="text-sm text-gray-500 mb-6">{totalCorrect} correct out of {questions.length}</p>
+          <h2 className="text-2xl font-bold mb-1">{passed ? `🎉 ${dt('You Passed!', isArabic)}` : dt('Keep Going!', isArabic)}</h2>
+          <p className="text-sm text-gray-500 mb-6">{totalCorrect} {isArabic ? 'إجابة صحيحة من أصل' : 'correct out of'} {questions.length}</p>
           <div className="flex justify-center gap-3">
-            <Button variant="secondary" onClick={() => { setExamState('intro'); setCurrentQ(0); setAnswers({}); setFlagged(new Set()); setTimeLeft(230*60); }}>Back</Button>
-            <Button onClick={() => { setExamState('active'); setCurrentQ(0); setAnswers({}); setFlagged(new Set()); setSelected(null); setTimeLeft(230*60); }}>Retake</Button>
+            <Button variant="secondary" onClick={() => { setExamState('intro'); setCurrentQ(0); setAnswers({}); setFlagged(new Set()); setTimeLeft(230*60); }}>{dt('Back', isArabic)}</Button>
+            <Button onClick={() => { setExamState('active'); setCurrentQ(0); setAnswers({}); setFlagged(new Set()); setSelected(null); setTimeLeft(230*60); }}>{dt('Retake', isArabic)}</Button>
           </div>
         </Card>
       </div>
@@ -104,12 +107,12 @@ export default function MockExamPage() {
     <div className="max-w-4xl mx-auto space-y-4">
       <div className="bg-white rounded-xl border border-gray-200 p-3 flex items-center justify-between sticky top-0 z-20 shadow-sm">
         <div className="flex items-center gap-4">
-          <Badge variant="info">Section {currentQ < 5 ? '1' : '2'}</Badge>
+          <Badge variant="info">{dt('Section', isArabic)} {currentQ < 5 ? '1' : '2'}</Badge>
           <span className="text-sm font-medium">Q{currentQ + 1} / {questions.length}</span>
         </div>
         <div className="flex items-center gap-4">
           <div className={cn('px-3 py-1 rounded-lg text-sm font-mono font-bold', timeLeft < 300 ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-900')}>{formatTime(timeLeft)}</div>
-          <Button variant="ghost" size="sm" onClick={() => setShowNav(!showNav)}>Navigator</Button>
+          <Button variant="ghost" size="sm" onClick={() => setShowNav(!showNav)}>{dt('Navigator', isArabic)}</Button>
         </div>
       </div>
 
@@ -141,7 +144,7 @@ export default function MockExamPage() {
               className={cn('w-full text-left rounded-xl border p-4 flex items-start gap-3 transition-all',
                 selected === opt.key ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 bg-white')}>
               <span className={cn('w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0', selected === opt.key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400')}>{opt.key}</span>
-              <span className="text-sm">{opt.text}</span>
+              <span className="text-sm">{dt(opt.text, isArabic)}</span>
             </button>
           ))}
         </div>
