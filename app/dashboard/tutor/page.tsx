@@ -421,7 +421,7 @@ What would you like to study today?`,
             <div className="flex gap-2 flex-wrap">
               {suggestions.slice(0, 4).map((suggestion) => (
                 <button
-                  key={dt(suggestion, isArabic)}
+                  key={suggestion}
                   onClick={() => sendMessage(suggestion)}
                   className="text-xs bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 transition-all"
                 >

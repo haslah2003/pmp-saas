@@ -319,6 +319,25 @@ export function dt(value: unknown, isArabic: boolean): string {
     'Earned Value': 'القيمة المكتسبة',
     'Communication': 'الاتصال',
 
+    // Tutor suggested prompt translations
+    'Clear chat': 'مسح المحادثة',
+    'Explain the 12 PMBOK 7 principles with exam tips': 'اشرح مبادئ PMBOK 7 الاثني عشر مع نصائح للاختبار',
+    'What is the difference between a project and a program?': 'ما الفرق بين المشروع والبرنامج؟',
+    'How do I approach agile vs predictive questions on the exam?': 'كيف أتعامل مع أسئلة أجايل مقابل المنهج التنبؤي في الاختبار؟',
+    'Explain servant leadership and when it appears on the exam': 'اشرح القيادة الخادمة ومتى تظهر في الاختبار',
+    'What are the 8 performance domains and what should I know for each?': 'ما مجالات الأداء الثمانية وما الذي يجب معرفته عن كل مجال؟',
+    'How does Rita Mulcahy suggest approaching difficult PMP questions?': 'كيف تقترح ريتا ملقاهي التعامل مع أسئلة PMP الصعبة؟',
+    'Explain the difference between risk appetite, tolerance, and threshold': 'اشرح الفرق بين شهية المخاطر وتحمل المخاطر وعتبة المخاطر',
+    'What is EVM and how do I calculate CPI and SPI?': 'ما هي إدارة القيمة المكتسبة EVM وكيف أحسب CPI و SPI؟',
+    'What are the key changes in PMBOK 8 vs PMBOK 7?': 'ما أهم التغييرات في PMBOK 8 مقارنة بـ PMBOK 7؟',
+    'How does ECO 2026 differ from ECO 2021?': 'كيف يختلف ECO 2026 عن ECO 2021؟',
+    'What new agile content is in PMBOK 8?': 'ما محتوى أجايل الجديد في PMBOK 8؟',
+    'How is digital project management addressed in PMBOK 8?': 'كيف يتناول PMBOK 8 إدارة المشاريع الرقمية؟',
+    'Explain sustainability requirements in the new exam': 'اشرح متطلبات الاستدامة في الاختبار الجديد',
+    'What percentage of questions are agile in the 2026 exam?': 'ما نسبة أسئلة أجايل في اختبار 2026؟',
+    'How has value delivery changed in PMBOK 8?': 'كيف تغيّر مفهوم تسليم القيمة في PMBOK 8؟',
+    'What are the updated stakeholder engagement requirements?': 'ما متطلبات إشراك المعنيين المحدّثة؟',
+
     // Level 2 raw dashboard translations
     '← Previous': 'السابق ←',
     'Submit Exam': 'إرسال الاختبار',
