@@ -585,7 +585,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
               difficulty === 'difficult' ? 'bg-orange-100 text-orange-700' :
               'bg-red-100 text-red-700'
             }`}>
-              {DIFFICULTIES.find(d => d.id === difficulty)?.emoji} {DIFFICULTIES.find(d => d.id === difficulty)?.label}
+              {DIFFICULTIES.find(d => d.id === difficulty)?.emoji} {dt(DIFFICULTIES.find(d => d.id === difficulty)?.label ?? '', isArabic)}
             </span>
             {guruReport && (
               <button onClick={() => setShowGuru(true)}

@@ -315,7 +315,7 @@ export default function ProcessesPage() {
           {/* Bidirectional note */}
           <div className="mt-4 bg-violet-50 border border-violet-100 rounded-xl p-3 text-center">
             <p className="text-xs text-violet-700">
-              ↔️ <strong>Dynamic flow:</strong> Planning, Executing, and M&C have bidirectional arrows — changes in execution often require re-planning. M&C runs throughout the entire project.
+              {dt('↔️ Dynamic flow: Planning, Executing, and M&C have bidirectional arrows — changes in execution often require re-planning. M&C runs throughout the entire project.', isArabic)}
             </p>
           </div>
         </div>
@@ -400,7 +400,7 @@ export default function ProcessesPage() {
               <div className="px-5 py-3 border-b" style={{ backgroundColor: selectedKA.color + '08', borderColor: selectedKA.color + '20' }}>
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{selectedKA.icon}</span>
-                  <h3 className="text-sm font-bold text-gray-900">{dt(selectedKA.name, isArabic)} Management</h3>
+                  <h3 className="text-sm font-bold text-gray-900">{isArabic ? `إدارة ${dt(selectedKA.name, isArabic)}` : `${dt(selectedKA.name, isArabic)} Management`}</h3>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">{dt(selectedKA.description, isArabic)}</p>
               </div>

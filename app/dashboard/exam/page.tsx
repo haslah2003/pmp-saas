@@ -149,11 +149,11 @@ export default function MockExamPage() {
           ))}
         </div>
         <div className="flex items-center justify-between mt-6">
-          <Button variant="ghost" onClick={() => { if (currentQ > 0) goTo(currentQ - 1); }} disabled={currentQ === 0}>← Previous</Button>
+          <Button variant="ghost" onClick={() => { if (currentQ > 0) goTo(currentQ - 1); }} disabled={currentQ === 0}>{dt('← Previous', isArabic)}</Button>
           {currentQ === questions.length - 1 ? (
-            <Button onClick={() => setExamState('results')}>Submit Exam</Button>
+            <Button onClick={() => setExamState('results')}>{dt('Submit Exam', isArabic)}</Button>
           ) : (
-            <Button onClick={() => goTo(currentQ + 1)}>Next →</Button>
+            <Button onClick={() => goTo(currentQ + 1)}>{dt('Next →', isArabic)}</Button>
           )}
         </div>
       </Card>
