@@ -8,6 +8,9 @@ export function dt(value: unknown, isArabic: boolean): string {
   const trailing = raw.match(/\s*$/)?.[0] ?? ''
   const core = raw.trim()
 
+  const stripLeadingSymbol = (text: string) =>
+    text.replace(/^[^\w\u0600-\u06FF]+/u, '').trim()
+
   const exact: Record<string, string> = {
     // Global
     '← Dashboard': 'لوحة التحكم ←',
@@ -60,6 +63,49 @@ export function dt(value: unknown, isArabic: boolean): string {
     'Positive = ahead of schedule': 'الموجب = متقدم على الجدول',
     'Negative = behind schedule': 'السالب = متأخر عن الجدول',
 
+    // Formula page remaining UI
+    'essential formulas · Exam scenarios · Rita techniques': 'معادلات أساسية · سيناريوهات اختبارية · تقنيات ريتا',
+    'Search formulas... (e.g., CPI, earned value, variance)': 'ابحث في المعادلات... مثل CPI أو القيمة المكتسبة أو التباين',
+    'Ready to test your formula knowledge?': 'هل أنت مستعد لاختبار معرفتك بالمعادلات؟',
+    'Practice questions that use these formulas in real exam scenarios.': 'تدرّب على أسئلة تستخدم هذه المعادلات في سيناريوهات اختبار واقعية.',
+    'Practice Now': 'ابدأ التدريب الآن',
+
+    // Formula names
+    'Cost Performance Index (CPI)': 'مؤشر أداء التكلفة (CPI)',
+    'Schedule Performance Index (SPI)': 'مؤشر أداء الجدول الزمني (SPI)',
+    'Estimate at Completion — CPI trend (EAC)': 'التقدير عند الإكمال — حسب اتجاه CPI ‏(EAC)',
+    'Estimate at Completion — Atypical (EAC)': 'التقدير عند الإكمال — حالة غير نمطية (EAC)',
+    'Estimate at Completion — Re-estimate (EAC)': 'التقدير عند الإكمال — إعادة التقدير (EAC)',
+    'Estimate to Complete (ETC)': 'التقدير اللازم للإكمال (ETC)',
+    'Variance at Completion (VAC)': 'التباين عند الإكمال (VAC)',
+    'To-Complete Performance Index (TCPI)': 'مؤشر الأداء المطلوب للإكمال (TCPI)',
+    'Three-Point Estimate — Triangular': 'التقدير ثلاثي النقاط — التوزيع المثلث',
+    'Three-Point Estimate — Beta (PERT)': 'التقدير ثلاثي النقاط — بيتا (PERT)',
+    'Total Float (Slack)': 'الهامش الكلي (Total Float)',
+    'Communication Channels': 'قنوات الاتصال',
+    'Expected Monetary Value (EMV)': 'القيمة النقدية المتوقعة (EMV)',
+    'Standard Deviation (σ) — PERT': 'الانحراف المعياري (σ) — PERT',
+    'Present Value (PV)': 'القيمة الحالية (PV)',
+
+    // Formula interpretations
+    'Shows whether the project is over or under budget at this point in time.': 'يوضح ما إذا كان المشروع أعلى أو أقل من الميزانية في هذه اللحظة.',
+    'Shows whether the project is ahead of or behind schedule.': 'يوضح ما إذا كان المشروع متقدمًا أو متأخرًا عن الجدول الزمني.',
+    'For every $1 spent, how much value are we getting? Shows cost efficiency.': 'يوضح مقدار القيمة التي يحصل عليها المشروع مقابل كل وحدة تكلفة يتم إنفاقها، ويقيس كفاءة التكلفة.',
+    'Shows what percentage of planned schedule progress has been achieved.': 'يوضح النسبة التي تم تحقيقها من التقدم المخطط في الجدول الزمني.',
+    'If current cost performance trends continue, what will the total project cost?': 'إذا استمرت اتجاهات أداء التكلفة الحالية، فما التكلفة الإجمالية المتوقعة للمشروع؟',
+    'If current variances are ATYPICAL (one-time events), what will the total project cost?': 'إذا كانت التباينات الحالية غير نمطية أو حدثت لمرة واحدة، فما التكلفة الإجمالية المتوقعة للمشروع؟',
+    'When original estimates are fundamentally flawed, re-estimate all remaining work.': 'عندما تكون التقديرات الأصلية غير دقيقة جذريًا، يتم إعادة تقدير العمل المتبقي بالكامل.',
+    'How much MORE money is needed to finish the project from this point?': 'ما مقدار التكلفة الإضافية المطلوبة لإنهاء المشروع من هذه النقطة؟',
+    'How much over or under budget will we be at the END of the project?': 'ما مقدار الزيادة أو النقص المتوقع في الميزانية عند نهاية المشروع؟',
+    'What cost efficiency rate must be achieved on remaining work to stay within budget?': 'ما معدل كفاءة التكلفة المطلوب تحقيقه في العمل المتبقي للبقاء ضمن الميزانية؟',
+    'Simple average of three estimates. Each estimate has equal weight.': 'متوسط بسيط لثلاثة تقديرات، بحيث يكون لكل تقدير الوزن نفسه.',
+    'Weighted average giving 4x importance to the Most Likely estimate.': 'متوسط مرجح يعطي التقدير الأكثر احتمالًا وزنًا أكبر بأربع مرات.',
+    'How much can an activity be delayed without delaying the project end date?': 'ما المدة التي يمكن أن يتأخر فيها النشاط دون تأخير تاريخ انتهاء المشروع؟',
+    'Total number of potential communication channels in the project.': 'إجمالي عدد قنوات الاتصال المحتملة في المشروع.',
+    'The weighted monetary value of a risk event. Used in decision tree analysis.': 'القيمة النقدية المرجحة لحدث خطر، وتُستخدم في تحليل شجرة القرار.',
+    'Measures the range/uncertainty of an estimate. Larger σ = more uncertainty.': 'يقيس نطاق عدم اليقين في التقدير؛ وكلما زادت σ زادت درجة عدم اليقين.',
+    'What is future money worth today? Used in project selection.': 'ما قيمة المال المستقبلي اليوم؟ وتُستخدم في اختيار المشاريع.',
+
     // Formula categories
     'Statistics & Quality': 'الإحصاء والجودة',
     'Procurement': 'المشتريات',
@@ -105,11 +151,19 @@ export function dt(value: unknown, isArabic: boolean): string {
   if (counted) {
     const base = counted[1].trim()
     const count = counted[2]
-    const translatedBase = exact[base] ?? base
+    const baseWithoutSymbol = stripLeadingSymbol(base)
+    const translatedBase =
+      exact[base] ??
+      (exact[baseWithoutSymbol] ? base.replace(baseWithoutSymbol, exact[baseWithoutSymbol]) : base)
     return `${leading}${translatedBase} (${count})${trailing}`
   }
 
   if (exact[core]) return `${leading}${exact[core]}${trailing}`
+
+  const coreWithoutSymbol = stripLeadingSymbol(core)
+  if (coreWithoutSymbol !== core && exact[coreWithoutSymbol]) {
+    return `${leading}${core.replace(coreWithoutSymbol, exact[coreWithoutSymbol])}${trailing}`
+  }
 
   const partial: Array<[string, string]> = [
     // Header fragments
