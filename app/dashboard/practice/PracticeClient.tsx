@@ -12,13 +12,20 @@ interface Question {
   subdomain: string;
   difficulty: string;
   question_text: string;
+  question_text_ar?: string;
   option_a: string;
+  option_a_ar?: string;
   option_b: string;
+  option_b_ar?: string;
   option_c: string;
+  option_c_ar?: string;
   option_d: string;
+  option_d_ar?: string;
   correct_answer: string;
   explanation: string;
+  explanation_ar?: string;
   rita_tip: string;
+  rita_tip_ar?: string;
   pmbok_reference: string;
   eco_reference: string;
 }
@@ -375,7 +382,13 @@ export default function PracticeClient() {
     setIsLoading(true);
     setMode('loading');
     try {
-      const params = new URLSearchParams({ domain, difficulty, framework, exclude: exclude.join(',') });
+      const params = new URLSearchParams({
+        domain,
+        difficulty,
+        framework,
+        exclude: exclude.join(','),
+        lang: isArabic ? 'ar' : 'en',
+      });
       const res = await fetch(`/api/practice/questions?${params}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -391,7 +404,7 @@ export default function PracticeClient() {
     } finally {
       setIsLoading(false);
     }
-  }, [domain, difficulty, framework]);
+  }, [domain, difficulty, framework, isArabic]);
 
   const handleSubmit = () => {
     if (!selectedAnswer) return;
@@ -643,12 +656,12 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
         {submitted && (
           <div className="space-y-3 mb-6">
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <p className="text-xs font-semibold text-blue-700 mb-1">📖 Explanation</p>
+              <p className="text-xs font-semibold text-blue-700 mb-1">{dt('📖 Explanation', isArabic)}</p>
               <p className="text-blue-800 text-sm leading-relaxed">{dt(currentQuestion.explanation, isArabic)}</p>
             </div>
             {currentQuestion.rita_tip && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <p className="text-xs font-semibold text-amber-700 mb-1">💡 Rita&apos;s Tip</p>
+                <p className="text-xs font-semibold text-amber-700 mb-1">{dt("💡 Rita's Tip", isArabic)}</p>
                 <p className="text-amber-800 text-sm leading-relaxed">{dt(currentQuestion.rita_tip, isArabic)}</p>
               </div>
             )}
@@ -669,7 +682,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
           ) : (
             <button onClick={handleNext}
               className="flex-1 bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 rounded-xl transition-all">
-              {currentQ < questions.length - 1 ? 'Next Question →' : 'Complete Block →'}
+              {currentQ < questions.length - 1 ? dt('Next Question →', isArabic) : dt('Complete Block →', isArabic)}
             </button>
           )}
         </div>

@@ -1,6 +1,35 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
+type QuestionRow = Record<string, unknown>;
+
+function pickLocalizedText(row: QuestionRow, arKey: string, enKey: string) {
+  const ar = row[arKey];
+  const en = row[enKey];
+
+  if (typeof ar === 'string' && ar.trim().length > 0) {
+    return ar;
+  }
+
+  return en;
+}
+
+function localizeQuestion(row: QuestionRow, useArabic: boolean) {
+  if (!useArabic) return row;
+
+  return {
+    ...row,
+    question_text: pickLocalizedText(row, 'question_text_ar', 'question_text'),
+    option_a: pickLocalizedText(row, 'option_a_ar', 'option_a'),
+    option_b: pickLocalizedText(row, 'option_b_ar', 'option_b'),
+    option_c: pickLocalizedText(row, 'option_c_ar', 'option_c'),
+    option_d: pickLocalizedText(row, 'option_d_ar', 'option_d'),
+    explanation: pickLocalizedText(row, 'explanation_ar', 'explanation'),
+    rita_tip: pickLocalizedText(row, 'rita_tip_ar', 'rita_tip'),
+  };
+}
+
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -11,6 +40,8 @@ export async function GET(req: NextRequest) {
     const domain = searchParams.get('domain') || 'all';
     const difficulty = searchParams.get('difficulty') || 'entry';
     const framework = searchParams.get('framework') || 'pmbok7';
+    const lang = searchParams.get('lang') || req.cookies.get('pmp_locale')?.value || 'en';
+    const useArabic = lang.toLowerCase().startsWith('ar');
     const excludeIds = searchParams.get('exclude')?.split(',').filter(Boolean) || [];
 
     // Build query
@@ -48,7 +79,8 @@ export async function GET(req: NextRequest) {
       }
       
       const shuffled = fallback.sort(() => Math.random() - 0.5).slice(0, 5);
-      return NextResponse.json({ questions: shuffled, profile });
+      const localizedFallback = shuffled.map((q) => localizeQuestion(q, useArabic));
+      return NextResponse.json({ questions: localizedFallback, profile });
     }
 
     // Prioritize weak area questions if profile exists
@@ -61,7 +93,8 @@ export async function GET(req: NextRequest) {
     }
 
     const selected = prioritized.sort(() => Math.random() - 0.5).slice(0, 5);
-    return NextResponse.json({ questions: selected, profile });
+    const localizedSelected = selected.map((q) => localizeQuestion(q, useArabic));
+    return NextResponse.json({ questions: localizedSelected, profile });
   } catch (error) {
     console.error('Questions API error:', error);
     return NextResponse.json({ error: 'Failed to fetch questions' }, { status: 500 });

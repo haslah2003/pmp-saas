@@ -319,6 +319,13 @@ export function dt(value: unknown, isArabic: boolean): string {
     'Earned Value': 'القيمة المكتسبة',
     'Communication': 'الاتصال',
 
+    // Practice question runtime translations
+    'Submit Answer': 'إرسال الإجابة',
+    'Next Question →': 'السؤال التالي →',
+    'Complete Block →': 'إنهاء المجموعة →',
+    '📖 Explanation': '📖 الشرح',
+    "💡 Rita's Tip": '💡 نصيحة ريتا',
+
     // Remaining clean artifact translations
     'Continuously updated throughout the project': 'يتم تحديثها باستمرار طوال المشروع',
     'Define how work will be managed': 'تحدد كيفية إدارة العمل',
