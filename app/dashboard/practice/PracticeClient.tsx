@@ -608,7 +608,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <button onClick={() => setMode('setup')} className="text-gray-400 hover:text-gray-600 text-sm">{isArabic ? 'رجوع ←' : '← Back'}</button>
-            <span className="text-xs text-gray-400">Block {blockNumber} · Q{currentQ + 1}/5</span>
+            <span className="text-xs text-gray-400">{isArabic ? `المجموعة ${blockNumber} · السؤال ${currentQ + 1}/5` : `Block ${blockNumber} · Q${currentQ + 1}/5`}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className={`text-xs px-2 py-1 rounded-full font-medium ${
