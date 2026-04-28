@@ -230,6 +230,21 @@ function RadialMindMap({ center, branches }: { center: string; branches: WrapUp[
 
 // ─── Guru Panel ───────────────────────────────────────────────────────────────
 
+
+function formatQuestionDomain(domain: string, isArabic: boolean) {
+  const labels: Record<string, { en: string; ar: string }> = {
+    people: { en: 'People', ar: 'الأفراد' },
+    process: { en: 'Process', ar: 'العمليات' },
+    'business-environment': { en: 'Business Environment', ar: 'بيئة الأعمال' },
+  };
+
+  const label = labels[domain];
+  if (label) return isArabic ? label.ar : label.en;
+
+  return domain.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+
 function GuruPanel({ report, onClose, onLinkClick }: {
   report: GuruReport;
   onClose: () => void;
@@ -619,7 +634,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
 
         <div className="mb-4">
           <span className="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full font-medium">
-            {currentQuestion.domain.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            {formatQuestionDomain(currentQuestion.domain, isArabic)}
           </span>
         </div>
 
@@ -681,7 +696,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
           {!submitted ? (
             <button onClick={handleSubmit} disabled={!selectedAnswer}
               className="flex-1 bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-40">
-              Submit Answer
+              {dt('Submit Answer', isArabic)}
             </button>
           ) : (
             <button onClick={handleNext}
