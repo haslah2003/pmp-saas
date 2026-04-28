@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
     const lang = searchParams.get('lang') || req.cookies.get('pmp_locale')?.value || 'en';
     const useArabic = lang.toLowerCase().startsWith('ar');
     const excludeIds = searchParams.get('exclude')?.split(',').filter(Boolean) || [];
+    const debugQuestionId = searchParams.get('debugQuestionId')?.trim() || '';
 
     // Build query
     let query = supabase
@@ -61,6 +62,28 @@ export async function GET(req: NextRequest) {
       .select('weak_areas, domain_scores')
       .eq('user_id', user.id)
       .single();
+
+    // Debug mode: return one exact question for controlled bilingual QA testing.
+    // Normal users still receive shuffled adaptive question blocks.
+    if (debugQuestionId) {
+      const { data: debugQuestion, error: debugError } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('id', debugQuestionId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (debugError) throw debugError;
+      if (!debugQuestion) {
+        return NextResponse.json({ error: 'Debug question not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        questions: [localizeQuestion(debugQuestion, useArabic)],
+        profile,
+        debugQuestionId,
+      });
+    }
 
     const { data: questions, error } = await query.limit(20);
     if (error) throw error;

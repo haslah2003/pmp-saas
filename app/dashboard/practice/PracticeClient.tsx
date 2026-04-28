@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { dt, rtlDir, rtlClass } from '@/lib/i18n/dashboard-content';
 
@@ -329,6 +330,8 @@ function GuruPanel({ report, onClose, onLinkClick }: {
 // ─── Main Practice Component ──────────────────────────────────────────────────
 
 export default function PracticeClient() {
+  const searchParams = useSearchParams();
+  const debugQuestionId = searchParams.get('debugQuestionId')?.trim() || '';
   const { isArabic } = useLanguage();
   const [mode, setMode] = useState<'setup' | 'question' | 'wrapup' | 'loading'>('setup');
   const [difficulty, setDifficulty] = useState('entry');
@@ -389,6 +392,7 @@ export default function PracticeClient() {
         exclude: exclude.join(','),
         lang: isArabic ? 'ar' : 'en',
       });
+      if (debugQuestionId) params.set('debugQuestionId', debugQuestionId);
       const res = await fetch(`/api/practice/questions?${params}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -404,7 +408,7 @@ export default function PracticeClient() {
     } finally {
       setIsLoading(false);
     }
-  }, [domain, difficulty, framework, isArabic]);
+  }, [domain, difficulty, framework, isArabic, debugQuestionId]);
 
   const handleSubmit = () => {
     if (!selectedAnswer) return;
