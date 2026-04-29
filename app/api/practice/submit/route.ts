@@ -2,7 +2,9 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 interface QuestionResult {
   questionId: string;
@@ -16,26 +18,240 @@ interface QuestionResult {
   difficulty: string;
 }
 
+interface WrapUp {
+  score_message: string;
+  key_learnings: {
+    concept: string;
+    insight: string;
+    source: string;
+  }[];
+  rita_technique: string;
+  mindmap_center: string;
+  mindmap_branches: {
+    label: string;
+    color: string;
+    children: {
+      label: string;
+      explanation: string;
+    }[];
+  }[];
+  next_focus: string;
+}
+
+function domainLabel(domain: string, isArabic: boolean): string {
+  const labels: Record<string, { en: string; ar: string }> = {
+    people: { en: 'People', ar: 'مجال الأفراد' },
+    process: { en: 'Process', ar: 'مجال العمليات' },
+    'business-environment': { en: 'Business Environment', ar: 'بيئة الأعمال' },
+  };
+
+  const label = labels[domain];
+
+  if (label) {
+    return isArabic ? label.ar : label.en;
+  }
+
+  return domain;
+}
+
+function extractJson(text: string): string {
+  const cleaned = text
+    .replace(/```json/g, '')
+    .replace(/```/g, '')
+    .trim();
+
+  const firstBrace = cleaned.indexOf('{');
+  const lastBrace = cleaned.lastIndexOf('}');
+
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+    return cleaned;
+  }
+
+  return cleaned.slice(firstBrace, lastBrace + 1);
+}
+
+function buildFallbackWrapUp({
+  score,
+  wrongQuestions,
+  domainsInBlock,
+  isArabic,
+}: {
+  score: number;
+  wrongQuestions: QuestionResult[];
+  domainsInBlock: string[];
+  isArabic: boolean;
+}): WrapUp {
+  if (isArabic) {
+    return {
+      score_message:
+        score >= 80
+          ? `أداء ممتاز. أنت تسير بثبات نحو إتقان مفاهيم اختبار PMP.`
+          : `جهد جيد. لنراجع أهم المفاهيم التي تحتاج إلى تعزيز قبل الانتقال إلى البلوك التالي.`,
+      key_learnings:
+        wrongQuestions.length > 0
+          ? wrongQuestions.slice(0, 3).map((q) => ({
+              concept: domainLabel(q.domain, true),
+              insight:
+                q.explanation ||
+                'راجع شرح السؤال لفهم سبب الإجابة الصحيحة وكيفية استبعاد الخيارات الأقل دقة.',
+              source: domainLabel(q.domain, true),
+            }))
+          : domainsInBlock.slice(0, 3).map((domain) => ({
+              concept: domainLabel(domain, true),
+              insight:
+                'أظهرت أداءً قويًا في هذا المجال. حافظ على نفس منهجية التحليل عند التعامل مع السيناريوهات الأطول والأكثر تعقيدًا.',
+              source: domainLabel(domain, true),
+            })),
+      rita_technique:
+        'اقرأ الجملة الأخيرة من السؤال أولًا لتحديد المطلوب بدقة، ثم استبعد الخيارات المتطرفة أو غير التعاونية أو التي تتجاوز إجراءات إدارة المشروع.',
+      mindmap_center: 'إدارة المشاريع',
+      mindmap_branches: [
+        {
+          label: 'تحليل السؤال',
+          color: '#8b5cf6',
+          children: [
+            {
+              label: 'المطلوب',
+              explanation:
+                'ابدأ بتحديد ما يطلبه السؤال: الإجراء التالي، الإجراء الأفضل، أو السبب الجذري.',
+            },
+          ],
+        },
+        {
+          label: 'استبعاد الخيارات',
+          color: '#06b6d4',
+          children: [
+            {
+              label: 'الخيارات الضعيفة',
+              explanation:
+                'استبعد الإجابات التي تتجاهل التواصل، أو تتجاوز الحوكمة، أو تقفز إلى التصعيد دون تحليل.',
+            },
+          ],
+        },
+        {
+          label: 'تفكير PMP',
+          color: '#f59e0b',
+          children: [
+            {
+              label: 'أفضل ممارسة',
+              explanation:
+                'اختر الإجابة التي تعكس قيادة استباقية، تعاونًا، وتحليلًا متوازنًا للسياق.',
+            },
+          ],
+        },
+      ],
+      next_focus:
+        score >= 80
+          ? 'انتقل إلى أسئلة أكثر تعقيدًا تجمع بين أكثر من مجال معرفي، وركّز على تحليل السيناريو قبل اختيار الإجابة.'
+          : 'راجع تفسيرات الإجابات غير الصحيحة، وركّز على فهم منطق اختيار أفضل إجراء وفق سياق السؤال.',
+    };
+  }
+
+  return {
+    score_message:
+      score >= 80
+        ? "Excellent work! You're on track for exam success."
+        : "Good effort! Let's review the key concepts together.",
+    key_learnings:
+      wrongQuestions.length > 0
+        ? wrongQuestions.slice(0, 3).map((q) => ({
+            concept: domainLabel(q.domain, false),
+            insight:
+              q.explanation ||
+              'Review the explanation carefully to understand why the correct answer is stronger than the distractors.',
+            source: domainLabel(q.domain, false),
+          }))
+        : domainsInBlock.slice(0, 3).map((domain) => ({
+            concept: domainLabel(domain, false),
+            insight:
+              'You performed strongly in this area. Continue applying the same reasoning to longer scenario-based questions.',
+            source: domainLabel(domain, false),
+          })),
+    rita_technique:
+      'Read the last sentence of each question first to identify exactly what is being asked before reading the options.',
+    mindmap_center: domainsInBlock[0] || 'Project Management',
+    mindmap_branches: [
+      {
+        label: 'Question Analysis',
+        color: '#8b5cf6',
+        children: [
+          {
+            label: 'Ask',
+            explanation:
+              'Identify exactly what the question is asking before choosing an answer.',
+          },
+        ],
+      },
+      {
+        label: 'Elimination',
+        color: '#06b6d4',
+        children: [
+          {
+            label: 'Weak Options',
+            explanation:
+              'Remove options that ignore communication, governance, or stakeholder engagement.',
+          },
+        ],
+      },
+      {
+        label: 'PMP Mindset',
+        color: '#f59e0b',
+        children: [
+          {
+            label: 'Best Action',
+            explanation:
+              'Choose the answer that is proactive, collaborative, ethical, and value-driven.',
+          },
+        ],
+      },
+    ],
+    next_focus:
+      'Review the explanations for any incorrect answers before moving to the next block.',
+  };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const body = await req.json();
-    const { sessionId, blockNumber, results, framework = 'pmbok7' } = body as {
+
+    const {
+      sessionId,
+      blockNumber,
+      results,
+      framework,
+      language,
+    } = body as {
       sessionId: string;
       blockNumber: number;
       results: QuestionResult[];
       framework: string;
+      language?: string;
     };
 
-    const correct = results.filter(r => r.isCorrect).length;
-    const total = results.length;
-    const score = Math.round((correct / total) * 100);
+    const isArabic = language === 'ar';
 
-    // Save responses to DB
-    const responses = results.map(r => ({
+    if (!sessionId || !Array.isArray(results)) {
+      return NextResponse.json(
+        { error: 'Missing sessionId or results' },
+        { status: 400 }
+      );
+    }
+
+    const correct = results.filter((r) => r.isCorrect).length;
+    const total = results.length;
+    const score = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+    const responses = results.map((r) => ({
       user_id: user.id,
       session_id: sessionId,
       question_id: r.questionId,
@@ -43,66 +259,111 @@ export async function POST(req: NextRequest) {
       is_correct: r.isCorrect,
       block_number: blockNumber,
     }));
-    await supabase.from('question_responses').insert(responses);
 
-    // Update learning profile
+    if (responses.length > 0) {
+      await supabase.from('practice_responses').insert(responses);
+    }
+
     const { data: existingProfile } = await supabase
       .from('learning_profiles')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     const domainScores = existingProfile?.domain_scores || {};
-    const weakAreas: { domain: string; score: number }[] = existingProfile?.weak_areas || [];
 
-    results.forEach(r => {
-      if (!domainScores[r.domain]) domainScores[r.domain] = { correct: 0, total: 0 };
-      domainScores[r.domain].total += 1;
-      if (r.isCorrect) domainScores[r.domain].correct += 1;
-    });
+    for (const result of results) {
+      const domain = result.domain || 'unknown';
 
-    // Recalculate weak areas
-    const updatedWeak = Object.entries(domainScores)
-      .map(([domain, val]) => {
-        const scores = val as { correct: number; total: number };
-        return {
-          domain,
-          score: Math.round((scores.correct / scores.total) * 100),
+      if (!domainScores[domain]) {
+        domainScores[domain] = {
+          correct: 0,
+          total: 0,
         };
+      }
+
+      domainScores[domain].total += 1;
+
+      if (result.isCorrect) {
+        domainScores[domain].correct += 1;
+      }
+    }
+
+    const weakAreas = Object.entries(domainScores)
+      .filter(([, value]) => {
+        const scoreValue = value as { correct: number; total: number };
+        if (!scoreValue.total) return false;
+        return scoreValue.correct / scoreValue.total < 0.7;
       })
-      .filter(d => d.score < 60)
-      .sort((a, b) => a.score - b.score);
+      .map(([domain]) => domain);
+
+    const blocksCompleted = (existingProfile?.blocks_completed || 0) + 1;
 
     const profileUpdate = {
       user_id: user.id,
       framework,
-      total_questions_answered: (existingProfile?.total_questions_answered || 0) + total,
+      total_questions_answered:
+        (existingProfile?.total_questions_answered || 0) + total,
       total_correct: (existingProfile?.total_correct || 0) + correct,
       domain_scores: domainScores,
-      weak_areas: updatedWeak,
-      blocks_completed: (existingProfile?.blocks_completed || 0) + 1,
+      weak_areas: weakAreas,
+      blocks_completed: blocksCompleted,
       last_activity: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
-    await supabase.from('learning_profiles').upsert(profileUpdate, { onConflict: 'user_id' });
+    await supabase
+      .from('learning_profiles')
+      .upsert(profileUpdate, { onConflict: 'user_id' });
 
-    // Generate AI block wrap-up
-    const wrongQuestions = results.filter(r => !r.isCorrect);
-    const domainsInBlock = [...new Set(results.map(r => r.domain))];
+    const wrongQuestions = results.filter((r) => !r.isCorrect);
+    const domainsInBlock = [...new Set(results.map((r) => r.domain).filter(Boolean))];
+
+    const languageInstruction = isArabic
+      ? `Generate the full wrap-up report in formal professional Modern Standard Arabic.
+Do not use English except for PMP, PMBOK, ECO, Agile, Scrum, Sprint, PMO, KPI, or standard professional acronyms when appropriate.
+All fields in the JSON response must be Arabic:
+- score_message
+- key_learnings.concept
+- key_learnings.insight
+- rita_technique
+- mindmap_center
+- mindmap_branches.label
+- mindmap_branches.children.label
+- mindmap_branches.children.explanation
+- next_focus
+
+Keep the tone encouraging, executive, exam-focused, concise, and suitable for PMP learners.`
+      : `Generate the full wrap-up report in English.`;
 
     const wrapUpPrompt = `You are an expert PMP exam tutor. A learner just completed a 5-question practice block.
 
+${languageInstruction}
+
 RESULTS:
 - Score: ${correct}/${total} (${score}%)
-- Domains covered: ${domainsInBlock.join(', ')}
-- Questions they got WRONG: ${wrongQuestions.map(q => `"${q.questionText}" (correct: ${q.correctAnswer})`).join('; ') || 'None - perfect score!'}
+- Domains covered: ${domainsInBlock.join(', ') || 'General PMP'}
+- Questions they got WRONG: ${
+      wrongQuestions.length > 0
+        ? wrongQuestions
+            .map(
+              (q) =>
+                `"${q.questionText}" (correct: ${q.correctAnswer}, selected: ${q.selectedAnswer})`
+            )
+            .join('; ')
+        : 'None — perfect score!'
+    }
 
-Generate a wrap-up with EXACTLY this JSON structure (no markdown, pure JSON):
+Generate a wrap-up with EXACTLY this JSON structure. Return only valid JSON. Do not include markdown.
+
 {
   "score_message": "A warm, encouraging 1-sentence message about their score",
   "key_learnings": [
-    {"concept": "concept name", "insight": "1-2 sentence learning point", "source": "PMBOK 7 / ECO 2021 / Rita"}
+    {
+      "concept": "concept name",
+      "insight": "1-2 sentence learning point",
+      "source": "PMBOK 7 / ECO 2021 / Rita"
+    }
   ],
   "rita_technique": "1 specific Rita Mulcahy exam technique relevant to the questions they struggled with",
   "mindmap_center": "The central concept for the radial mind map (1-3 words)",
@@ -111,7 +372,10 @@ Generate a wrap-up with EXACTLY this JSON structure (no markdown, pure JSON):
       "label": "branch name",
       "color": "#hexcolor",
       "children": [
-        {"label": "sub-concept", "explanation": "brief explanation for the leaf node"}
+        {
+          "label": "sub-concept",
+          "explanation": "brief explanation for the leaf node"
+        }
       ]
     }
   ],
@@ -120,233 +384,49 @@ Generate a wrap-up with EXACTLY this JSON structure (no markdown, pure JSON):
 
 Keep key_learnings to max 3 items. Keep mindmap_branches to 3-4 branches. Make it encouraging and practical.`;
 
-    const wrapUpResponse = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1500,
-      messages: [{ role: 'user', content: wrapUpPrompt }],
-    });
+    let wrapUp: WrapUp;
 
-    let wrapUp = null;
     try {
-      const rawText = wrapUpResponse.content[0].type === 'text' ? wrapUpResponse.content[0].text : '';
-      const cleaned = rawText.replace(/```json|```/g, '').trim();
-      wrapUp = JSON.parse(cleaned);
-    } catch {
-      wrapUp = {
-        score_message: score >= 80 ? "Excellent work! You're on track for exam success." : "Good effort! Let's review the key concepts together.",
-        key_learnings: wrongQuestions.slice(0, 3).map(q => ({
-          concept: q.domain,
-          insight: q.explanation,
-          source: 'PMBOK 7',
-        })),
-        rita_technique: "Read the last sentence of each question first to identify exactly what is being asked before reading the options.",
-        mindmap_center: domainsInBlock[0] || 'Project Management',
-        mindmap_branches: [
-          { label: 'Key Concepts', color: '#6366f1', children: [{ label: 'Review needed', explanation: 'Focus on the domains covered in this block' }] }
-        ],
-        next_focus: "Review the explanations for any incorrect answers before moving to the next block.",
-      };
-    }
-
-    // Get YouTube resources for the domains covered
-    const { data: videos } = await supabase
-      .from('youtube_resources')
-      .select('*')
-      .in('domain', domainsInBlock)
-      .eq('is_active', true)
-      .eq('framework', framework)
-      .limit(3);
-
-    // Check if guru report is due (every 3 blocks)
-    const newBlockCount = (existingProfile?.blocks_completed || 0) + 1;
-    const guruReportDue = newBlockCount % 3 === 0;
-
-    let guruReport = null;
-    if (guruReportDue) {
-      const { data: recentResponses } = await supabase
-        .from('question_responses')
-        .select('*, questions(*)')
-        .eq('user_id', user.id)
-        .order('answered_at', { ascending: false })
-        .limit(15);
-
-      const recentCorrect = recentResponses?.filter(r => r.is_correct).length || 0;
-      const recentTotal = recentResponses?.length || 15;
-      const recentScore = Math.round((recentCorrect / recentTotal) * 100);
-
-      const guruPrompt = `You are Master Chen Wei, a legendary PMP Guru who has been with PMI since its founding. You have personally mentored thousands of project managers to certification success. You speak with warmth, wisdom, deep expertise, and genuine care for each learner's journey.
-
-A learner has just completed 15 practice questions (3 blocks of 5). Here is their performance data:
-
-RECENT PERFORMANCE (last 15 questions):
-- Overall score: ${recentCorrect}/${recentTotal} (${recentScore}%)
-- Domain breakdown: ${JSON.stringify(domainScores, null, 2)}
-- Weak areas identified: ${updatedWeak.map(w => `${w.domain} (${w.score}%)`).join(', ') || 'None identified yet'}
-
-Write a professional, warm, deeply insightful progress report as Master Chen Wei. Use this EXACT JSON structure (pure JSON, no markdown):
-{
-  "greeting": "Personal, warm greeting to the learner (2 sentences)",
-  "overall_assessment": "Professional assessment of their progress (3-4 sentences, warm but honest)",
-  "strengths": [
-    {"area": "strength area", "message": "specific encouraging observation"}
-  ],
-  "growth_areas": [
-    {"area": "area needing work", "priority": "high/medium", "guidance": "specific actionable advice", "domain_link": "domain name to link to AiTuTorZ"}
-  ],
-  "wisdom_quote": "A short piece of wisdom from Master Chen Wei about this stage of the learning journey",
-  "next_session_focus": "Specific recommendation for what to focus on in the next session",
-  "confidence_message": "A final empowering message (2 sentences)"
-}
-
-Be the most caring, wise, experienced mentor they could hope for. Make them feel seen, supported, and capable.
-
-CRITICAL: Always use the word "learner" — NEVER use the word "student". This is a professional adult learning environment.`;
-
-      const guruResponse = await anthropic.messages.create({
+      const wrapUpResponse = await anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: guruPrompt }],
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: wrapUpPrompt }],
       });
 
-      try {
-        const rawGuru = guruResponse.content[0].type === 'text' ? guruResponse.content[0].text : '';
-        const cleanedGuru = rawGuru.replace(/```json|```/g, '').trim();
-        guruReport = JSON.parse(cleanedGuru);
-      } catch {
-        guruReport = null;
-      }
-    }// ── Award Performance Badge (≥80% on 15 questions) ──
-    let badge = null;
-    if (guruReportDue) {
-      const { data: recentForBadge } = await supabase
-        .from('question_responses')
-        .select('is_correct')
-        .eq('user_id', user.id)
-        .order('answered_at', { ascending: false })
-        .limit(15);
+      const firstContent = wrapUpResponse.content[0];
+      const responseText =
+        firstContent && firstContent.type === 'text' ? firstContent.text : '';
 
-      const badgeCorrect = recentForBadge?.filter(r => r.is_correct).length || 0;
-      const badgeScore = Math.round((badgeCorrect / 15) * 100);
-
-      if (badgeScore >= 80) {
-        const topDomains = Object.entries(domainScores)
-          .map(([d, v]) => ({ domain: d, score: Math.round(((v as {correct:number;total:number}).correct / (v as {correct:number;total:number}).total) * 100) }))
-          .sort((a, b) => b.score - a.score);
-
-        const badgeIcon = badgeScore === 100 ? '🏆' : badgeScore >= 93 ? '🥇' : '🏅';
-        const badgeName = badgeScore === 100 ? 'Perfect Mastery' : badgeScore >= 93 ? 'Expert Performance' : 'Strong Performance';
-        const badgeDesc = badgeScore === 100
-          ? `Flawless 15/15 — absolute mastery across ${topDomains[0]?.domain || 'all domains'}!`
-          : `Scored ${badgeCorrect}/15 (${badgeScore}%) — strong command of PMP concepts.`;
-
-        const { data: inserted } = await supabase
-          .from('badges')
-          .insert({
-            user_id: user.id,
-            badge_type: 'performance',
-            badge_name: badgeName,
-            badge_description: badgeDesc,
-            badge_icon: badgeIcon,
-            domain: topDomains[0]?.domain || null,
-            score: badgeScore,
-            questions_count: 15,
-            session_block: newBlockCount,
-          })
-          .select()
-          .single();
-
-        badge = inserted;
-      }
+      wrapUp = JSON.parse(extractJson(responseText)) as WrapUp;
+    } catch {
+      wrapUp = buildFallbackWrapUp({
+        score,
+        wrongQuestions,
+        domainsInBlock,
+        isArabic,
+      });
     }
 
-    // Calculate overall 15-question score and save guru report
-    let overallScore = null;
-    let guruReportId = null;
-    if (guruReportDue) {
-      const { data: last15 } = await supabase
-        .from('question_responses')
-        .select('is_correct')
-        .eq('user_id', user.id)
-        .order('answered_at', { ascending: false })
-        .limit(15);
-      const oc = last15?.filter(r => r.is_correct).length || 0;
-      const opct = Math.round((oc / 15) * 100);
-      overallScore = { correct: oc, total: 15, pct: opct };
-
-      // Calculate community averages from all learners
-      const { data: allProfiles } = await supabase
-        .from('learning_profiles')
-        .select('total_questions_answered, total_correct, domain_scores')
-        .gt('total_questions_answered', 0);
-
-      const communityAvg: Record<string, number> = {};
-      let communityOverall = 0;
-      if (allProfiles && allProfiles.length > 0) {
-        const totalC = allProfiles.reduce((s, p) => s + (p.total_correct || 0), 0);
-        const totalQ = allProfiles.reduce((s, p) => s + (p.total_questions_answered || 0), 0);
-        communityOverall = totalQ > 0 ? Math.round((totalC / totalQ) * 100) : 0;
-        communityAvg['overall'] = communityOverall;
-
-        // Per-domain community averages
-        const domainTotals: Record<string, { correct: number; total: number }> = {};
-        allProfiles.forEach(p => {
-          const ds = p.domain_scores as Record<string, { correct: number; total: number }> || {};
-          Object.entries(ds).forEach(([domain, vals]) => {
-            if (!domainTotals[domain]) domainTotals[domain] = { correct: 0, total: 0 };
-            domainTotals[domain].correct += vals.correct || 0;
-            domainTotals[domain].total += vals.total || 0;
-          });
-        });
-        Object.entries(domainTotals).forEach(([domain, vals]) => {
-          communityAvg[domain] = vals.total > 0 ? Math.round((vals.correct / vals.total) * 100) : 0;
-        });
-      }
-
-      // Save guru report to database
-      if (guruReport) {
-        const { data: savedReport } = await supabase
-          .from('guru_reports')
-          .insert({
-            user_id: user.id,
-            greeting: guruReport.greeting,
-            overall_assessment: guruReport.overall_assessment,
-            strengths: guruReport.strengths,
-            growth_areas: guruReport.growth_areas,
-            wisdom_quote: guruReport.wisdom_quote,
-            next_session_focus: guruReport.next_session_focus,
-            confidence_message: guruReport.confidence_message,
-            overall_score: opct,
-            overall_correct: oc,
-            overall_total: 15,
-            domain_scores: domainScores,
-            weak_areas: updatedWeak,
-            community_avg: communityAvg,
-            blocks_completed: newBlockCount,
-            framework,
-            badge_id: badge?.id || null,
-          })
-          .select('id')
-          .single();
-        guruReportId = savedReport?.id || null;
-      }
-    }
+    const { data: videos } = await supabase
+      .from('video_recommendations')
+      .select('*')
+      .in('domain', domainsInBlock.length > 0 ? domainsInBlock : ['people', 'process'])
+      .limit(3);
 
     return NextResponse.json({
-      success: true,
-      score,
       correct,
       total,
+      score,
+      blocksCompleted,
       wrapUp,
       videos: videos || [],
-      guruReport,
-      guruReportDue,
-      blocksCompleted: newBlockCount,
-      badge,
-      overallScore,
-      guruReportId,
     });
   } catch (error) {
-    console.error('Submit API error:', error);
-    return NextResponse.json({ error: 'Failed to submit block' }, { status: 500 });
+    console.error('Practice submit error:', error);
+
+    return NextResponse.json(
+      { error: 'Failed to submit practice block' },
+      { status: 500 }
+    );
   }
 }
