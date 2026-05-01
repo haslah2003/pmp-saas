@@ -1219,7 +1219,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
     return (
       <div
         dir={rtlDir(isArabic)}
-        className={`max-w-2xl mx-auto py-6 px-4 ${showGuru ? 'mr-96' : ''} transition-all ${rtlClass(isArabic)}`}
+        className={`max-w-7xl mx-auto py-6 px-4 ${showGuru ? 'mr-96' : ''} transition-all ${rtlClass(isArabic)}`}
       >
         <div className="text-center mb-6">
           <div
