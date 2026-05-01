@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { dt, rtlDir, rtlClass } from '@/lib/i18n/dashboard-content';
@@ -99,12 +99,23 @@ const DOMAINS = [
   { id: 'business-environment', label: 'Business Environment (8%)' },
 ];
 
-const ANSWER_LABELS: Record<string, string> = {
+const ANSWER_LABELS_EN: Record<string, string> = {
   a: 'A',
   b: 'B',
   c: 'C',
   d: 'D',
 };
+
+const ANSWER_LABELS_AR: Record<string, string> = {
+  a: 'أ',
+  b: 'ب',
+  c: 'ج',
+  d: 'د',
+};
+
+function answerLabel(key: string, isArabic: boolean) {
+  return isArabic ? ANSWER_LABELS_AR[key] ?? key : ANSWER_LABELS_EN[key] ?? key;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -133,9 +144,74 @@ function getFieldByLanguage(
   return englishValue;
 }
 
-// ─── Radial Mind Map ──────────────────────────────────────────────────────────
+function sanitizeFileName(value: string) {
+  return value
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, '-')
+    .replace(/\s+/g, '-')
+    .slice(0, 80) || 'mindmap';
+}
 
-function RadialMindMap({
+function wrapSvgText(
+  value: string,
+  maxCharsPerLine: number,
+  maxLines: number,
+  isArabic = false
+) {
+  const words = value.trim().split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+
+  if (words.length === 0) return [''];
+
+  let current = '';
+
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+
+    if (candidate.length <= maxCharsPerLine) {
+      current = candidate;
+      continue;
+    }
+
+    if (current) {
+      lines.push(current);
+    }
+
+    // Important:
+    // Do NOT split Arabic words character-by-character.
+    // Keep the word whole on its own line.
+    current = word;
+
+    if (lines.length >= maxLines - 1) {
+      break;
+    }
+  }
+
+  if (current && lines.length < maxLines) {
+    lines.push(current);
+  }
+
+  if (lines.length > maxLines) {
+    lines.length = maxLines;
+  }
+
+  const consumed = lines.join(' ').trim();
+  const original = words.join(' ').trim();
+
+  if (original.length > consumed.length && lines.length > 0) {
+    const lastIndex = lines.length - 1;
+    const last = lines[lastIndex].replace(/…$/, '');
+    lines[lastIndex] = `${last}…`;
+  }
+
+  // SVG multi-line Arabic text often appears visually reversed top-to-bottom.
+  // Reverse the line stack for Arabic only.
+  return isArabic ? [...lines].reverse() : lines;
+}
+
+// ─── Tree Mind Map (NotebookLM Style) ─────────────────────────────────────────
+
+function TreeMindMap({
   center,
   branches,
   isArabic,
@@ -144,248 +220,268 @@ function RadialMindMap({
   branches: WrapUp['mindmap_branches'];
   isArabic: boolean;
 }) {
-  const [expandedBranch, setExpandedBranch] = useState<number | null>(null);
-  const [activeLeaf, setActiveLeaf] = useState<{ label: string; explanation: string } | null>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
+  const [expandedBranches, setExpandedBranches] = useState<Set<number>>(new Set());
+  const [activeLeaf, setActiveLeaf] = useState<{
+    label: string;
+    explanation: string;
+  } | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const branchRefs = useRef<(HTMLButtonElement | null)[]>([]);
+const leafRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
+  const [, forceUpdate] = useState({});
 
-  const cx = 260;
-  const cy = 260;
-  const centerR = 52;
-  const branchDist = 130;
-  const leafDist = 105;
-  const branchR = 40;
-  const leafR = 34;
+  useEffect(() => {
+    const handleResize = () => forceUpdate({});
+    window.addEventListener('resize', handleResize);
+    const id = setTimeout(() => forceUpdate({}), 50);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(id);
+    };
+  }, [expandedBranches]);
 
-  const branchAngles = branches.map((_, i) =>
-    (i / branches.length) * 2 * Math.PI - Math.PI / 2
-  );
-
-  const downloadSVG = () => {
-    const svg = svgRef.current;
-    if (!svg) return;
-
-    const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-
-    a.href = url;
-    a.download = `mindmap-${center.replace(/\s+/g, '-')}.svg`;
-    a.click();
-
-    URL.revokeObjectURL(url);
+  const toggleBranch = (index: number) => {
+    setExpandedBranches((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+    setTimeout(() => forceUpdate({}), 550);
   };
+
+  const downloadPDF = async () => {
+    const container = containerRef.current;
+    if (!container || isExporting) return;
+    setIsExporting(true);
+    try {
+      const [{ jsPDF }, html2canvas] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas').then((m) => m.default),
+      ]);
+      const canvas = await html2canvas(container, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 36;
+      const availableWidth = pageWidth - margin * 2;
+      const availableHeight = pageHeight - margin * 2;
+      const imgRatio = canvas.width / canvas.height;
+      let imgWidth = availableWidth;
+      let imgHeight = imgWidth / imgRatio;
+      if (imgHeight > availableHeight) {
+        imgHeight = availableHeight;
+        imgWidth = imgHeight * imgRatio;
+      }
+      const x = (pageWidth - imgWidth) / 2;
+      const y = (pageHeight - imgHeight) / 2;
+      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+      pdf.save(`${sanitizeFileName(center)}.pdf`);
+    } catch (error) {
+      console.error('Mind map PDF export failed:', error);
+      alert(isArabic ? 'تعذر تصدير الخريطة الذهنية بصيغة PDF.' : 'Could not export the mind map as PDF.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const getBezierPath = (fromEl: HTMLElement, toEl: HTMLElement, container: HTMLElement) => {
+    const containerRect = container.getBoundingClientRect();
+    const fromRect = fromEl.getBoundingClientRect();
+    const toRect = toEl.getBoundingClientRect();
+    
+    // Auto-detect connection sides based on actual element positions
+    const fromCenterX = fromRect.left + fromRect.width / 2;
+    const toCenterX = toRect.left + toRect.width / 2;
+    const fromIsLeft = fromCenterX < toCenterX;
+    
+    const fromX = (fromIsLeft ? fromRect.right : fromRect.left) - containerRect.left;
+    const toX = (fromIsLeft ? toRect.left : toRect.right) - containerRect.left;
+    const fromY = fromRect.top + fromRect.height / 2 - containerRect.top;
+    const toY = toRect.top + toRect.height / 2 - containerRect.top;
+    const midX = (fromX + toX) / 2;
+    return `M ${fromX} ${fromY} C ${midX} ${fromY}, ${midX} ${toY}, ${toX} ${toY}`;
+  };
+
+  const connectors: { path: string; color: string; opacity: number }[] = [];
+  if (containerRef.current && rootRef.current) {
+    branchRefs.current.forEach((branchEl, branchIndex) => {
+      if (branchEl && rootRef.current && containerRef.current) {
+        connectors.push({
+          path: getBezierPath(rootRef.current, branchEl, containerRef.current),
+          color: '#a78bfa',
+          opacity: 0.5,
+        });
+      }
+      if (expandedBranches.has(branchIndex) && branchEl && containerRef.current) {
+        const branch = branches[branchIndex];
+        branch.children.forEach((child) => {
+          const key = `${branchIndex}-${child.label}`;
+          const leafEl = leafRefs.current.get(key);
+          if (leafEl && containerRef.current) {
+            connectors.push({
+              path: getBezierPath(branchEl, leafEl, containerRef.current),
+              color: '#34d399',
+              opacity: 0.5,
+            });
+          }
+        });
+      }
+    });
+  }
 
   return (
     <div className="flex flex-col items-center w-full">
       <p className="text-xs text-gray-400 mb-3 text-center">
         {isArabic
-          ? '🌀 اضغط على الفرع للاستكشاف · اضغط مرة أخرى للإغلاق'
-          : '🌀 Click a branch to explore · Click again to collapse'}
+          ? '🌀 اضغط على الفرع للتوسيع · اضغط على ورقة للتفاصيل'
+          : '🌀 Click branch to expand · Click leaf for details'}
       </p>
 
-      <div className="w-full overflow-x-auto">
-        <svg ref={svgRef} viewBox="0 0 520 520" className="w-full max-w-md mx-auto block">
-          <rect width="520" height="520" fill="#f8fafc" rx="16" />
-
-          {branches.map((branch, branchIndex) => {
-            const angle = branchAngles[branchIndex];
-            const branchX = cx + Math.cos(angle) * branchDist;
-            const branchY = cy + Math.sin(angle) * branchDist;
-            const isExpanded = expandedBranch === branchIndex;
-
-            return (
-              <g key={branchIndex}>
-                <line
-                  x1={cx}
-                  y1={cy}
-                  x2={branchX}
-                  y2={branchY}
-                  stroke={branch.color}
-                  strokeWidth="2"
-                  strokeOpacity={isExpanded ? '0.8' : '0.35'}
-                  strokeDasharray={isExpanded ? 'none' : '5,3'}
-                />
-
-                {isExpanded &&
-                  branch.children.map((child, childIndex) => {
-                    const totalChildren = branch.children.length;
-                    const spread = totalChildren === 1 ? 0 : Math.PI * 0.55;
-                    const startAngle = angle - spread / 2;
-                    const childAngle =
-                      totalChildren === 1
-                        ? angle
-                        : startAngle + (childIndex / (totalChildren - 1)) * spread;
-
-                    const leafX = branchX + Math.cos(childAngle) * leafDist;
-                    const leafY = branchY + Math.sin(childAngle) * leafDist;
-                    const isActive = activeLeaf?.label === child.label;
-
-                    const clampedLeafX = Math.max(leafR + 4, Math.min(520 - leafR - 4, leafX));
-                    const clampedLeafY = Math.max(leafR + 4, Math.min(520 - leafR - 4, leafY));
-
-                    return (
-                      <g
-                        key={childIndex}
-                        className="cursor-pointer"
-                        onClick={() => setActiveLeaf(isActive ? null : child)}
-                      >
-                        <line
-                          x1={branchX}
-                          y1={branchY}
-                          x2={clampedLeafX}
-                          y2={clampedLeafY}
-                          stroke={branch.color}
-                          strokeWidth="1.5"
-                          strokeOpacity="0.4"
-                          strokeDasharray="3,3"
-                        />
-
-                        <circle
-                          cx={clampedLeafX}
-                          cy={clampedLeafY}
-                          r={leafR}
-                          fill={isActive ? branch.color : 'white'}
-                          stroke={branch.color}
-                          strokeWidth={isActive ? '0' : '1.8'}
-                          opacity="0.95"
-                        />
-
-                        <text
-                          x={clampedLeafX}
-                          y={clampedLeafY}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          fontSize="8.5"
-                          fontWeight="600"
-                          fill={isActive ? 'white' : '#374151'}
-                          className="select-none pointer-events-none"
-                        >
-                          {child.label.length > 11 ? `${child.label.slice(0, 10)}…` : child.label}
-                        </text>
-                      </g>
-                    );
-                  })}
-
-                <g
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setExpandedBranch(isExpanded ? null : branchIndex);
-                    setActiveLeaf(null);
-                  }}
-                >
-                  <circle
-                    cx={branchX}
-                    cy={branchY}
-                    r={branchR}
-                    fill={isExpanded ? branch.color : 'white'}
-                    stroke={branch.color}
-                    strokeWidth="2.5"
-                    className="transition-all"
-                  />
-
-                  {!isExpanded && (
-                    <text
-                      x={branchX + branchR - 8}
-                      y={branchY - branchR + 8}
-                      textAnchor="middle"
-                      fontSize="10"
-                      fill={branch.color}
-                      fontWeight="bold"
-                      className="select-none pointer-events-none"
-                    >
-                      +
-                    </text>
-                  )}
-
-                  <text
-                    x={branchX}
-                    y={branch.label.includes(' ') ? branchY - 5 : branchY}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fontSize="9.5"
-                    fontWeight="700"
-                    fill={isExpanded ? 'white' : branch.color}
-                    className="select-none pointer-events-none"
-                  >
-                    {branch.label.split(' ').slice(0, 1).join(' ')}
-                  </text>
-
-                  {branch.label.includes(' ') && (
-                    <text
-                      x={branchX}
-                      y={branchY + 7}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize="9.5"
-                      fontWeight="700"
-                      fill={isExpanded ? 'white' : branch.color}
-                      className="select-none pointer-events-none"
-                    >
-                      {branch.label.split(' ').slice(1).join(' ')}
-                    </text>
-                  )}
-                </g>
-              </g>
-            );
-          })}
-
-          <circle cx={cx} cy={cy} r={centerR} fill="url(#centerGrad)" />
-
-          <defs>
-            <radialGradient id="centerGrad">
-              <stop offset="0%" stopColor="#818cf8" />
-              <stop offset="100%" stopColor="#6366f1" />
-            </radialGradient>
-          </defs>
-
-          <text
-            x={cx}
-            y={cy - 7}
-            textAnchor="middle"
-            fontSize="11"
-            fill="white"
-            fontWeight="800"
-            className="select-none pointer-events-none"
-          >
-            {center.length > 12 ? `${center.slice(0, 11)}…` : center}
-          </text>
-
-          <text
-            x={cx}
-            y={cy + 9}
-            textAnchor="middle"
-            fontSize="8"
-            fill="white"
-            fillOpacity="0.75"
-            className="select-none pointer-events-none"
-          >
-            {isArabic ? 'اضغط' : 'tap branches'}
-          </text>
+      <div
+        ref={containerRef}
+        dir={isArabic ? 'rtl' : 'ltr'}
+        className="relative w-full bg-gradient-to-br from-slate-50 to-white rounded-xl border border-gray-200 p-8 overflow-x-auto"
+        style={{ minHeight: '450px' }}
+      >
+        <svg
+          className="absolute inset-0 pointer-events-none"
+          style={{ width: '100%', height: '100%' }}
+        >
+          {connectors.map((c, i) => (
+            <path
+              key={i}
+              d={c.path}
+              stroke={c.color}
+              strokeWidth="2"
+              strokeOpacity={c.opacity}
+              fill="none"
+            />
+          ))}
         </svg>
+
+        <div className="relative flex items-center gap-16 min-w-fit">
+          <div ref={rootRef} className="flex-shrink-0 self-center z-10">
+            <div
+              className="px-5 py-3 rounded-xl shadow-md text-white font-bold text-sm max-w-[220px] text-center"
+              style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' }}
+            >
+              {center}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-5 flex-shrink-0">
+            {branches.map((branch, branchIndex) => {
+              const isExpanded = expandedBranches.has(branchIndex);
+              const hasChildren = branch.children && branch.children.length > 0;
+
+              return (
+                <div
+                  key={branchIndex}
+                  className="flex items-center gap-12"
+                >
+                  <button
+                    ref={(el) => {
+                      branchRefs.current[branchIndex] = el;
+                    }}
+                    onClick={() => toggleBranch(branchIndex)}
+                    className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-lg border bg-violet-50 hover:bg-violet-100 hover:shadow-sm transition-all text-sm font-semibold whitespace-nowrap text-violet-700 border-violet-200 z-10"
+                  >
+                    <span>{branch.label}</span>
+                    {hasChildren && (
+                      <span className="text-[10px] w-5 h-5 rounded-full flex items-center justify-center bg-violet-600 text-white font-bold">
+                        {isExpanded ? '−' : '+'}
+                      </span>
+                    )}
+                  </button>
+
+                  {hasChildren && (
+                    <div
+                      className="overflow-hidden transition-all duration-500 ease-out"
+                      style={{
+                        maxWidth: isExpanded ? '600px' : '0px',
+                        opacity: isExpanded ? 1 : 0,
+                      }}
+                    >
+                      <div className="flex flex-col gap-2">
+                        {branch.children.map((child, childIndex) => {
+                          const isActive = activeLeaf?.label === child.label;
+                          const key = `${branchIndex}-${child.label}`;
+                          return (
+                            <button
+                              key={childIndex}
+                              ref={(el) => {
+                                leafRefs.current.set(key, el);
+                              }}
+                              onClick={() =>
+                                setActiveLeaf(
+                                  isActive
+                                    ? null
+                                    : { label: child.label, explanation: child.explanation }
+                                )
+                              }
+                              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap border z-10 ${
+                                isArabic ? 'text-right' : 'text-left'
+                              } ${
+                                isActive
+                                  ? 'bg-emerald-600 text-white border-emerald-700'
+                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                              }`}
+                            >
+                              {child.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {activeLeaf && (
-        <div className="mt-3 bg-violet-50 border border-violet-200 rounded-xl p-3 w-full max-w-md">
-          <div className="flex justify-between items-start">
-            <p className="font-semibold text-violet-800 text-sm">📌 {activeLeaf.label}</p>
+        <div
+          dir={isArabic ? 'rtl' : 'ltr'}
+          className={`mt-3 rounded-xl p-4 w-full max-w-2xl border-2 bg-amber-50 border-amber-200 ${
+            isArabic ? 'text-right' : 'text-left'
+          }`}
+        >
+          <div className="flex justify-between items-start gap-2 mb-2">
+            <p className="font-semibold text-sm text-amber-800">📌 {activeLeaf.label}</p>
             <button
               onClick={() => setActiveLeaf(null)}
-              className="text-violet-400 hover:text-violet-600 text-xs ml-2 flex-shrink-0"
+              className="text-amber-400 hover:text-amber-600 text-sm flex-shrink-0"
             >
               ✕
             </button>
           </div>
-          <p className="text-violet-700 text-xs mt-1.5 leading-relaxed">
-            {activeLeaf.explanation}
-          </p>
+          <p className="text-amber-900 text-sm leading-relaxed">{activeLeaf.explanation}</p>
         </div>
       )}
 
       <button
-        onClick={downloadSVG}
-        className="mt-4 text-xs text-gray-400 hover:text-violet-600 border border-gray-200 hover:border-violet-300 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+        onClick={downloadPDF}
+        disabled={isExporting}
+        className="mt-4 text-xs text-gray-500 hover:text-violet-600 border border-gray-200 hover:border-violet-300 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-50"
       >
-        {isArabic ? '⬇️ تحميل الخريطة الذهنية' : '⬇️ Download Mind Map'}
+        {isExporting
+          ? isArabic
+            ? 'جارٍ تجهيز PDF…'
+            : 'Preparing PDF…'
+          : isArabic
+            ? '⬇️ تحميل الخريطة الذهنية PDF'
+            : '⬇️ Download Mind Map PDF'}
       </button>
     </div>
   );
@@ -579,6 +675,36 @@ export default function PracticeClient() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const resetPracticeState = useCallback(() => {
+    setMode('setup');
+    setSessionId(null);
+    setBlockNumber(1);
+    setQuestions([]);
+    setCurrentQ(0);
+    setSelectedAnswer(null);
+    setSubmitted(false);
+    setBlockResults([]);
+    setAnsweredIds([]);
+    setWrapUp(null);
+    setVideos([]);
+    setBlockScore({ correct: 0, total: 0 });
+    setGuruReport(null);
+    setShowGuru(false);
+    setBadge(null);
+    setOverallScore(null);
+    setGuruReportId(null);
+    setError(null);
+  }, []);
+
+  const languageRef = useRef(isArabic);
+
+  useEffect(() => {
+    if (languageRef.current === isArabic) return;
+
+    languageRef.current = isArabic;
+    resetPracticeState();
+  }, [isArabic, resetPracticeState]);
 
   const startSession = async () => {
     setIsLoading(true);
@@ -989,7 +1115,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
                 key={key}
                 onClick={() => !submitted && setSelectedAnswer(key)}
                 disabled={submitted}
-                className={`w-full text-left p-4 rounded-xl border-2 transition-all ${style}`}
+                className={`w-full ${isArabic ? 'text-right' : 'text-left'} p-4 rounded-xl border-2 transition-all ${style}`}
               >
                 <div className="flex items-start gap-3">
                   <span
@@ -1007,7 +1133,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
                       ? '✓'
                       : submitted && isSelected && !isCorrect
                         ? '✗'
-                        : ANSWER_LABELS[key]}
+                        : answerLabel(key, isArabic)}
                   </span>
 
                   <span className="text-gray-800 text-sm leading-relaxed">
@@ -1037,7 +1163,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
             {currentQuestion.rita_tip && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <p className="text-xs font-semibold text-amber-700 mb-1">
-                  {dt("💡 Rita's Tip", isArabic)}
+                  {isArabic ? '💡 نصيحة ريتا' : "💡 Rita\'s Tip"}
                 </p>
                 <p className="text-amber-800 text-sm leading-relaxed">
                   {getFieldByLanguage(isArabic, currentQuestion.rita_tip, currentQuestion.rita_tip_ar)}
@@ -1342,7 +1468,7 @@ function WrapUpTabs({
         )}
 
         {activeTab === 'mindmap' && (
-          <RadialMindMap
+          <TreeMindMap
             center={wrapUp.mindmap_center}
             branches={wrapUp.mindmap_branches}
             isArabic={isArabic}
