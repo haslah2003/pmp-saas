@@ -44,6 +44,11 @@ export async function GET(req: NextRequest) {
     const useArabic = lang.toLowerCase().startsWith('ar');
     const excludeIds = searchParams.get('exclude')?.split(',').filter(Boolean) || [];
     const debugQuestionId = searchParams.get('debugQuestionId')?.trim() || '';
+    const rawCount = Number.parseInt(searchParams.get('count') || '5', 10);
+    const requestedCount = Number.isFinite(rawCount)
+      ? Math.min(Math.max(rawCount, 1), 180)
+      : 5;
+    const queryLimit = Math.max(20, requestedCount * 2);
 
     // Build query
     let query = supabase
@@ -85,7 +90,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const { data: questions, error } = await query.limit(20);
+    const { data: questions, error } = await query.limit(queryLimit);
     if (error) throw error;
     if (!questions || questions.length === 0) {
       // Fallback: remove exclude filter
@@ -95,13 +100,13 @@ export async function GET(req: NextRequest) {
         .eq('framework', framework)
         .eq('difficulty', difficulty)
         .eq('is_active', true)
-        .limit(20);
+        .limit(queryLimit);
       
       if (!fallback || fallback.length === 0) {
         return NextResponse.json({ error: 'No questions available' }, { status: 404 });
       }
       
-      const shuffled = fallback.sort(() => Math.random() - 0.5).slice(0, 5);
+      const shuffled = fallback.sort(() => Math.random() - 0.5).slice(0, requestedCount);
       const localizedFallback = shuffled.map((q) => localizeQuestion(q, useArabic));
       return NextResponse.json({ questions: localizedFallback, profile });
     }
@@ -115,7 +120,7 @@ export async function GET(req: NextRequest) {
       prioritized = [...weakQuestions, ...otherQuestions];
     }
 
-    const selected = prioritized.sort(() => Math.random() - 0.5).slice(0, 5);
+    const selected = prioritized.sort(() => Math.random() - 0.5).slice(0, requestedCount);
     const localizedSelected = selected.map((q) => localizeQuestion(q, useArabic));
     return NextResponse.json({ questions: localizedSelected, profile });
   } catch (error) {
