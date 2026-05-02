@@ -51,6 +51,22 @@ export function dt(value: unknown, isArabic: boolean): string {
     'ECO Business Environment': 'مجال بيئة الأعمال في ECO',
     'All 4 ECO Business tasks — compliance, benefits, external changes, org change.': 'جميع مهام بيئة الأعمال الأربع في ECO — الامتثال، والمنافع، والتغيرات الخارجية، والتغيير التنظيمي.',
 
+    // Mind Map AI loading messages
+    'Crafting expert-level insights just for you...': 'نُعدّ لك رؤى متقدمة بمستوى الخبراء...',
+    'Great PMs never stop learning': 'مديرو المشاريع المتميزون لا يتوقفون عن التعلم',
+    'Building your knowledge framework...': 'نبني إطارك المعرفي...',
+    'Every domain mastered brings you closer to PMP': 'إتقان كل مجال يقرّبك أكثر من شهادة PMP',
+    'Analyzing best practices from PMBOK 7...': 'نحلل أفضل الممارسات من PMBOK 7...',
+    'Precision in preparation leads to precision in practice': 'الدقة في التحضير تقود إلى الدقة في التطبيق',
+    'Connecting theory to real-world scenarios...': 'نربط النظرية بسيناريوهات واقعية...',
+    'The best project managers think in systems': 'أفضل مديري المشاريع يفكرون بمنطق المنظومات',
+    'Preparing advanced analysis...': 'نُحضّر تحليلًا متقدمًا...',
+    'Deep understanding beats surface memorization': 'الفهم العميق يتفوق على الحفظ السطحي',
+    'Structuring your learning path...': 'ننظم مسار تعلمك...',
+    "You're investing in a career-defining credential": 'أنت تستثمر في شهادة قد تصنع تحولًا مهنيًا حقيقيًا',
+    'Extracting key exam patterns...': 'نستخلص أنماط الاختبار الأساسية...',
+    'Smart preparation is the hallmark of a true PM': 'التحضير الذكي علامة مدير المشروع المحترف',
+
     // Mind map UI
     'Mind Map Explorer': 'مستكشف الخريطة الذهنية',
     'Visualize and explore PMP knowledge domains': 'استكشف مجالات معرفة PMP بصريًا وبطريقة تفاعلية',
