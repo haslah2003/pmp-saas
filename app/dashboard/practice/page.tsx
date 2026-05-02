@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { t, type Locale } from '@/lib/i18n/translations';
 import { redirect } from "next/navigation";
 import PracticeClient from "./PracticeClient";
+import { normalizeExamPath } from "@/lib/pmp/exam-paths";
 import Link from "next/link";
 
 export default async function PracticePage() {
@@ -17,11 +18,12 @@ export default async function PracticePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, language")
+    .select("role, language, active_framework")
     .eq("id", user.id)
     .single();
 
   const language = (profile?.language || 'en') as Locale;
+  const activeFramework = normalizeExamPath(profile?.active_framework);
 
   const isAdmin = profile?.role === "admin";
   const isPremium = isAdmin || (sub && sub.plan !== "free" && sub.status === "active");
@@ -46,5 +48,5 @@ export default async function PracticePage() {
     );
   }
 
-  return <PracticeClient />;
+  return <PracticeClient initialFramework={activeFramework} />;
 }

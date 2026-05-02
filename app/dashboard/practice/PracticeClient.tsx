@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { dt, rtlDir, rtlClass } from '@/lib/i18n/dashboard-content';
+import { EXAM_PATH_ORDER, EXAM_PATHS, getExamPathCopy, normalizeExamPath, type ExamPathId } from '@/lib/pmp/exam-paths';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -643,7 +644,9 @@ function GuruPanel({
 
 // ─── Main Practice Component ──────────────────────────────────────────────────
 
-export default function PracticeClient() {
+type PracticeClientProps = { initialFramework: ExamPathId };
+
+export default function PracticeClient({ initialFramework }: PracticeClientProps) {
   const searchParams = useSearchParams();
   const debugQuestionId = searchParams.get('debugQuestionId')?.trim() || '';
   const { isArabic } = useLanguage();
@@ -651,7 +654,7 @@ export default function PracticeClient() {
   const [mode, setMode] = useState<'setup' | 'question' | 'wrapup' | 'loading'>('setup');
   const [difficulty, setDifficulty] = useState('entry');
   const [domain, setDomain] = useState('all');
-  const [framework, setFramework] = useState('pmbok7');
+  const [framework, setFramework] = useState<ExamPathId>(normalizeExamPath(initialFramework));
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [blockNumber, setBlockNumber] = useState(1);
@@ -675,6 +678,10 @@ export default function PracticeClient() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Current question bank coverage is PMBOK 7 only. Keep the selected route in the UI,
+  // but store sessions safely against the available baseline bank until PMBOK 8/Bridge banks are imported.
+  const practiceQuestionBankFramework = 'pmbok7';
 
   const resetPracticeState = useCallback(() => {
     setMode('setup');
@@ -714,7 +721,7 @@ export default function PracticeClient() {
       const res = await fetch('/api/practice/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ framework, domain, difficulty }),
+        body: JSON.stringify({ framework: practiceQuestionBankFramework, activeFramework: framework, domain, difficulty }),
       });
 
       const data = await res.json();
@@ -821,7 +828,8 @@ export default function PracticeClient() {
           sessionId,
           blockNumber,
           results: finalResults,
-          framework,
+          framework: practiceQuestionBankFramework,
+          activeFramework: framework,
           language: isArabic ? 'ar' : 'en',
         }),
       });
@@ -882,6 +890,15 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
       ? ((currentQ + (submitted ? 1 : 0)) / questions.length) * 100
       : 0;
 
+  const selectedPathCopy = getExamPathCopy(framework, isArabic ? 'ar' : 'en');
+  const selectedPathColor = EXAM_PATHS[framework].color;
+  const practiceBankNotice =
+    framework === 'pmbok7'
+      ? null
+      : isArabic
+        ? 'ملاحظة: بنك أسئلة PMBOK 8 والوضع الانتقالي قيد الإعداد. سيتم استخدام بنك أسئلة PMBOK 7 الأساسي مؤقتًا مع الحفاظ على مسارك المختار.'
+        : 'Note: PMBOK 8 and Bridge question banks are being prepared. Practice currently uses the stable PMBOK 7 baseline while preserving your selected route.';
+
   if (mode === 'setup') {
     return (
       <div dir={rtlDir(isArabic)} className={`max-w-2xl mx-auto py-8 px-4 ${rtlClass(isArabic)}`}>
@@ -890,7 +907,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
             {dt('Practice Questions', isArabic)}
           </h1>
           <p className="text-gray-500">
-            {dt('Adaptive Learning Engine · PMBOK 7 & 8', isArabic)}
+            {isArabic ? 'محرك تدريب تكيفي مرتبط بمسارك المختار' : 'Adaptive practice engine aligned to your selected route'}
           </p>
         </div>
 
@@ -902,30 +919,52 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
 
         <div className="mb-6">
           <p className="text-sm font-semibold text-gray-700 mb-3">
-            {dt('Choose your framework', isArabic)}
+            {isArabic ? 'مسار التدريب' : 'Practice route'}
           </p>
-          <div className="flex items-center bg-gray-100 rounded-xl p-1">
-            <button
-              onClick={() => setFramework('pmbok7')}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                framework === 'pmbok7'
-                  ? 'bg-white text-violet-700 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              📘 PMBOK 7 + ECO 2021
-            </button>
 
-            <button
-              onClick={() => setFramework('pmbok8')}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                framework === 'pmbok8'
-                  ? 'bg-white text-purple-700 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              📗 PMBOK 8 + ECO 2026
-            </button>
+          <div
+            className="mb-3 rounded-2xl border px-4 py-3 text-sm"
+            style={{
+              borderColor: selectedPathColor + '33',
+              backgroundColor: selectedPathColor + '08',
+              color: selectedPathColor,
+            }}
+          >
+            <p className="font-bold">{selectedPathCopy.label}</p>
+            <p className="mt-1 text-xs leading-5 text-gray-600">{selectedPathCopy.description}</p>
+          </div>
+
+          {practiceBankNotice && (
+            <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+              {practiceBankNotice}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {EXAM_PATH_ORDER.map((path) => {
+              const copy = getExamPathCopy(path, isArabic ? 'ar' : 'en');
+              const active = framework === path;
+              const color = EXAM_PATHS[path].color;
+
+              return (
+                <button
+                  key={path}
+                  onClick={() => {
+                    setFramework(path);
+                    resetPracticeState();
+                  }}
+                  className={`rounded-xl border px-3 py-3 text-sm font-semibold transition-all ${isArabic ? 'text-right' : 'text-left'}`}
+                  style={{
+                    borderColor: active ? color : '#e5e7eb',
+                    backgroundColor: active ? color + '10' : '#ffffff',
+                    color: active ? color : '#6b7280',
+                  }}
+                >
+                  <span className="block text-xs font-bold">{copy.badge}</span>
+                  <span className="mt-1 block">{copy.shortLabel}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

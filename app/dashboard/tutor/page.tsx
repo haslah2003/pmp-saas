@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { dt, rtlDir, rtlClass } from '@/lib/i18n/dashboard-content';
 import { createClient } from '@/lib/supabase/client';
+import { EXAM_PATH_ORDER, getExamPathCopy, normalizeExamPath, type ExamPathId } from '@/lib/pmp/exam-paths';
 import ReactMarkdown from 'react-markdown';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -38,16 +39,35 @@ const SUGGESTED_PMBOK8 = [
   'What are the updated stakeholder engagement requirements?',
 ];
 
+const SUGGESTED_BRIDGE = [
+  'What should I keep from PMBOK 7 while preparing for PMBOK 8?',
+  'How do I decide whether to take the current PMP exam or wait for the new one?',
+  'Compare ECO 2021 and ECO 2026 for my study plan',
+  'What are the biggest transition risks for PMP candidates?',
+  'Give me a bridge study plan from PMBOK 7 to PMBOK 8',
+  'Which PMP concepts are stable across both exam routes?',
+  'How should I practice while the new question bank is still developing?',
+  'What is my best next action in Bridge Mode?',
+];
+
 // ─── Source Badge ─────────────────────────────────────────────────────────────
 
-function SourceBadge({ framework }: { framework: 'pmbok7' | 'pmbok8' }) {
+function SourceBadge({ framework }: { framework: ExamPathId }) {
   const { isArabic } = useLanguage();
-  const sources =
-    framework === 'pmbok7'
-      ? ['PMBOK 7', 'ECO 2021', 'Rita Mulcahy']
-      : ['PMBOK 8', 'ECO 2026', 'Rita Mulcahy'];
 
-  const colors = ['bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-amber-100 text-amber-700'];
+  const sources =
+    framework === 'bridge'
+      ? ['PMBOK 7', 'PMBOK 8', 'ECO Transition', 'Rita Mulcahy']
+      : framework === 'pmbok8'
+        ? ['PMBOK 8', 'ECO 2026', 'Rita Mulcahy']
+        : ['PMBOK 7', 'ECO 2021', 'Rita Mulcahy'];
+
+  const colors = [
+    'bg-blue-100 text-blue-700',
+    'bg-purple-100 text-purple-700',
+    'bg-teal-100 text-teal-700',
+    'bg-amber-100 text-amber-700',
+  ];
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
@@ -61,6 +81,76 @@ function SourceBadge({ framework }: { framework: 'pmbok7' | 'pmbok8' }) {
   );
 }
 
+function frameworkGrounding(framework: ExamPathId) {
+  if (framework === 'bridge') return 'PMBOK 7 · ECO 2021 ⇄ PMBOK 8 · ECO 2026';
+  if (framework === 'pmbok8') return 'PMBOK 8 · ECO 2026';
+  return 'PMBOK 7 · ECO 2021';
+}
+
+function frameworkSuggestions(framework: ExamPathId) {
+  if (framework === 'bridge') return SUGGESTED_BRIDGE;
+  if (framework === 'pmbok8') return SUGGESTED_PMBOK8;
+  return SUGGESTED_PMBOK7;
+}
+
+function welcomeMessage(framework: ExamPathId, isArabic: boolean) {
+  const grounding = frameworkGrounding(framework);
+
+  if (isArabic) {
+    if (framework === 'bridge') {
+      return `👋 **مرحبًا بك في وضع الانتقال لاختبار PMP!**
+
+أنا مبني على **${grounding} + Rita Mulcahy** لمساعدتك على إدارة الانتقال بين المسار الحالي والمسار الجديد بوضوح وواقعية.
+
+يمكنني مساعدتك في:
+- 📚 **تحديد المفاهيم الثابتة** التي يجب الاحتفاظ بها من PMBOK 7
+- 🔁 **فهم التغيرات المحتملة** في PMBOK 8 وECO 2026
+- 🎯 **اتخاذ قرار تاريخ الاختبار** بناءً على مستوى الجاهزية والمخاطر
+- ✅ **التدرب بذكاء** باستخدام الأسئلة المتاحة مع توجيه انتقالي واضح
+
+ما أفضل إجراء تريد تحديده الآن؟`;
+    }
+
+    return `👋 **مرحبًا بك في معلّم PMP الذكي!**
+
+أنا مبني على **${grounding} + Rita Mulcahy** وجاهز لمساعدتك على اجتياز اختبار PMP.
+
+يمكنني مساعدتك في:
+- 📚 **فهم المفاهيم** من جميع مصادر الاختبار الرئيسية
+- ✅ **التدرب على الأسئلة** مع شروحات تفصيلية
+- 🎯 **تطبيق تقنيات ريتا** للأسئلة الصعبة
+- 💡 **تذكّر الأطر** باستخدام وسائل التذكر والأمثلة
+
+ماذا تريد أن تدرس اليوم؟`;
+  }
+
+  if (framework === 'bridge') {
+    return `👋 **Welcome to PMP Bridge Mode!**
+
+I'm grounded in **${grounding} + Rita Mulcahy** to help you manage the transition between the current and new PMP exam paths.
+
+I can help you:
+- 📚 **Protect stable PMP concepts** that remain useful across both routes
+- 🔁 **Understand transition areas** between PMBOK 7/ECO 2021 and PMBOK 8/ECO 2026
+- 🎯 **Decide your exam-date strategy** based on readiness and risk
+- ✅ **Practice intelligently** using the available bank with transition-aware guidance
+
+What is the best next action you want to clarify?`;
+  }
+
+  return `👋 **Welcome to your PMP AiTuTorZ!**
+
+I'm grounded in **${grounding} + Rita Mulcahy** and ready to help you pass the PMP exam.
+
+I can help you:
+- 📚 **Understand concepts** from all key exam sources
+- ✅ **Practice questions** with detailed explanations
+- 🎯 **Apply Rita's techniques** for tricky questions
+- 💡 **Remember frameworks** with mnemonics and examples
+
+What would you like to study today?`;
+}
+
 // ─── Message Bubble ───────────────────────────────────────────────────────────
 
 function MessageBubble({
@@ -69,7 +159,7 @@ function MessageBubble({
   isStreaming,
 }: {
   message: Message;
-  framework: 'pmbok7' | 'pmbok8';
+  framework: ExamPathId;
   isStreaming?: boolean;
 }) {
   const isUser = message.role === 'user';
@@ -128,7 +218,7 @@ export default function TutorPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [framework, setFramework] = useState<'pmbok7' | 'pmbok8'>('pmbok7');
+  const [framework, setFramework] = useState<ExamPathId>('pmbok7');
   const [streamingContent, setStreamingContent] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -145,9 +235,7 @@ export default function TutorPage() {
         .select('active_framework')
         .eq('id', user.id)
         .single();
-      if (profile?.active_framework?.includes('pmbok8')) {
-        setFramework('pmbok8');
-      }
+      setFramework(normalizeExamPath(profile?.active_framework));
     };
     loadFramework();
   }, []);
@@ -165,27 +253,7 @@ useEffect(() => {
     setMessages([
       {
         role: 'assistant',
-        content: isArabic ? `👋 **مرحبًا بك في معلّم PMP الذكي!**
-
-أنا مبني على **${framework === 'pmbok7' ? 'PMBOK 7 + ECO 2021 + Rita Mulcahy' : 'PMBOK 8 + ECO 2026 + Rita Mulcahy'}** وجاهز لمساعدتك على اجتياز اختبار PMP.
-
-يمكنني مساعدتك في:
-- 📚 **فهم المفاهيم** من جميع مصادر الاختبار الرئيسية
-- ✅ **التدرب على الأسئلة** مع شروحات تفصيلية
-- 🎯 **تطبيق تقنيات ريتا** للأسئلة الصعبة
-- 💡 **تذكّر الأطر** باستخدام وسائل التذكر والأمثلة
-
-ماذا تريد أن تدرس اليوم؟` : `👋 **Welcome to your PMP AiTuTorZ!**
-
-I'm grounded in **${framework === 'pmbok7' ? 'PMBOK 7 + ECO 2021 + Rita Mulcahy' : 'PMBOK 8 + ECO 2026 + Rita Mulcahy'}** and ready to help you pass the PMP exam.
-
-I can help you:
-- 📚 **Understand concepts** from all key exam sources
-- ✅ **Practice questions** with detailed explanations
-- 🎯 **Apply Rita\'s techniques** for tricky questions
-- 💡 **Remember frameworks** with mnemonics and examples
-
-What would you like to study today?`,
+        content: welcomeMessage(framework, isArabic),
         timestamp: new Date(),
       },
     ]);
@@ -323,7 +391,7 @@ What would you like to study today?`,
     }, 100);
   };
 
-  const suggestions = framework === 'pmbok7' ? SUGGESTED_PMBOK7 : SUGGESTED_PMBOK8;
+  const suggestions = frameworkSuggestions(framework);
   const showSuggestions = messages.length <= 1;
 
   return (
@@ -337,7 +405,7 @@ What would you like to study today?`,
           <div>
             <h1 className="font-semibold text-gray-900 text-sm">{dt('PMP AiTuTorZ', isArabic)}</h1>
             <p className="text-xs text-gray-500">
-              {dt('Grounded in', isArabic)} {framework === 'pmbok7' ? 'PMBOK 7 · ECO 2021' : 'PMBOK 8 · ECO 2026'} · Rita Mulcahy
+              {dt('Grounded in', isArabic)} {frameworkGrounding(framework)} · Rita Mulcahy
             </p>
           </div>
         </div>
@@ -345,26 +413,24 @@ What would you like to study today?`,
         <div className="flex items-center gap-3">
           {/* Framework switcher */}
           <div className="flex items-center bg-gray-100 rounded-lg p-1 text-xs font-medium">
-            <button
-              onClick={() => setFramework('pmbok7')}
-              className={`px-3 py-1 rounded-md transition-all ${
-                framework === 'pmbok7'
-                  ? 'bg-white text-violet-700 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              PMBOK 7
-            </button>
-            <button
-              onClick={() => setFramework('pmbok8')}
-              className={`px-3 py-1 rounded-md transition-all ${
-                framework === 'pmbok8'
-                  ? 'bg-white text-purple-700 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              PMBOK 8
-            </button>
+            {EXAM_PATH_ORDER.map((path) => {
+              const copy = getExamPathCopy(path, isArabic ? 'ar' : 'en');
+              const active = framework === path;
+
+              return (
+                <button
+                  key={path}
+                  onClick={() => setFramework(path)}
+                  className={`px-3 py-1 rounded-md transition-all ${
+                    active
+                      ? 'bg-white text-violet-700 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {path === 'bridge' ? (isArabic ? 'انتقالي' : 'Bridge') : copy.shortLabel.replace(' + ECO 2021', '').replace(' + ECO 2026', '')}
+                </button>
+              );
+            })}
           </div>
 
           {/* Clear chat */}

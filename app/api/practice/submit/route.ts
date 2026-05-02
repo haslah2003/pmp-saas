@@ -229,16 +229,19 @@ export async function POST(req: NextRequest) {
       blockNumber,
       results,
       framework,
+      activeFramework,
       language,
     } = body as {
       sessionId: string;
       blockNumber: number;
       results: QuestionResult[];
       framework: string;
+      activeFramework?: string;
       language?: string;
     };
 
     const isArabic = language === 'ar';
+    const activeRoute = activeFramework || framework || 'pmbok7';
 
     if (!sessionId || !Array.isArray(results)) {
       return NextResponse.json(
@@ -337,6 +340,8 @@ Keep the tone encouraging, executive, exam-focused, concise, and suitable for PM
       : `Generate the full wrap-up report in English.`;
 
     const wrapUpPrompt = `You are an expert PMP exam tutor. A learner just completed a 5-question practice block.
+
+Learner selected route: ${activeRoute}. Current practice question source: ${framework}. If the selected route is pmbok8 or bridge, be transparent that current practice uses PMBOK 7 baseline questions until the PMBOK 8/Bridge question bank is available, while still giving transition-aware guidance.
 
 ${languageInstruction}
 

@@ -6,8 +6,9 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { framework, domain, difficulty } = await req.json();
+  const safeFramework = framework === 'pmbok7' ? 'pmbok7' : 'pmbok7';
   const { data, error } = await supabase.from('practice_sessions').insert({
-    user_id: user.id, framework, domain, difficulty, status: 'active'
+    user_id: user.id, framework: safeFramework, domain, difficulty, status: 'active'
   }).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ session: data });

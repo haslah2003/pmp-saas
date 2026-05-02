@@ -29,6 +29,25 @@ function localizeQuestion(row: QuestionRow, useArabic: boolean) {
   };
 }
 
+function normalizePracticeFramework(value: unknown): 'pmbok7' | 'pmbok8' | 'bridge' {
+  return value === 'pmbok8' || value === 'bridge' ? value : 'pmbok7';
+}
+
+function questionFrameworkCandidates(framework: 'pmbok7' | 'pmbok8' | 'bridge') {
+  if (framework === 'pmbok7') return ['pmbok7'];
+  if (framework === 'pmbok8') return ['pmbok8', 'pmbok7'];
+  return ['bridge', 'pmbok8', 'pmbok7'];
+}
+
+function questionBankNotice(framework: 'pmbok7' | 'pmbok8' | 'bridge', useArabic: boolean) {
+  if (framework === 'pmbok7') return null;
+
+  return useArabic
+    ? 'بنك أسئلة هذا المسار قيد الإعداد. تم استخدام أسئلة PMBOK 7 الأساسية مؤقتًا لضمان استمرار التدريب.'
+    : 'This route question bank is being prepared. PMBOK 7 baseline questions were used temporarily to keep practice available.';
+}
+
+
 
 export async function GET(req: NextRequest) {
   try {
@@ -39,7 +58,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const domain = searchParams.get('domain') || 'all';
     const difficulty = searchParams.get('difficulty') || 'entry';
-    const framework = searchParams.get('framework') || 'pmbok7';
+    const activeFramework = normalizePracticeFramework(searchParams.get('framework') || 'pmbok7');
+    const frameworkCandidates = questionFrameworkCandidates(activeFramework);
     const lang = searchParams.get('lang') || req.cookies.get('pmp_locale')?.value || 'en';
     const useArabic = lang.toLowerCase().startsWith('ar');
     const excludeIds = searchParams.get('exclude')?.split(',').filter(Boolean) || [];
@@ -54,7 +74,7 @@ export async function GET(req: NextRequest) {
     let query = supabase
       .from('questions')
       .select('*')
-      .eq('framework', framework)
+      .in('framework', frameworkCandidates)
       .eq('difficulty', difficulty)
       .eq('is_active', true);
 
@@ -86,6 +106,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         questions: [localizeQuestion(debugQuestion, useArabic)],
         profile,
+        activeFramework,
+        questionFrameworks: frameworkCandidates,
+        questionBankNotice: questionBankNotice(activeFramework, useArabic),
         debugQuestionId,
       });
     }
@@ -97,7 +120,7 @@ export async function GET(req: NextRequest) {
       const { data: fallback } = await supabase
         .from('questions')
         .select('*')
-        .eq('framework', framework)
+        .in('framework', frameworkCandidates)
         .eq('difficulty', difficulty)
         .eq('is_active', true)
         .limit(queryLimit);
@@ -108,7 +131,7 @@ export async function GET(req: NextRequest) {
       
       const shuffled = fallback.sort(() => Math.random() - 0.5).slice(0, requestedCount);
       const localizedFallback = shuffled.map((q) => localizeQuestion(q, useArabic));
-      return NextResponse.json({ questions: localizedFallback, profile });
+      return NextResponse.json({ questions: localizedFallback, profile, activeFramework, questionFrameworks: frameworkCandidates, questionBankNotice: questionBankNotice(activeFramework, useArabic) });
     }
 
     // Prioritize weak area questions if profile exists
@@ -122,7 +145,7 @@ export async function GET(req: NextRequest) {
 
     const selected = prioritized.sort(() => Math.random() - 0.5).slice(0, requestedCount);
     const localizedSelected = selected.map((q) => localizeQuestion(q, useArabic));
-    return NextResponse.json({ questions: localizedSelected, profile });
+    return NextResponse.json({ questions: localizedSelected, profile, activeFramework, questionFrameworks: frameworkCandidates, questionBankNotice: questionBankNotice(activeFramework, useArabic) });
   } catch (error) {
     console.error('Questions API error:', error);
     return NextResponse.json({ error: 'Failed to fetch questions' }, { status: 500 });
