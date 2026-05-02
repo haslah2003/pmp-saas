@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { LanguageSwitcher } from '@/components/DashboardLanguageWrapper'
+import { getExamPathCopy, type ExamPathId } from '@/lib/pmp/exam-paths'
 
 interface SidebarProps {
   logoUrl: string | null
@@ -12,6 +13,7 @@ interface SidebarProps {
   profileInitial: string
   isAdmin: boolean
   isPremium: boolean
+  activeFramework: ExamPathId
 }
 
 const NAV_ITEMS = [
@@ -38,9 +40,10 @@ const ADMIN_ITEMS = [
 ]
 
 export default function Sidebar({
-  logoUrl, siteName, primaryColor, profileName, profileInitial, isAdmin, isPremium,
+  logoUrl, siteName, primaryColor, profileName, profileInitial, isAdmin, isPremium, activeFramework,
 }: SidebarProps) {
   const { t, isArabic } = useLanguage()
+  const examPathCopy = getExamPathCopy(activeFramework, isArabic ? 'ar' : 'en')
 
   return (
     <aside className="w-60 bg-white flex flex-col shrink-0 border-r border-gray-100 rtl:border-r-0 rtl:border-l rtl:border-gray-100">
@@ -58,7 +61,7 @@ export default function Sidebar({
             </div>
             <div>
               <div className="text-sm font-bold text-gray-900">{siteName}</div>
-              <div className="text-[10px] text-gray-400">PMBOK 7 + ECO 2021</div>
+              <div className="text-[10px] text-gray-400">{examPathCopy.shortLabel}</div>
             </div>
           </div>
         )}

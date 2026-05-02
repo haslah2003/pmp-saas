@@ -27,11 +27,11 @@ export default async function LessonPage({ params }: Props) {
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('preferred_framework, language')
+      .select('active_framework, language')
       .eq('id', user.id)
       .single()
 
-    if (profile?.preferred_framework) framework = profile.preferred_framework
+    if (profile?.active_framework === 'pmbok8') framework = 'pmbok8'
 
     if (cookieLocale !== 'ar' && cookieLocale !== 'en') {
       language = (profile?.language === 'ar' ? 'ar' : 'en') as Locale

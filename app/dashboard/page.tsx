@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import ExamPathSelector from "@/components/ExamPathSelector";
+import { EXAM_PATHS, getExamPathCopy, normalizeExamPath } from "@/lib/pmp/exam-paths";
 
 // ── SVG Illustration Components ─────────────────────────────────────────────
 // Unique inline illustrations for each domain — no external dependencies
@@ -228,11 +230,15 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("language")
+    .select("language, active_framework")
     .eq("id", user.id)
     .single();
 
   const isArabic = profile?.language === "ar";
+  const locale = isArabic ? "ar" : "en";
+  const activeFramework = normalizeExamPath(profile?.active_framework);
+  const activePathCopy = getExamPathCopy(activeFramework, locale);
+  const activePathColor = EXAM_PATHS[activeFramework].color;
 
   const overallProgress = Math.round(
     [...PMBOK_MODULES, ...ECO_MODULES].reduce((sum, m) => sum + m.progress, 0) /
@@ -248,6 +254,18 @@ export default async function DashboardPage() {
           <p className="text-sm text-gray-500 mt-1">
             {isArabic ? "مجالات أداء PMBOK 7 ومخطط محتوى الاختبار ECO 2021 — منهجك المتكامل للتحضير لاختبار PMP." : "PMBOK 7 Performance Domains + ECO 2021 — your complete PMP prep curriculum."}
           </p>
+          <div
+            className="mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold"
+            style={{
+              borderColor: activePathColor + "33",
+              backgroundColor: activePathColor + "10",
+              color: activePathColor,
+            }}
+          >
+            <span className="text-gray-500">{isArabic ? "مسار اختبار PMP" : "PMP Exam Path"}</span>
+            <span className="h-1 w-1 rounded-full bg-current opacity-60" aria-hidden="true" />
+            <span>{activePathCopy.shortLabel}</span>
+          </div>
         </div>
         <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
           <div className="text-right">
@@ -259,6 +277,8 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <ExamPathSelector initialPath={activeFramework} locale={locale} />
 
       {/* PMBOK 7 Section */}
       <div>

@@ -5,6 +5,7 @@ import { DashboardLanguageWrapper } from "@/components/DashboardLanguageWrapper"
 import Sidebar from "@/components/Sidebar";
 import CompanionChat from "@/components/CompanionChat";
 import type { Locale } from "@/lib/i18n/translations";
+import { normalizeExamPath } from "@/lib/pmp/exam-paths";
 
 async function getBranding() {
   const supabase = await createClient();
@@ -27,7 +28,7 @@ export default async function DashboardLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, email, role, language")
+    .select("full_name, email, role, language, active_framework")
     .eq("id", user.id)
     .single();
 
@@ -46,6 +47,7 @@ export default async function DashboardLayout({
   const logoUrl = branding?.logo_url;
   const locale = (profile?.language as Locale) || 'en';
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
+  const activeFramework = normalizeExamPath(profile?.active_framework);
 
   const profileName = profile?.full_name || profile?.email || "User";
   const profileInitial = profileName[0].toUpperCase();
@@ -61,6 +63,7 @@ export default async function DashboardLayout({
           profileInitial={profileInitial}
           isAdmin={isAdmin}
           isPremium={!!isPremium}
+          activeFramework={activeFramework}
         />
 
         {/* Main content */}
