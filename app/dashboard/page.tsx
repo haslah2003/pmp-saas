@@ -167,15 +167,57 @@ const ECO_MODULES = [
   { id: 11, title: "ECO Business Environment", description: "All 4 ECO Business tasks — compliance, benefits, external changes, org change.", lessons: 4, hours: 1.5, color: "#a855f7", progress: 0, tasks: 4, domain: "Business — 8%" },
 ];
 
-function StatusBadge({ progress }: { progress: number }) {
+const DASHBOARD_MODULE_AR_COPY: Record<number, { title: string; description: string; domain?: string }> = {
+  1: { title: "أساسيات إدارة المشاريع", description: "مبادئ PMBOK 7، ونظام تسليم القيمة، والمفاهيم الأساسية لإدارة المشاريع." },
+  2: { title: "مجال أداء المعنيين", description: "تحديد المعنيين، ومشاركتهم، واستراتيجيات التواصل معهم." },
+  3: { title: "مجال أداء الفريق", description: "بناء الفريق، والقيادة، والقيادة الخادمة، وإدارة النزاعات." },
+  4: { title: "منهج التطوير ودورة الحياة", description: "المناهج التنبؤية والمتكيفة والهجينة وإيقاع التسليم." },
+  5: { title: "مجال أداء التخطيط", description: "تخطيط النطاق والجدول الزمني والتكلفة والموارد والجودة." },
+  6: { title: "عمل المشروع والتسليم", description: "تنفيذ عمل المشروع، والمشتريات، وإدارة المعرفة، وتسليم الجودة." },
+  7: { title: "مجال أداء القياس", description: "مؤشرات الأداء، وإدارة القيمة المكتسبة، والتنبؤ، ولوحات المتابعة، والتقارير." },
+  8: { title: "مجال أداء عدم التيقن", description: "إدارة المخاطر، والغموض، والتعقيد، والقدرة على الصمود." },
+  9: { title: "مجال الأفراد في ECO", description: "جميع مهام مجال الأفراد الـ 14 في ECO — النزاع، والقيادة، والتعاون، وبناء الفريق.", domain: "الأفراد — 42%" },
+  10: { title: "مجال العمليات في ECO", description: "جميع مهام مجال العمليات الـ 17 في ECO — النطاق، والجدول الزمني، والمخاطر، والمشتريات، والمعنيون.", domain: "العمليات — 50%" },
+  11: { title: "مجال بيئة الأعمال في ECO", description: "جميع مهام بيئة الأعمال الأربع في ECO — الامتثال، والمنافع، والتغيرات الخارجية، والتغيير التنظيمي.", domain: "بيئة الأعمال — 8%" },
+};
+
+function dashboardModuleTitle(mod: { id: number; title: string }, isArabic: boolean) {
+  return isArabic ? DASHBOARD_MODULE_AR_COPY[mod.id]?.title ?? mod.title : mod.title;
+}
+
+function dashboardModuleDescription(mod: { id: number; description: string }, isArabic: boolean) {
+  return isArabic ? DASHBOARD_MODULE_AR_COPY[mod.id]?.description ?? mod.description : mod.description;
+}
+
+function dashboardModuleDomain(mod: { id: number; domain?: string }, isArabic: boolean) {
+  return isArabic ? DASHBOARD_MODULE_AR_COPY[mod.id]?.domain ?? mod.domain : mod.domain;
+}
+
+function dashboardDuration(hours: number, isArabic: boolean) {
+  return isArabic ? `${hours} س` : `${hours}h`;
+}
+
+function dashboardLessonSummary(mod: { lessons: number; hours: number; tasks?: number }, isArabic: boolean) {
+  if (isArabic) {
+    return typeof mod.tasks === "number"
+      ? `${mod.tasks} مهام · ${mod.lessons} دروس · ${dashboardDuration(mod.hours, true)}`
+      : `${mod.lessons} دروس · ${dashboardDuration(mod.hours, true)}`;
+  }
+
+  return typeof mod.tasks === "number"
+    ? `${mod.tasks} tasks · ${mod.lessons} lessons · ${dashboardDuration(mod.hours, false)}`
+    : `${mod.lessons} lessons · ${dashboardDuration(mod.hours, false)}`;
+}
+
+function StatusBadge({ progress, isArabic }: { progress: number; isArabic: boolean }) {
   if (progress === 100) return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">✓ Complete</span>
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">✓ {isArabic ? 'مكتمل' : 'Complete'}</span>
   );
   if (progress > 0) return (
-    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">In Progress</span>
+    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">{isArabic ? 'قيد التقدم' : 'In Progress'}</span>
   );
   return (
-    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">Not Started</span>
+    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">{isArabic ? 'لم يبدأ بعد' : 'Not Started'}</span>
   );
 }
 
@@ -184,24 +226,32 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("language")
+    .eq("id", user.id)
+    .single();
+
+  const isArabic = profile?.language === "ar";
+
   const overallProgress = Math.round(
     [...PMBOK_MODULES, ...ECO_MODULES].reduce((sum, m) => sum + m.progress, 0) /
     (PMBOK_MODULES.length + ECO_MODULES.length)
   );
 
   return (
-    <div className="space-y-8">
+    <div dir={isArabic ? "rtl" : "ltr"} className={`space-y-8 ${isArabic ? "text-right" : ""}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Course</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{isArabic ? "الدورة" : "Course"}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            PMBOK 7 Performance Domains + ECO 2021 — your complete PMP prep curriculum.
+            {isArabic ? "مجالات أداء PMBOK 7 ومخطط محتوى الاختبار ECO 2021 — منهجك المتكامل للتحضير لاختبار PMP." : "PMBOK 7 Performance Domains + ECO 2021 — your complete PMP prep curriculum."}
           </p>
         </div>
         <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
           <div className="text-right">
-            <p className="text-xs text-gray-400">Overall Progress</p>
+            <p className="text-xs text-gray-400">{isArabic ? "التقدم العام" : "Overall Progress"}</p>
             <p className="text-xl font-bold text-gray-900">{overallProgress}%</p>
           </div>
           <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: `conic-gradient(#3b82f6 ${overallProgress * 3.6}deg, #e5e7eb 0deg)` }}>
@@ -215,8 +265,8 @@ export default async function DashboardPage() {
         <div className="flex items-center gap-3 mb-5">
           <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white text-sm font-bold shadow-sm">7</div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900">PMBOK 7 — Performance Domains</h2>
-            <p className="text-xs text-gray-500">8 domains covering the full project management framework</p>
+            <h2 className="text-lg font-bold text-gray-900">{isArabic ? "PMBOK 7 — مجالات أداء المشروع" : "PMBOK 7 — Performance Domains"}</h2>
+            <p className="text-xs text-gray-500">{isArabic ? "ثمانية مجالات تغطي الإطار الكامل لإدارة المشاريع" : "8 domains covering the full project management framework"}</p>
           </div>
         </div>
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -246,7 +296,7 @@ export default async function DashboardPage() {
                   </div>
                   {/* Status badge */}
                   <div className="absolute top-3 right-3">
-                    <StatusBadge progress={mod.progress} />
+                    <StatusBadge progress={mod.progress} isArabic={isArabic} />
                   </div>
                 </div>
 
@@ -256,15 +306,15 @@ export default async function DashboardPage() {
                     className="font-bold text-gray-900 text-sm leading-tight mb-1.5"
                     style={{ color: mod.progress > 0 && mod.progress < 100 ? mod.color : undefined }}
                   >
-                    {mod.title}
+                    {dashboardModuleTitle(mod, isArabic)}
                   </h3>
                   <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed mb-4">
-                    {mod.description}
+                    {dashboardModuleDescription(mod, isArabic)}
                   </p>
 
                   {/* Progress */}
                   <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-                    <span>{mod.lessons} lessons · {mod.hours}h</span>
+                    <span>{dashboardLessonSummary(mod, isArabic)}</span>
                     <span className="font-semibold" style={{ color: mod.color }}>{mod.progress}%</span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -288,8 +338,8 @@ export default async function DashboardPage() {
         <div className="flex items-center gap-3 mb-5">
           <div className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">ECO</div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900">ECO 2021 — Examination Content Outline</h2>
-            <p className="text-xs text-gray-500">3 domains · 35 tasks · People 42% · Process 50% · Business 8%</p>
+            <h2 className="text-lg font-bold text-gray-900">{isArabic ? "ECO 2021 — مخطط محتوى الاختبار" : "ECO 2021 — Examination Content Outline"}</h2>
+            <p className="text-xs text-gray-500">{isArabic ? "3 مجالات · 35 مهمة · الأفراد 42% · العمليات 50% · بيئة الأعمال 8%" : "3 domains · 35 tasks · People 42% · Process 50% · Business 8%"}</p>
           </div>
         </div>
         <div className="grid md:grid-cols-3 gap-5">
@@ -313,24 +363,24 @@ export default async function DashboardPage() {
                     className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full text-white shadow-sm"
                     style={{ backgroundColor: mod.color }}
                   >
-                    {mod.domain}
+                    {dashboardModuleDomain(mod, isArabic)}
                   </span>
                 </div>
                 <div className="absolute top-3 right-3">
-                  <StatusBadge progress={mod.progress} />
+                  <StatusBadge progress={mod.progress} isArabic={isArabic} />
                 </div>
               </div>
 
               {/* Content */}
               <div className="p-5">
                 <h3 className="font-bold text-gray-900 text-sm leading-tight mb-1.5">
-                  {mod.title}
+                  {dashboardModuleTitle(mod, isArabic)}
                 </h3>
                 <p className="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-2">
-                  {mod.description}
+                  {dashboardModuleDescription(mod, isArabic)}
                 </p>
                 <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-                  <span>{mod.tasks} tasks · {mod.lessons} lessons · {mod.hours}h</span>
+                  <span>{dashboardLessonSummary(mod, isArabic)}</span>
                   <span className="font-semibold" style={{ color: mod.color }}>{mod.progress}%</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-1.5">

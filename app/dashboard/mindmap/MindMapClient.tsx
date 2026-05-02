@@ -5,6 +5,8 @@ import { Card, Tabs, Badge } from '@/components/ui';
 import { cn, getDomainColor } from '@/lib/utils';
 import { PMBOK7_DOMAINS, ECO_MINDMAP, PMBOK7_PRINCIPLES } from '@/lib/pmp-data';
 import type { MindMapNode, MindMapMode } from '@/types';
+import { useLanguage } from '@/lib/i18n/language-context';
+import { dt, rtlDir, rtlClass } from '@/lib/i18n/dashboard-content';
 
 // ── Print Styles ─────────────────────────────────────────────────────────────
 const PrintStyles = () => (
@@ -37,6 +39,7 @@ const PM_MESSAGES = [
 ];
 
 function MotivationalMessage({ color }: { color: string }) {
+  const { isArabic } = useLanguage();
   const [index, setIndex] = React.useState(0);
   const [fade, setFade] = React.useState(true);
 
@@ -54,8 +57,8 @@ function MotivationalMessage({ color }: { color: string }) {
   const msg = PM_MESSAGES[index];
   return (
     <div className={`text-center transition-opacity duration-300 ${fade ? 'opacity-100' : 'opacity-0'}`}>
-      <p className="text-sm font-semibold text-gray-800">{msg.text}</p>
-      <p className="text-xs mt-1.5 font-medium" style={{ color }}>{msg.sub}</p>
+      <p className="text-sm font-semibold text-gray-800">{dt(msg.text, isArabic)}</p>
+      <p className="text-xs mt-1.5 font-medium" style={{ color }}>{dt(msg.sub, isArabic)}</p>
     </div>
   );
 }
@@ -69,6 +72,7 @@ function GoDeeperSidebar({
   node: MindMapNode;
   onClose: () => void;
 }) {
+  const { isArabic } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [aiContent, setAiContent] = useState('');
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -88,7 +92,7 @@ function GoDeeperSidebar({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sectionType: 'deepdive',
-          content: `Topic: ${node.label}. Description: ${node.description || node.label}. This is a PMBOK 7th Edition / ECO 2021 mind map concept.`,
+          content: `Topic: ${dt(node.label, isArabic)}. Description: ${node.description || node.label}. This is a PMBOK 7th Edition / ECO 2021 mind map concept.`,
           lessonTitle: node.label,
           domain: node.id,
           framework: 'pmbok7',
@@ -126,7 +130,7 @@ function GoDeeperSidebar({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sectionType: 'tip',
-          content: `Context: ${node.label}. Previous analysis: ${aiContent.slice(0, 400)}. Follow-up question: ${question}`,
+          content: `Context: ${dt(node.label, isArabic)}. Previous analysis: ${aiContent.slice(0, 400)}. Follow-up question: ${question}`,
           lessonTitle: node.label,
           domain: node.id,
           framework: 'pmbok7',
@@ -164,8 +168,8 @@ function GoDeeperSidebar({
           AI
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-base text-gray-900 truncate">{node.label}</h3>
-          <p className="text-[10px] text-gray-400">Go Deeper — AI Analysis</p>
+          <h3 className="font-bold text-base text-gray-900 truncate">{dt(node.label, isArabic)}</h3>
+          <p className="text-[10px] text-gray-400">{dt('Go Deeper — AI Analysis', isArabic)}</p>
         </div>
         <button
           onClick={onClose}
@@ -179,7 +183,7 @@ function GoDeeperSidebar({
       <div className="p-4 max-h-[60vh] overflow-y-auto">
         {node.description && (
           <div className="mb-4 p-3 rounded-xl bg-gray-50 border border-gray-100">
-            <p className="text-sm text-gray-600 leading-relaxed">{node.description}</p>
+            <p className="text-sm text-gray-600 leading-relaxed">{dt(node.description, isArabic)}</p>
           </div>
         )}
 
@@ -243,14 +247,14 @@ function GoDeeperSidebar({
         {/* Follow-up question */}
         {!isLoading && aiContent && (
           <div className="mt-5 pt-4 border-t border-gray-100">
-            <p className="text-xs font-semibold text-gray-600 mb-2">💬 Ask a follow-up</p>
+            <p className="text-xs font-semibold text-gray-600 mb-2">💬 {dt('Ask a follow-up', isArabic)}</p>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={followUp}
                 onChange={(e) => setFollowUp(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendFollowUp()}
-                placeholder="e.g. How does this apply in agile?"
+                placeholder={dt('e.g. How does this apply in agile?', isArabic)}
                 className="flex-1 text-xs border border-gray-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder:text-gray-400"
               />
               <button
@@ -259,7 +263,7 @@ function GoDeeperSidebar({
                 className="text-white text-xs font-semibold px-4 py-2 rounded-xl disabled:opacity-50 transition-colors flex-shrink-0"
                 style={{ backgroundColor: color }}
               >
-                {followUpLoading ? '...' : 'Ask'}
+                {followUpLoading ? '...' : dt('Ask', isArabic)}
               </button>
             </div>
 
@@ -270,7 +274,7 @@ function GoDeeperSidebar({
                     <div className="h-3.5 bg-gray-200 rounded-md w-full" />
                     <div className="h-3.5 bg-gray-100 rounded-md w-5/6" />
                     <div className="h-3.5 bg-gray-200 rounded-md w-11/12" />
-                    <p className="text-xs text-gray-400 text-center pt-1">Thinking...</p>
+                    <p className="text-xs text-gray-400 text-center pt-1">{dt('Thinking...', isArabic)}</p>
                   </div>
                 )}
                 {followUpContent && (
@@ -305,6 +309,7 @@ function MindMapNodeCard({
   selectedLeaf: string | null;
   onLeafSelect: (node: MindMapNode | null) => void;
 }) {
+  const { isArabic } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const hasChildren = node.children && node.children.length > 0;
   const isLeaf = !hasChildren;
@@ -321,11 +326,13 @@ function MindMapNodeCard({
   }
 
   return (
-    <div className={cn(depth > 0 && 'ml-6 mt-2')}>
+    <div className={cn(depth > 0 && (isArabic ? 'mr-6 mt-2' : 'ml-6 mt-2'))}>
       <button
         onClick={handleClick}
+        dir={rtlDir(isArabic)}
         className={cn(
-          'w-full text-left rounded-xl border transition-all duration-200 group',
+          'w-full rounded-xl border transition-all duration-200 group',
+          isArabic ? 'text-right' : 'text-left',
           depth === 0
             ? 'p-5 shadow-sm hover:shadow-md bg-white'
             : 'p-3 hover:bg-gray-50 bg-white/70 border-gray-200/60',
@@ -364,7 +371,7 @@ function MindMapNodeCard({
                 )}
                 style={isSelected ? { color } : undefined}
               >
-                {node.label}
+                {dt(node.label, isArabic)}
               </h3>
               {hasChildren && (
                 <svg
@@ -382,12 +389,12 @@ function MindMapNodeCard({
                   )}
                   style={isSelected ? { backgroundColor: color } : undefined}
                 >
-                  {isSelected ? '✕ Close' : 'Go Deeper →'}
+                  {isSelected ? dt('✕ Close', isArabic) : dt('Go Deeper →', isArabic)}
                 </span>
               )}
             </div>
             {node.description && depth < 2 && (
-              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{node.description}</p>
+              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{dt(node.description, isArabic)}</p>
             )}
           </div>
           {hasChildren && <Badge variant="default">{node.children!.length}</Badge>}
@@ -395,7 +402,7 @@ function MindMapNodeCard({
       </button>
       {expanded && hasChildren && (
         <div
-          className={cn(depth === 0 && 'border-l-2 ml-5 pl-0 mt-2')}
+          className={cn(depth === 0 && (isArabic ? 'border-r-2 mr-5 pr-0 mt-2' : 'border-l-2 ml-5 pl-0 mt-2'))}
           style={depth === 0 ? { borderColor: `${color}30` } : undefined}
         >
           {node.children!.map((child) => (
@@ -416,6 +423,7 @@ function MindMapNodeCard({
 // ── Main MindMap Client ──────────────────────────────────────────────────────
 
 export default function MindMapClient() {
+  const { isArabic } = useLanguage();
   const [mode, setMode] = useState<MindMapMode>('pmbok7');
   const [selectedLeaf, setSelectedLeaf] = useState<MindMapNode | null>(null);
   const data = mode === 'pmbok7' ? PMBOK7_DOMAINS : ECO_MINDMAP;
@@ -430,24 +438,24 @@ export default function MindMapClient() {
   }
 
   return (
-    <div className="space-y-6">
+    <div dir={rtlDir(isArabic)} className={`space-y-6 ${rtlClass(isArabic)}`}>
         <PrintStyles />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mind Map Explorer</h1>
-          <p className="text-sm text-gray-500 mt-1">Visualize and explore PMP knowledge domains</p>
+          <h1 className="text-2xl font-bold text-gray-900">{dt('Mind Map Explorer', isArabic)}</h1>
+          <p className="text-sm text-gray-500 mt-1">{dt('Visualize and explore PMP knowledge domains', isArabic)}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => window.print()}
             className="text-sm bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-xl font-semibold transition-all flex items-center gap-2 no-print"
           >
-            🖨️ Export PDF
+            🖨️ {dt('Export PDF', isArabic)}
           </button>
           <Tabs
           tabs={[
-            { id: 'pmbok7', label: 'PMBOK 7 Domains', icon: <span className="text-xs">📘</span> },
-            { id: 'eco2021', label: 'ECO 2021 Tasks', icon: <span className="text-xs">📋</span> },
+            { id: 'pmbok7', label: dt('PMBOK 7 Domains', isArabic), icon: <span className="text-xs">📘</span> },
+            { id: 'eco2021', label: dt('ECO 2021 Tasks', isArabic), icon: <span className="text-xs">📋</span> },
           ]}
           activeTab={mode}
           onChange={handleModeChange}
@@ -479,31 +487,31 @@ export default function MindMapClient() {
             <>
               {mode === 'pmbok7' && (
                 <Card padding="lg">
-                  <h3 className="font-bold text-gray-900 mb-1">12 Project Management Principles</h3>
-                  <p className="text-xs text-gray-400 mb-5">PMBOK 7th Edition foundational principles</p>
+                  <h3 className="font-bold text-gray-900 mb-1">{dt('12 Project Management Principles', isArabic)}</h3>
+                  <p className="text-xs text-gray-400 mb-5">{dt('PMBOK 7th Edition foundational principles', isArabic)}</p>
                   <div className="space-y-2">
                     {PMBOK7_PRINCIPLES.map((p) => (
                       <div key={p.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50">
                         <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0">{p.id}</span>
-                        <span className="text-sm font-medium text-gray-700">{p.title}</span>
+                        <span className="text-sm font-medium text-gray-700">{dt(p.title, isArabic)}</span>
                       </div>
                     ))}
                   </div>
                 </Card>
               )}
               <Card padding="lg">
-                <h3 className="font-bold text-gray-900 mb-2">{mode === 'pmbok7' ? 'About PMBOK 7' : 'About ECO 2021'}</h3>
+                <h3 className="font-bold text-gray-900 mb-2">{mode === 'pmbok7' ? dt('About PMBOK 7', isArabic) : dt('About ECO 2021', isArabic)}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
                   {mode === 'pmbok7'
-                    ? 'The PMBOK Guide 7th Edition shifts from process-based to principle-based project management, organized around 8 Performance Domains and 12 Principles.'
-                    : 'The Examination Content Outline (ECO) 2021 defines the PMP exam structure: People (42%), Process (50%), and Business Environment (8%), with 35 total tasks.'}
+                    ? dt('The PMBOK Guide 7th Edition shifts from process-based to principle-based project management, organized around 8 Performance Domains and 12 Principles.', isArabic)
+                    : dt('The Examination Content Outline (ECO) 2021 defines the PMP exam structure: People (42%), Process (50%), and Business Environment (8%), with 35 total tasks.', isArabic)}
                 </p>
               </Card>
               {mode === 'eco2021' && (
                 <Card padding="lg">
-                  <h3 className="font-bold text-gray-900 mb-3">Exam Weighting</h3>
+                  <h3 className="font-bold text-gray-900 mb-3">{dt('Exam Weighting', isArabic)}</h3>
                   <div className="space-y-3">
-                    {[{ label: 'People', pct: 42, color: 'bg-blue-500' }, { label: 'Process', pct: 50, color: 'bg-emerald-500' }, { label: 'Business Env.', pct: 8, color: 'bg-amber-500' }].map((d) => (
+                    {[{ label: dt('People', isArabic), pct: 42, color: 'bg-blue-500' }, { label: dt('Process', isArabic), pct: 50, color: 'bg-emerald-500' }, { label: dt('Business Env.', isArabic), pct: 8, color: 'bg-amber-500' }].map((d) => (
                       <div key={d.label}>
                         <div className="flex justify-between text-sm mb-1"><span className="font-medium">{d.label}</span><span className="text-gray-400">{d.pct}%</span></div>
                         <div className="w-full h-2.5 rounded-full bg-gray-100"><div className={cn('h-full rounded-full', d.color)} style={{ width: `${d.pct}%` }} /></div>

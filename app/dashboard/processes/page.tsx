@@ -482,16 +482,16 @@ export default function ProcessesPage() {
         {/* Key Insights */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-violet-50 border border-violet-100 rounded-2xl p-5">
-            <p className="text-sm font-bold text-violet-800 mb-1">🔗 Integration is King</p>
-            <p className="text-xs text-violet-700 leading-relaxed">Integration Management is the ONLY knowledge area with processes in ALL 5 process groups. It\'s the PM\'s core job.</p>
+            <p className="text-sm font-bold text-violet-800 mb-1">🔗 {dt('Integration is King', isArabic)}</p>
+            <p className="text-xs text-violet-700 leading-relaxed">{dt("Integration Management is the ONLY knowledge area with processes in ALL 5 process groups. It's the PM's core job.", isArabic)}</p>
           </div>
           <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5">
-            <p className="text-sm font-bold text-amber-800 mb-1">👁️ M&C is Everywhere</p>
-            <p className="text-xs text-amber-700 leading-relaxed">Monitoring & Controlling runs throughout the entire project. ALL knowledge areas have M&C processes.</p>
+            <p className="text-sm font-bold text-amber-800 mb-1">👁️ {dt('M&C is Everywhere', isArabic)}</p>
+            <p className="text-xs text-amber-700 leading-relaxed">{dt('Monitoring & Controlling runs throughout the entire project. ALL knowledge areas have M&C processes.', isArabic)}</p>
           </div>
           <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5">
-            <p className="text-sm font-bold text-emerald-800 mb-1">📋 Planning is Biggest</p>
-            <p className="text-xs text-emerald-700 leading-relaxed">Planning has the most processes. ALL knowledge areas have Planning processes. Planning is iterative, not a one-time event.</p>
+            <p className="text-sm font-bold text-emerald-800 mb-1">📋 {dt('Planning is Biggest', isArabic)}</p>
+            <p className="text-xs text-emerald-700 leading-relaxed">{dt('Planning has the most processes. ALL knowledge areas have Planning processes. Planning is iterative, not a one-time event.', isArabic)}</p>
           </div>
         </div>
 
@@ -502,11 +502,11 @@ export default function ProcessesPage() {
           <div className="flex justify-center gap-3">
             <Link href="/dashboard/practice"
               className="bg-white text-violet-600 text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-violet-50 transition-colors">
-              🎯 Practice Now
+              🎯 {dt('Practice Now', isArabic)}
             </Link>
             <Link href="/dashboard/formulas"
               className="bg-white/20 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-white/30 transition-colors">
-              📐 Formulas
+              📐 {dt('Formulas', isArabic)}
             </Link>
           </div>
         </div>

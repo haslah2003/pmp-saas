@@ -313,12 +313,12 @@ export default function MockExamPage() {
           <h3 className="font-bold mb-4">{dt('Previous Attempts', isArabic)}</h3>
           <div className="space-y-2">
             {[
-              { date: 'Mar 18, 2026', score: 74, passed: true },
-              { date: 'Mar 10, 2026', score: 62, passed: false },
-              { date: 'Feb 28, 2026', score: 58, passed: false },
+              { date: 'Mar 18, 2026', dateAr: '18 مارس 2026', score: 74, passed: true },
+              { date: 'Mar 10, 2026', dateAr: '10 مارس 2026', score: 62, passed: false },
+              { date: 'Feb 28, 2026', dateAr: '28 فبراير 2026', score: 58, passed: false },
             ].map((a, i) => (
               <div key={i} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
-                <span className="text-sm">{a.date}</span>
+                <span className="text-sm">{isArabic ? a.dateAr : a.date}</span>
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-bold">{a.score}%</span>
                   <Badge variant={a.passed ? 'success' : 'danger'}>

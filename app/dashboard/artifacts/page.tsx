@@ -147,8 +147,8 @@ export default function ArtifactsPage() {
     <div dir={rtlDir(isArabic)} className={`min-h-screen bg-gray-50 ${rtlClass(isArabic)}`}>
       <div className="bg-white border-b border-gray-100 px-6 py-5 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto">
-          <div className={`flex items-center justify-between mb-4 ${isArabic ? 'flex-row-reverse' : ''}`}>
-            <div>
+          <div className={`flex items-center justify-between mb-4 ${isArabic ? 'text-right' : 'text-left'}`}>
+            <div className={isArabic ? 'text-right' : 'text-left'}>
               <h1 className="text-2xl font-bold text-gray-900">{dt('PMP Artifacts 📋', isArabic)}</h1>
               <p className="text-sm text-gray-500 mt-0.5">
                 {totalArtifacts} {dt('key artifacts · What they are · When to use · Exam tips', isArabic)}
