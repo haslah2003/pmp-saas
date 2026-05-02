@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import ExamPathSelector from "@/components/ExamPathSelector";
-import { EXAM_PATHS, getExamPathCopy, normalizeExamPath } from "@/lib/pmp/exam-paths";
+import { EXAM_PATHS, getExamPathCopy, normalizeExamPath, type AppLocale } from "@/lib/pmp/exam-paths";
+import { getDashboardCurriculum, type DashboardCurriculumModule } from "@/lib/pmp/curriculum-paths";
 
 // ── SVG Illustration Components ─────────────────────────────────────────────
 // Unique inline illustrations for each domain — no external dependencies
@@ -150,56 +151,17 @@ const ILLUSTRATIONS: Record<number, React.FC<{ color: string }>> = {
   8: IllustrationUncertainty,
 };
 
-// ── Module Data ─────────────────────────────────────────────────────────────
+// ── Dashboard Helpers ────────────────────────────────────────────────────────
 
-const PMBOK_MODULES = [
-  { id: 1, title: "Project Management Foundations", description: "PMBOK 7 principles, value delivery systems, and project management concepts.", lessons: 8, hours: 3, color: "#22c55e", progress: 100, slug: "stakeholders" },
-  { id: 2, title: "Stakeholder Performance Domain", description: "Stakeholder identification, engagement, and communication strategies.", lessons: 6, hours: 2.5, color: "#3b82f6", progress: 50, slug: "stakeholders" },
-  { id: 3, title: "Team Performance Domain", description: "Team building, leadership, servant leadership, and conflict management.", lessons: 7, hours: 3, color: "#8b5cf6", progress: 15, slug: "team" },
-  { id: 4, title: "Development Approach & Life Cycle", description: "Predictive, adaptive, hybrid approaches and delivery cadence.", lessons: 5, hours: 2, color: "#10b981", progress: 0, slug: "development-approach" },
-  { id: 5, title: "Planning Performance Domain", description: "Scope, schedule, cost, resource, and quality planning.", lessons: 8, hours: 3.5, color: "#f59e0b", progress: 0, slug: "planning" },
-  { id: 6, title: "Project Work & Delivery", description: "Executing project work, procurement, knowledge management, quality delivery.", lessons: 7, hours: 3, color: "#ef4444", progress: 0, slug: "project-work" },
-  { id: 7, title: "Measurement Performance Domain", description: "KPIs, EVM, forecasting, dashboards, and reporting.", lessons: 6, hours: 2.5, color: "#6366f1", progress: 0, slug: "measurement" },
-  { id: 8, title: "Uncertainty Performance Domain", description: "Risk management, ambiguity, complexity, and resilience.", lessons: 5, hours: 2, color: "#ec4899", progress: 0, slug: "uncertainty" },
-];
-
-const ECO_MODULES = [
-  { id: 9, title: "ECO People Domain", description: "All 14 ECO People tasks — conflict, leadership, collaboration, and team building.", lessons: 10, hours: 4, color: "#14b8a6", progress: 0, tasks: 14, domain: "People — 42%" },
-  { id: 10, title: "ECO Process Domain", description: "All 17 ECO Process tasks — scope, schedule, risk, procurement, and stakeholders.", lessons: 12, hours: 5, color: "#f97316", progress: 0, tasks: 17, domain: "Process — 50%" },
-  { id: 11, title: "ECO Business Environment", description: "All 4 ECO Business tasks — compliance, benefits, external changes, org change.", lessons: 4, hours: 1.5, color: "#a855f7", progress: 0, tasks: 4, domain: "Business — 8%" },
-];
-
-const DASHBOARD_MODULE_AR_COPY: Record<number, { title: string; description: string; domain?: string }> = {
-  1: { title: "أساسيات إدارة المشاريع", description: "مبادئ PMBOK 7، ونظام تسليم القيمة، والمفاهيم الأساسية لإدارة المشاريع." },
-  2: { title: "مجال أداء المعنيين", description: "تحديد المعنيين، ومشاركتهم، واستراتيجيات التواصل معهم." },
-  3: { title: "مجال أداء الفريق", description: "بناء الفريق، والقيادة، والقيادة الخادمة، وإدارة النزاعات." },
-  4: { title: "منهج التطوير ودورة الحياة", description: "المناهج التنبؤية والمتكيفة والهجينة وإيقاع التسليم." },
-  5: { title: "مجال أداء التخطيط", description: "تخطيط النطاق والجدول الزمني والتكلفة والموارد والجودة." },
-  6: { title: "عمل المشروع والتسليم", description: "تنفيذ عمل المشروع، والمشتريات، وإدارة المعرفة، وتسليم الجودة." },
-  7: { title: "مجال أداء القياس", description: "مؤشرات الأداء، وإدارة القيمة المكتسبة، والتنبؤ، ولوحات المتابعة، والتقارير." },
-  8: { title: "مجال أداء عدم التيقن", description: "إدارة المخاطر، والغموض، والتعقيد، والقدرة على الصمود." },
-  9: { title: "مجال الأفراد في ECO", description: "جميع مهام مجال الأفراد الـ 14 في ECO — النزاع، والقيادة، والتعاون، وبناء الفريق.", domain: "الأفراد — 42%" },
-  10: { title: "مجال العمليات في ECO", description: "جميع مهام مجال العمليات الـ 17 في ECO — النطاق، والجدول الزمني، والمخاطر، والمشتريات، والمعنيون.", domain: "العمليات — 50%" },
-  11: { title: "مجال بيئة الأعمال في ECO", description: "جميع مهام بيئة الأعمال الأربع في ECO — الامتثال، والمنافع، والتغيرات الخارجية، والتغيير التنظيمي.", domain: "بيئة الأعمال — 8%" },
-};
-
-function dashboardModuleTitle(mod: { id: number; title: string }, isArabic: boolean) {
-  return isArabic ? DASHBOARD_MODULE_AR_COPY[mod.id]?.title ?? mod.title : mod.title;
-}
-
-function dashboardModuleDescription(mod: { id: number; description: string }, isArabic: boolean) {
-  return isArabic ? DASHBOARD_MODULE_AR_COPY[mod.id]?.description ?? mod.description : mod.description;
-}
-
-function dashboardModuleDomain(mod: { id: number; domain?: string }, isArabic: boolean) {
-  return isArabic ? DASHBOARD_MODULE_AR_COPY[mod.id]?.domain ?? mod.domain : mod.domain;
+function localized(copy: Record<AppLocale, string>, locale: AppLocale) {
+  return copy[locale] ?? copy.en;
 }
 
 function dashboardDuration(hours: number, isArabic: boolean) {
   return isArabic ? `${hours} س` : `${hours}h`;
 }
 
-function dashboardLessonSummary(mod: { lessons: number; hours: number; tasks?: number }, isArabic: boolean) {
+function dashboardLessonSummary(mod: DashboardCurriculumModule, isArabic: boolean) {
   if (isArabic) {
     return typeof mod.tasks === "number"
       ? `${mod.tasks} مهام · ${mod.lessons} دروس · ${dashboardDuration(mod.hours, true)}`
@@ -210,6 +172,11 @@ function dashboardLessonSummary(mod: { lessons: number; hours: number; tasks?: n
     ? `${mod.tasks} tasks · ${mod.lessons} lessons · ${dashboardDuration(mod.hours, false)}`
     : `${mod.lessons} lessons · ${dashboardDuration(mod.hours, false)}`;
 }
+
+function dashboardModuleHref(mod: DashboardCurriculumModule) {
+  return mod.slug ? `/dashboard/course/${mod.slug}` : "/dashboard/course";
+}
+
 
 function StatusBadge({ progress, isArabic }: { progress: number; isArabic: boolean }) {
   if (progress === 100) return (
@@ -235,14 +202,16 @@ export default async function DashboardPage() {
     .single();
 
   const isArabic = profile?.language === "ar";
-  const locale = isArabic ? "ar" : "en";
+  const locale: AppLocale = isArabic ? "ar" : "en";
   const activeFramework = normalizeExamPath(profile?.active_framework);
   const activePathCopy = getExamPathCopy(activeFramework, locale);
   const activePathColor = EXAM_PATHS[activeFramework].color;
+  const curriculum = getDashboardCurriculum(activeFramework);
+  const curriculumModules = curriculum.sections.flatMap((section) => section.modules);
 
   const overallProgress = Math.round(
-    [...PMBOK_MODULES, ...ECO_MODULES].reduce((sum, m) => sum + m.progress, 0) /
-    (PMBOK_MODULES.length + ECO_MODULES.length)
+    curriculumModules.reduce((sum, module) => sum + module.progress, 0) /
+    Math.max(curriculumModules.length, 1)
   );
 
   return (
@@ -250,9 +219,9 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{isArabic ? "الدورة" : "Course"}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{localized(curriculum.heroTitle, locale)}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {isArabic ? "مجالات أداء PMBOK 7 ومخطط محتوى الاختبار ECO 2021 — منهجك المتكامل للتحضير لاختبار PMP." : "PMBOK 7 Performance Domains + ECO 2021 — your complete PMP prep curriculum."}
+            {localized(curriculum.heroDescription, locale)}
           </p>
           <div
             className="mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold"
@@ -280,140 +249,103 @@ export default async function DashboardPage() {
 
       <ExamPathSelector initialPath={activeFramework} locale={locale} />
 
-      {/* PMBOK 7 Section */}
-      <div>
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white text-sm font-bold shadow-sm">7</div>
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">{isArabic ? "PMBOK 7 — مجالات أداء المشروع" : "PMBOK 7 — Performance Domains"}</h2>
-            <p className="text-xs text-gray-500">{isArabic ? "ثمانية مجالات تغطي الإطار الكامل لإدارة المشاريع" : "8 domains covering the full project management framework"}</p>
-          </div>
-        </div>
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {PMBOK_MODULES.map((mod) => {
-            const Illustration = ILLUSTRATIONS[mod.id] || IllustrationFoundations;
-            return (
-              <Link
-                key={mod.id}
-                href={`/dashboard/course/${mod.slug}`}
-                className="bg-white rounded-2xl border-2 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
-                style={{ borderColor: mod.progress > 0 ? mod.color : '#e5e7eb' }}
-              >
-                {/* Illustration area */}
-                <div
-                  className="relative h-32 flex items-center justify-center overflow-hidden"
-                  style={{ backgroundColor: mod.color + '10' }}
-                >
-                  <div className="w-32 h-full opacity-80 group-hover:scale-110 transition-transform duration-500">
-                    <Illustration color={mod.color} />
-                  </div>
-                  {/* Module number badge */}
-                  <div
-                    className="absolute top-3 left-3 w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm"
-                    style={{ backgroundColor: mod.color }}
-                  >
-                    {mod.id}
-                  </div>
-                  {/* Status badge */}
-                  <div className="absolute top-3 right-3">
-                    <StatusBadge progress={mod.progress} isArabic={isArabic} />
-                  </div>
-                </div>
+      {curriculum.sections.map((section, sectionIndex) => (
+        <div key={section.id}>
+          {sectionIndex > 0 && <div className="border-t border-gray-200 mb-8" />}
 
-                {/* Content */}
-                <div className="p-5">
-                  <h3
-                    className="font-bold text-gray-900 text-sm leading-tight mb-1.5"
-                    style={{ color: mod.progress > 0 && mod.progress < 100 ? mod.color : undefined }}
-                  >
-                    {dashboardModuleTitle(mod, isArabic)}
-                  </h3>
-                  <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed mb-4">
-                    {dashboardModuleDescription(mod, isArabic)}
-                  </p>
-
-                  {/* Progress */}
-                  <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-                    <span>{dashboardLessonSummary(mod, isArabic)}</span>
-                    <span className="font-semibold" style={{ color: mod.color }}>{mod.progress}%</span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-1.5">
-                    <div
-                      className="h-1.5 rounded-full transition-all duration-500"
-                      style={{ width: `${mod.progress}%`, backgroundColor: mod.color }}
-                    />
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div className="border-t border-gray-200" />
-
-      {/* ECO 2021 Section */}
-      <div>
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">ECO</div>
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">{isArabic ? "ECO 2021 — مخطط محتوى الاختبار" : "ECO 2021 — Examination Content Outline"}</h2>
-            <p className="text-xs text-gray-500">{isArabic ? "3 مجالات · 35 مهمة · الأفراد 42% · العمليات 50% · بيئة الأعمال 8%" : "3 domains · 35 tasks · People 42% · Process 50% · Business 8%"}</p>
-          </div>
-        </div>
-        <div className="grid md:grid-cols-3 gap-5">
-          {ECO_MODULES.map((mod) => (
-            <Link
-              key={mod.id}
-              href="/dashboard/course"
-              className="bg-white rounded-2xl border-2 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
-              style={{ borderColor: mod.progress > 0 ? mod.color : '#e5e7eb' }}
+          <div className="flex items-center gap-3 mb-5">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm"
+              style={{ backgroundColor: section.badgeColor }}
             >
-              {/* Illustration area */}
-              <div
-                className="relative h-28 flex items-center justify-center overflow-hidden"
-                style={{ backgroundColor: mod.color + '10' }}
-              >
-                <div className="text-6xl group-hover:scale-110 transition-transform duration-500 opacity-60">
-                  {mod.id === 9 ? '👥' : mod.id === 10 ? '⚙️' : '🌐'}
-                </div>
-                <div className="absolute top-3 left-3">
-                  <span
-                    className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full text-white shadow-sm"
-                    style={{ backgroundColor: mod.color }}
-                  >
-                    {dashboardModuleDomain(mod, isArabic)}
-                  </span>
-                </div>
-                <div className="absolute top-3 right-3">
-                  <StatusBadge progress={mod.progress} isArabic={isArabic} />
-                </div>
-              </div>
+              {section.badge}
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">{localized(section.title, locale)}</h2>
+              <p className="text-xs text-gray-500">{localized(section.description, locale)}</p>
+            </div>
+          </div>
 
-              {/* Content */}
-              <div className="p-5">
-                <h3 className="font-bold text-gray-900 text-sm leading-tight mb-1.5">
-                  {dashboardModuleTitle(mod, isArabic)}
-                </h3>
-                <p className="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-2">
-                  {dashboardModuleDescription(mod, isArabic)}
-                </p>
-                <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-                  <span>{dashboardLessonSummary(mod, isArabic)}</span>
-                  <span className="font-semibold" style={{ color: mod.color }}>{mod.progress}%</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-1.5">
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {section.modules.map((mod) => {
+              const Illustration = ILLUSTRATIONS[mod.illustrationId ?? mod.id] || IllustrationFoundations;
+              const title = localized(mod.title, locale);
+              const description = localized(mod.description, locale);
+              const domain = mod.domain ? localized(mod.domain, locale) : null;
+
+              return (
+                <Link
+                  key={`${section.id}-${mod.id}`}
+                  href={dashboardModuleHref(mod)}
+                  className="bg-white rounded-2xl border-2 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
+                  style={{ borderColor: mod.progress > 0 ? mod.color : '#e5e7eb' }}
+                >
                   <div
-                    className="h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${mod.progress}%`, backgroundColor: mod.color }}
-                  />
-                </div>
-              </div>
-            </Link>
-          ))}
+                    className="relative h-32 flex items-center justify-center overflow-hidden"
+                    style={{ backgroundColor: mod.color + '10' }}
+                  >
+                    {mod.emoji ? (
+                      <div className="text-6xl group-hover:scale-110 transition-transform duration-500 opacity-60">
+                        {mod.emoji}
+                      </div>
+                    ) : (
+                      <div className="w-32 h-full opacity-80 group-hover:scale-110 transition-transform duration-500">
+                        <Illustration color={mod.color} />
+                      </div>
+                    )}
+
+                    <div
+                      className="absolute top-3 w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                      style={{ backgroundColor: mod.color, insetInlineStart: '0.75rem' }}
+                    >
+                      {mod.numberLabel ?? mod.id}
+                    </div>
+
+                    <div className="absolute top-3" style={{ insetInlineEnd: '0.75rem' }}>
+                      <StatusBadge progress={mod.progress} isArabic={isArabic} />
+                    </div>
+                  </div>
+
+                  <div className="p-5">
+                    {domain && (
+                      <span
+                        className="mb-2 inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold"
+                        style={{ backgroundColor: mod.color + '12', color: mod.color }}
+                      >
+                        {domain}
+                      </span>
+                    )}
+
+                    <h3
+                      className="font-bold text-gray-900 text-sm leading-tight mb-1.5"
+                      style={{ color: mod.progress > 0 && mod.progress < 100 ? mod.color : undefined }}
+                    >
+                      {title}
+                    </h3>
+
+                    <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed mb-4">
+                      {description}
+                    </p>
+
+                    <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
+                      <span>{dashboardLessonSummary(mod, isArabic)}</span>
+                      <span className="font-semibold" style={{ color: mod.color }}>{mod.progress}%</span>
+                    </div>
+
+                    <div className="w-full bg-gray-100 rounded-full h-1.5">
+                      <div
+                        className="h-1.5 rounded-full transition-all duration-500"
+                        style={{ width: `${mod.progress}%`, backgroundColor: mod.color }}
+                      />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      ))}
+
     </div>
   );
 }
