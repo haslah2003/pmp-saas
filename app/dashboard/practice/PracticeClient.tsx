@@ -953,6 +953,8 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
     return dt(DOMAINS.find((item) => item.id === domainId)?.label || domainId, isArabic);
   }
 
+  const routeAwareDomains = DOMAINS.map((item) => ({ ...item, label: practiceDomainLabel(item.id) }));
+
 
   if (mode === 'setup') {
     return (
@@ -1057,7 +1059,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
           </p>
 
           <div className="flex flex-wrap gap-2">
-            {DOMAINS.map((item) => (
+            {routeAwareDomains.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setDomain(item.id)}
@@ -1067,7 +1069,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                {dt(item.label, isArabic)}
+                {item.label}
               </button>
             ))}
           </div>
