@@ -899,6 +899,61 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
         ? 'ملاحظة: بنك أسئلة PMBOK 8 والوضع الانتقالي قيد الإعداد. سيتم استخدام بنك أسئلة PMBOK 7 الأساسي مؤقتًا مع الحفاظ على مسارك المختار.'
         : 'Note: PMBOK 8 and Bridge question banks are being prepared. Practice currently uses the stable PMBOK 7 baseline while preserving your selected route.';
 
+  function practiceDomainLabel(domainId: string) {
+    if (isArabic) {
+      if (domainId === 'all') {
+        if (framework === 'pmbok8') return 'جميع مجالات ECO 2026';
+        if (framework === 'bridge') return 'جميع مجالات الانتقال';
+        return 'جميع المجالات';
+      }
+
+      if (framework === 'pmbok8') {
+        const labels: Record<string, string> = {
+          people: 'الأفراد (33%)',
+          process: 'العمليات (41%)',
+          'business-environment': 'بيئة الأعمال (26%)',
+        };
+        return labels[domainId] || domainId;
+      }
+
+      if (framework === 'bridge') {
+        const labels: Record<string, string> = {
+          people: 'الأفراد 42% ← 33%',
+          process: 'العمليات 50% ← 41%',
+          'business-environment': 'بيئة الأعمال 8% ← 26%',
+        };
+        return labels[domainId] || domainId;
+      }
+    }
+
+    if (domainId === 'all') {
+      if (framework === 'pmbok8') return 'All ECO 2026 Domains';
+      if (framework === 'bridge') return 'All Transition Domains';
+      return dt('All Domains', isArabic);
+    }
+
+    if (framework === 'pmbok8') {
+      const labels: Record<string, string> = {
+        people: 'People (33%)',
+        process: 'Process (41%)',
+        'business-environment': 'Business Environment (26%)',
+      };
+      return labels[domainId] || domainId;
+    }
+
+    if (framework === 'bridge') {
+      const labels: Record<string, string> = {
+        people: 'People 42% → 33%',
+        process: 'Process 50% → 41%',
+        'business-environment': 'Business Environment 8% → 26%',
+      };
+      return labels[domainId] || domainId;
+    }
+
+    return dt(DOMAINS.find((item) => item.id === domainId)?.label || domainId, isArabic);
+  }
+
+
   if (mode === 'setup') {
     return (
       <div dir={rtlDir(isArabic)} className={`max-w-2xl mx-auto py-8 px-4 ${rtlClass(isArabic)}`}>
@@ -987,7 +1042,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">{item.emoji}</span>
                   <span className="font-semibold text-gray-900 text-sm">
-                    {dt(item.label, isArabic)}
+                    {practiceDomainLabel(item.id)}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500">{dt(item.desc, isArabic)}</p>
