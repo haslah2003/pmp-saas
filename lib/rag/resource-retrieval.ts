@@ -84,8 +84,87 @@ function tokenize(value: string) {
   return Array.from(new Set([...baseTokens, ...extraTokens]));
 }
 
+function normalizedTags(chunk: Omit<RetrievedResourceChunk, 'score'>) {
+  return (chunk.topic_tags || []).map((tag) => normalizeText(tag));
+}
+
+function hasTag(chunk: Omit<RetrievedResourceChunk, 'score'>, tag: string) {
+  const normalized = normalizeText(tag);
+  return normalizedTags(chunk).some((item) => item === normalized || item.includes(normalized));
+}
+
+function queryHasScopeLimiter(normalizedQuery: string) {
+  return (
+    normalizedQuery.includes('only') ||
+    normalizedQuery.includes('list only') ||
+    normalizedQuery.includes('just') ||
+    normalizedQuery.includes('فقط') ||
+    normalizedQuery.includes('اذكر فقط')
+  );
+}
+
+function queryAsksForComparison(normalizedQuery: string) {
+  return (
+    normalizedQuery.includes('compare') ||
+    normalizedQuery.includes('comparison') ||
+    normalizedQuery.includes('versus') ||
+    normalizedQuery.includes(' vs ') ||
+    normalizedQuery.includes('same as') ||
+    normalizedQuery.includes('different') ||
+    normalizedQuery.includes('difference') ||
+    normalizedQuery.includes('transition') ||
+    normalizedQuery.includes('mapping') ||
+    normalizedQuery.includes('قارن') ||
+    normalizedQuery.includes('مقارنة') ||
+    normalizedQuery.includes('الفرق') ||
+    normalizedQuery.includes('نفس') ||
+    normalizedQuery.includes('انتقال')
+  );
+}
+
+function queryIsEcoExamQuery(normalizedQuery: string) {
+  return (
+    normalizedQuery.includes('eco') ||
+    normalizedQuery.includes('exam') ||
+    normalizedQuery.includes('weights') ||
+    normalizedQuery.includes('weight') ||
+    normalizedQuery.includes('people 33') ||
+    normalizedQuery.includes('process 41') ||
+    normalizedQuery.includes('business environment 26') ||
+    normalizedQuery.includes('2026') ||
+    normalizedQuery.includes('2021') ||
+    normalizedQuery.includes('اوزان') ||
+    normalizedQuery.includes('أوزان') ||
+    normalizedQuery.includes('الامتحان') ||
+    normalizedQuery.includes('الاختبار')
+  );
+}
+
+function queryIsPmbokStructureQuery(normalizedQuery: string) {
+  return (
+    normalizedQuery.includes('pmbok') ||
+    normalizedQuery.includes('principles') ||
+    normalizedQuery.includes('focus areas') ||
+    normalizedQuery.includes('performance domains') ||
+    normalizedQuery.includes('domains') ||
+    normalizedQuery.includes('governance') ||
+    normalizedQuery.includes('scope') ||
+    normalizedQuery.includes('schedule') ||
+    normalizedQuery.includes('finance') ||
+    normalizedQuery.includes('stakeholders') ||
+    normalizedQuery.includes('resources') ||
+    normalizedQuery.includes('risk') ||
+    normalizedQuery.includes('مبادئ') ||
+    normalizedQuery.includes('مجالات') ||
+    normalizedQuery.includes('مجالات الاداء') ||
+    normalizedQuery.includes('مجالات الأداء') ||
+    normalizedQuery.includes('مجالات التركيز')
+  );
+}
+
 function scoreChunk(chunk: Omit<RetrievedResourceChunk, 'score'>, query: string) {
   const queryTokens = tokenize(query);
+  const normalizedQuery = normalizeText(query);
   const haystack = normalizeText(
     [
       chunk.source_title,
@@ -94,6 +173,18 @@ function scoreChunk(chunk: Omit<RetrievedResourceChunk, 'score'>, query: string)
       ...(chunk.topic_tags || []),
     ].join(' ')
   );
+
+  const scopeLimited = queryHasScopeLimiter(normalizedQuery);
+  const asksComparison = queryAsksForComparison(normalizedQuery);
+  const ecoQuery = queryIsEcoExamQuery(normalizedQuery);
+  const pmbokStructureQuery = queryIsPmbokStructureQuery(normalizedQuery);
+
+  const canonicalText = hasTag(chunk, 'canonical-text');
+  const pdfExtracted = hasTag(chunk, 'pdf-extracted');
+  const comparisonChunk =
+    hasTag(chunk, 'bridge') ||
+    hasTag(chunk, 'comparison') ||
+    hasTag(chunk, 'transition');
 
   let score = 0;
 
@@ -108,9 +199,25 @@ function scoreChunk(chunk: Omit<RetrievedResourceChunk, 'score'>, query: string)
     }
   }
 
-  if (haystack.includes(normalizeText(query))) score += 15;
+  if (haystack.includes(normalizedQuery)) score += 15;
 
   score += Math.max(0, 100 - (chunk.priority || 100)) / 10;
+
+  if (pmbokStructureQuery && canonicalText) score += 25;
+  if (pmbokStructureQuery && hasTag(chunk, 'guardrail')) score += 8;
+  if (pmbokStructureQuery && hasTag(chunk, 'performance domains')) score += 12;
+  if (pmbokStructureQuery && hasTag(chunk, 'focus areas')) score += 12;
+  if (pmbokStructureQuery && hasTag(chunk, 'principles')) score += 12;
+
+  if (ecoQuery && pdfExtracted) score += 18;
+  if (ecoQuery && hasTag(chunk, 'weights')) score += 16;
+  if (ecoQuery && (hasTag(chunk, 'eco2026') || hasTag(chunk, 'eco2021'))) score += 12;
+
+  if (asksComparison && comparisonChunk) score += 18;
+
+  if (!asksComparison && comparisonChunk) score -= 12;
+  if (scopeLimited && comparisonChunk) score -= 35;
+  if (scopeLimited && chunk.framework === 'both' && !asksComparison) score -= 15;
 
   return score;
 }
@@ -147,7 +254,8 @@ export async function retrieveResourceEvidence({
       .select('id,resource_id,framework,source_title,source_type,language,chunk_title,chunk_text,topic_tags,priority,is_active')
       .eq('is_active', true)
       .in('resource_id', activeResourceIds)
-      .limit(120);
+      .order('priority', { ascending: true })
+      .limit(200);
 
     if (chunksError || !chunks?.length) return [];
 
