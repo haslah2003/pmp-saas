@@ -226,6 +226,7 @@ function answerQualityRules() {
     '- Be precise, exam-focused, and conservative.',
     '- Do not invent section numbers, page numbers, PMI terminology, domain weights, or process names.',
     '- If the answer requires details beyond the active official source gate and canonical facts, say the source evidence is not currently available in the platform knowledge library.',
+    '- Obey scope-limiting wording strictly. If the learner asks for only, list only, just, فقط, اذكر فقط, or similar, answer only that requested scope and do not add comparisons, background, extra caveats, or additional lists unless explicitly requested.',
     '- In Arabic, use clear formal Arabic and keep PMP, PMBOK, ECO, Agile, Scrum, Sprint, Governance, Scope, Schedule, Finance, Stakeholders, Resources, Risk, Initiating, Planning, Executing, Monitoring and Controlling, and Closing in English when clarity requires it.',
   ].join('\n');
 }
