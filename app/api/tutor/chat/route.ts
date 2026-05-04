@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest } from 'next/server';
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js';
 import { normalizeExamPath, type ExamPathId } from '@/lib/pmp/exam-paths';
-import { formatResourceEvidenceForPrompt, retrieveResourceEvidence } from '@/lib/rag/resource-retrieval';
+import { formatResourceEvidenceForPrompt, retrieveResourceEvidence, type RetrievedResourceChunk } from '@/lib/rag/resource-retrieval';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -240,6 +240,46 @@ function scopeLimitingInstruction(userText: string) {
   ].join('\n');
 }
 
+function shouldIncludeDebugEvidence(req: NextRequest, debugEvidence: unknown) {
+  const configuredToken = process.env.TUTOR_DEBUG_TOKEN;
+  if (debugEvidence !== true || !configuredToken) return false;
+
+  const providedToken = req.headers.get('x-tutor-debug-token');
+  return providedToken === configuredToken;
+}
+
+function buildDebugEvidencePayload({
+  activeFramework,
+  gate,
+  chunks,
+}: {
+  activeFramework: ExamPathId;
+  gate: SourceGate;
+  chunks: RetrievedResourceChunk[];
+}) {
+  return {
+    framework: activeFramework,
+    sourceGate: {
+      status: gate.status,
+      missing: gate.missing,
+      activeTitles: gate.activeTitles,
+    },
+    retrievedChunks: chunks.map((chunk, index) => ({
+      rank: index + 1,
+      id: chunk.id,
+      framework: chunk.framework,
+      source_title: chunk.source_title,
+      source_type: chunk.source_type,
+      language: chunk.language,
+      chunk_title: chunk.chunk_title,
+      topic_tags: chunk.topic_tags,
+      priority: chunk.priority,
+      score: chunk.score,
+      text_preview: chunk.chunk_text.slice(0, 260),
+    })),
+  };
+}
+
 function answerQualityRules() {
   return [
     'ANSWER QUALITY RULES:',
@@ -254,7 +294,7 @@ function answerQualityRules() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { messages, framework = 'pmbok7', language = 'en' } = body;
+    const { messages, framework = 'pmbok7', language = 'en', debugEvidence = false } = body;
     const activeFramework = normalizeExamPath(framework);
 
     if (!messages || messages.length === 0) {
@@ -271,6 +311,14 @@ export async function POST(req: NextRequest) {
     });
     const resourceEvidencePrompt = formatResourceEvidenceForPrompt(retrievedEvidence);
     const scopeInstruction = scopeLimitingInstruction(String(lastUserMessage));
+    const includeDebugEvidence = shouldIncludeDebugEvidence(req, debugEvidence);
+    const debugEvidencePayload = includeDebugEvidence
+      ? buildDebugEvidencePayload({
+          activeFramework,
+          gate,
+          chunks: retrievedEvidence,
+        })
+      : null;
 
     const languageInstruction =
       language === 'ar'
@@ -292,6 +340,12 @@ export async function POST(req: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
+          if (debugEvidencePayload) {
+            controller.enqueue(
+              encoder.encode('data: ' + JSON.stringify({ debugEvidence: debugEvidencePayload }) + '\n\n')
+            );
+          }
+
           const s = await anthropic.messages.stream({
             model: 'claude-sonnet-4-20250514',
             max_tokens: 1800,
