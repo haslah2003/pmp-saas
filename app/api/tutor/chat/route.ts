@@ -220,6 +220,26 @@ function routeInstruction(framework: ExamPathId) {
   ].join(' ');
 }
 
+function scopeLimitingInstruction(userText: string) {
+  const normalized = (userText || '').toLowerCase();
+
+  const hasScopeLimiter =
+    normalized.includes('only') ||
+    normalized.includes('list only') ||
+    normalized.includes('just') ||
+    normalized.includes('فقط') ||
+    normalized.includes('اذكر فقط');
+
+  if (!hasScopeLimiter) return '';
+
+  return [
+    'STRICT USER SCOPE LIMIT:',
+    'The latest learner message contains scope-limiting wording.',
+    'Answer exactly the requested scope only.',
+    'Do not add final comparison sentences, background explanations, extra caveats, related lists, or “key difference” paragraphs unless the learner explicitly asks for them.',
+  ].join('\n');
+}
+
 function answerQualityRules() {
   return [
     'ANSWER QUALITY RULES:',
@@ -250,6 +270,7 @@ export async function POST(req: NextRequest) {
       limit: 5,
     });
     const resourceEvidencePrompt = formatResourceEvidenceForPrompt(retrievedEvidence);
+    const scopeInstruction = scopeLimitingInstruction(String(lastUserMessage));
 
     const languageInstruction =
       language === 'ar'
@@ -260,6 +281,7 @@ export async function POST(req: NextRequest) {
       routeInstruction(activeFramework),
       sourceGateInstruction(gate),
       resourceEvidencePrompt,
+      scopeInstruction,
       canonicalOfficialContext(),
       answerQualityRules(),
       languageInstruction,
