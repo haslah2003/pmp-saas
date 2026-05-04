@@ -29,17 +29,35 @@ function localizeQuestion(row: QuestionRow, useArabic: boolean) {
   };
 }
 
-function normalizePracticeFramework(value: unknown): 'pmbok7' | 'pmbok8' | 'bridge' {
+type PracticeFramework = 'pmbok7' | 'pmbok8' | 'bridge';
+
+function normalizePracticeFramework(value: unknown): PracticeFramework {
   return value === 'pmbok8' || value === 'bridge' ? value : 'pmbok7';
 }
 
-function questionFrameworkCandidates(framework: 'pmbok7' | 'pmbok8' | 'bridge') {
+function questionFrameworkCandidates(framework: PracticeFramework) {
   if (framework === 'pmbok7') return ['pmbok7'];
   if (framework === 'pmbok8') return ['pmbok8', 'pmbok7'];
   return ['bridge', 'pmbok8', 'pmbok7'];
 }
 
-function questionBankNotice(framework: 'pmbok7' | 'pmbok8' | 'bridge', useArabic: boolean) {
+function nativeFrameworksForRoute(framework: PracticeFramework) {
+  if (framework === 'pmbok7') return ['pmbok7'];
+  if (framework === 'pmbok8') return ['pmbok8'];
+  return ['bridge', 'pmbok8'];
+}
+
+function uniqueFrameworks(rows: QuestionRow[]) {
+  return Array.from(
+    new Set(
+      rows
+        .map((row) => row.framework)
+        .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    )
+  ).sort();
+}
+
+function questionBankNotice(framework: PracticeFramework, useArabic: boolean) {
   if (framework === 'pmbok7') return null;
 
   return useArabic
@@ -47,7 +65,69 @@ function questionBankNotice(framework: 'pmbok7' | 'pmbok8' | 'bridge', useArabic
     : 'This route question bank is being prepared. PMBOK 7 baseline questions were used temporarily to keep practice available.';
 }
 
+function buildQuestionBankStatus({
+  requestedFramework,
+  selectedQuestions,
+  nativeQuestionCount,
+  fallbackQuestionCount,
+  useArabic,
+}: {
+  requestedFramework: PracticeFramework;
+  selectedQuestions: QuestionRow[];
+  nativeQuestionCount: number;
+  fallbackQuestionCount: number;
+  useArabic: boolean;
+}) {
+  const actualQuestionFrameworks = uniqueFrameworks(selectedQuestions);
+  const nativeFrameworksExpected = nativeFrameworksForRoute(requestedFramework);
+  const fallbackFramework = 'pmbok7';
 
+  const fallbackUsed =
+    requestedFramework !== 'pmbok7' &&
+    actualQuestionFrameworks.includes(fallbackFramework);
+
+  const message =
+    fallbackUsed || (requestedFramework !== 'pmbok7' && nativeQuestionCount === 0)
+      ? questionBankNotice(requestedFramework, useArabic)
+      : null;
+
+  return {
+    requestedFramework,
+    nativeFrameworksExpected,
+    nativeQuestionCount,
+    fallbackFramework,
+    fallbackQuestionCount,
+    fallbackUsed,
+    actualQuestionFrameworks,
+    message,
+  };
+}
+
+async function countQuestionsForFrameworks({
+  supabase,
+  frameworks,
+  domain,
+  difficulty,
+}: {
+  supabase: any;
+  frameworks: string[];
+  domain: string;
+  difficulty: string;
+}) {
+  let query = supabase
+    .from('questions')
+    .select('id', { count: 'exact', head: true })
+    .in('framework', frameworks)
+    .eq('difficulty', difficulty)
+    .eq('is_active', true);
+
+  if (domain !== 'all') query = query.eq('domain', domain);
+
+  const { count, error } = await query;
+  if (error) throw error;
+
+  return count || 0;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -88,6 +168,20 @@ export async function GET(req: NextRequest) {
       .eq('user_id', user.id)
       .single();
 
+    const nativeQuestionCount = await countQuestionsForFrameworks({
+      supabase,
+      frameworks: nativeFrameworksForRoute(activeFramework),
+      domain,
+      difficulty,
+    });
+
+    const fallbackQuestionCount = await countQuestionsForFrameworks({
+      supabase,
+      frameworks: ['pmbok7'],
+      domain,
+      difficulty,
+    });
+
     // Debug mode: return one exact question for controlled bilingual QA testing.
     // Normal users still receive shuffled adaptive question blocks.
     if (debugQuestionId) {
@@ -103,12 +197,22 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Debug question not found' }, { status: 404 });
       }
 
+      const selectedDebugQuestions = [debugQuestion] as QuestionRow[];
+      const questionBankStatus = buildQuestionBankStatus({
+        requestedFramework: activeFramework,
+        selectedQuestions: selectedDebugQuestions,
+        nativeQuestionCount,
+        fallbackQuestionCount,
+        useArabic,
+      });
+
       return NextResponse.json({
-        questions: [localizeQuestion(debugQuestion, useArabic)],
+        questions: selectedDebugQuestions.map((q) => localizeQuestion(q, useArabic)),
         profile,
         activeFramework,
         questionFrameworks: frameworkCandidates,
-        questionBankNotice: questionBankNotice(activeFramework, useArabic),
+        questionBankNotice: questionBankStatus.message,
+        questionBankStatus,
         debugQuestionId,
       });
     }
@@ -131,7 +235,22 @@ export async function GET(req: NextRequest) {
       
       const shuffled = fallback.sort(() => Math.random() - 0.5).slice(0, requestedCount);
       const localizedFallback = shuffled.map((q) => localizeQuestion(q, useArabic));
-      return NextResponse.json({ questions: localizedFallback, profile, activeFramework, questionFrameworks: frameworkCandidates, questionBankNotice: questionBankNotice(activeFramework, useArabic) });
+      const questionBankStatus = buildQuestionBankStatus({
+        requestedFramework: activeFramework,
+        selectedQuestions: shuffled,
+        nativeQuestionCount,
+        fallbackQuestionCount,
+        useArabic,
+      });
+
+      return NextResponse.json({
+        questions: localizedFallback,
+        profile,
+        activeFramework,
+        questionFrameworks: frameworkCandidates,
+        questionBankNotice: questionBankStatus.message,
+        questionBankStatus,
+      });
     }
 
     // Prioritize weak area questions if profile exists
@@ -145,7 +264,22 @@ export async function GET(req: NextRequest) {
 
     const selected = prioritized.sort(() => Math.random() - 0.5).slice(0, requestedCount);
     const localizedSelected = selected.map((q) => localizeQuestion(q, useArabic));
-    return NextResponse.json({ questions: localizedSelected, profile, activeFramework, questionFrameworks: frameworkCandidates, questionBankNotice: questionBankNotice(activeFramework, useArabic) });
+    const questionBankStatus = buildQuestionBankStatus({
+      requestedFramework: activeFramework,
+      selectedQuestions: selected,
+      nativeQuestionCount,
+      fallbackQuestionCount,
+      useArabic,
+    });
+
+    return NextResponse.json({
+      questions: localizedSelected,
+      profile,
+      activeFramework,
+      questionFrameworks: frameworkCandidates,
+      questionBankNotice: questionBankStatus.message,
+      questionBankStatus,
+    });
   } catch (error) {
     console.error('Questions API error:', error);
     return NextResponse.json({ error: 'Failed to fetch questions' }, { status: 500 });

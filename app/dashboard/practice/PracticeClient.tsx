@@ -10,6 +10,7 @@ import { EXAM_PATH_ORDER, EXAM_PATHS, getExamPathCopy, normalizeExamPath, type E
 
 interface Question {
   id: string;
+  framework?: string;
   domain: string;
   subdomain: string;
   difficulty: string;
@@ -30,6 +31,17 @@ interface Question {
   rita_tip_ar?: string;
   pmbok_reference: string;
   eco_reference: string;
+}
+
+interface QuestionBankStatus {
+  requestedFramework: ExamPathId;
+  nativeFrameworksExpected: string[];
+  nativeQuestionCount: number;
+  fallbackFramework: string;
+  fallbackQuestionCount: number;
+  fallbackUsed: boolean;
+  actualQuestionFrameworks: string[];
+  message: string | null;
 }
 
 interface QuestionResult {
@@ -678,6 +690,7 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [questionBankStatus, setQuestionBankStatus] = useState<QuestionBankStatus | null>(null);
 
   // Current question bank coverage is PMBOK 7 only. Keep the selected route in the UI,
   // but store sessions safely against the available baseline bank until PMBOK 8/Bridge banks are imported.
@@ -702,6 +715,7 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
     setOverallScore(null);
     setGuruReportId(null);
     setError(null);
+    setQuestionBankStatus(null);
   }, []);
 
   const languageRef = useRef(isArabic);
@@ -765,6 +779,7 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
         }
 
         setQuestions(data.questions || []);
+        setQuestionBankStatus(data.questionBankStatus || null);
         setCurrentQ(0);
         setSelectedAnswer(null);
         setSubmitted(false);
@@ -899,6 +914,8 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
         ? 'ملاحظة: بنك أسئلة PMBOK 8 والوضع الانتقالي قيد الإعداد. سيتم استخدام بنك أسئلة PMBOK 7 الأساسي مؤقتًا مع الحفاظ على مسارك المختار.'
         : 'Note: PMBOK 8 and Bridge question banks are being prepared. Practice currently uses the stable PMBOK 7 baseline while preserving your selected route.';
 
+  const effectivePracticeBankNotice = questionBankStatus?.message || practiceBankNotice;
+
   function practiceDomainLabel(domainId: string) {
     if (isArabic) {
       if (domainId === 'all') {
@@ -991,9 +1008,9 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
             <p className="mt-1 text-xs leading-5 text-gray-600">{selectedPathCopy.description}</p>
           </div>
 
-          {practiceBankNotice && (
+          {effectivePracticeBankNotice && (
             <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
-              {practiceBankNotice}
+              {effectivePracticeBankNotice}
             </div>
           )}
 
@@ -1044,7 +1061,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">{item.emoji}</span>
                   <span className="font-semibold text-gray-900 text-sm">
-                    {practiceDomainLabel(item.id)}
+                    {dt(item.label, isArabic)}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500">{dt(item.desc, isArabic)}</p>
@@ -1171,10 +1188,29 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
           />
         </div>
 
-        <div className="mb-4">
+        {questionBankStatus?.fallbackUsed && questionBankStatus.message && (
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+            <p className="font-semibold">
+              {isArabic ? 'تنبيه بنك الأسئلة' : 'Question bank notice'}
+            </p>
+            <p className="mt-1">{questionBankStatus.message}</p>
+            <p className="mt-1 text-[11px] text-amber-700">
+              {isArabic
+                ? `الأسئلة المعروضة حاليًا من: ${questionBankStatus.actualQuestionFrameworks.join(', ')}`
+                : `Current questions loaded from: ${questionBankStatus.actualQuestionFrameworks.join(', ')}`}
+            </p>
+          </div>
+        )}
+
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           <span className="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full font-medium">
             {formatQuestionDomain(currentQuestion.domain, isArabic)}
           </span>
+          {currentQuestion.framework && (
+            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-medium">
+              {currentQuestion.framework.toUpperCase()}
+            </span>
+          )}
         </div>
 
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm mb-4">
