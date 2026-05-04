@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest } from 'next/server';
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js';
 import { normalizeExamPath, type ExamPathId } from '@/lib/pmp/exam-paths';
+import { formatResourceEvidenceForPrompt, retrieveResourceEvidence } from '@/lib/rag/resource-retrieval';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -241,6 +242,13 @@ export async function POST(req: NextRequest) {
 
     const activeResources = await loadActiveResourceLibrary();
     const gate = evaluateSourceGate(activeResources, activeFramework);
+    const lastUserMessage = [...messages].reverse().find((message: any) => message.role === 'user')?.content || '';
+    const retrievedEvidence = await retrieveResourceEvidence({
+      framework: activeFramework,
+      query: String(lastUserMessage),
+      limit: 5,
+    });
+    const resourceEvidencePrompt = formatResourceEvidenceForPrompt(retrievedEvidence);
 
     const languageInstruction =
       language === 'ar'
@@ -250,6 +258,7 @@ export async function POST(req: NextRequest) {
     const system = [
       routeInstruction(activeFramework),
       sourceGateInstruction(gate),
+      resourceEvidencePrompt,
       canonicalOfficialContext(),
       answerQualityRules(),
       languageInstruction,
