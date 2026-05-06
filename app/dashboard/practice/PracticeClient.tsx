@@ -692,9 +692,9 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
   const [error, setError] = useState<string | null>(null);
   const [questionBankStatus, setQuestionBankStatus] = useState<QuestionBankStatus | null>(null);
 
-  // Current question bank coverage is PMBOK 7 only. Keep the selected route in the UI,
-  // but store sessions safely against the available baseline bank until PMBOK 8/Bridge banks are imported.
-  const practiceQuestionBankFramework = 'pmbok7';
+  // Use the learner-selected route for sessions, submissions, and question-bank selection.
+  // The questions API remains responsible for transparent fallback only when native inventory is short.
+  const practiceQuestionBankFramework = framework;
 
   const resetPracticeState = useCallback(() => {
     setMode('setup');
@@ -907,14 +907,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
 
   const selectedPathCopy = getExamPathCopy(framework, isArabic ? 'ar' : 'en');
   const selectedPathColor = EXAM_PATHS[framework].color;
-  const practiceBankNotice =
-    framework === 'pmbok7'
-      ? null
-      : isArabic
-        ? 'ملاحظة: بنك أسئلة PMBOK 8 والوضع الانتقالي قيد الإعداد. سيتم استخدام بنك أسئلة PMBOK 7 الأساسي مؤقتًا مع الحفاظ على مسارك المختار.'
-        : 'Note: PMBOK 8 and Bridge question banks are being prepared. Practice currently uses the stable PMBOK 7 baseline while preserving your selected route.';
-
-  const effectivePracticeBankNotice = questionBankStatus?.message || practiceBankNotice;
+  const effectivePracticeBankNotice = questionBankStatus?.message || null;
 
   function practiceDomainLabel(domainId: string) {
     if (isArabic) {
