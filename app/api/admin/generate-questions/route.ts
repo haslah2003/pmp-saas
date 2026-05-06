@@ -2,74 +2,283 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// ─── System Prompt ───────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are a PMP exam question writer. You must respond with ONLY a valid JSON array. No text before or after. No markdown. No code blocks. Just the raw JSON array starting with [ and ending with ].`
-// ─── Map UI difficulty to DB difficulty ──────────────────────────
-const DIFFICULTY_MAP: Record<string, string> = {
-  entry: 'entry',
-  intermediate: 'paced',
-  advanced: 'challenging',
-  expert: 'difficult',
+type ExamFramework = 'pmbok7' | 'pmbok8' | 'bridge'
+type EcoDomain = 'people' | 'process' | 'business-environment'
+type QuestionDifficulty = 'entry' | 'paced' | 'difficult' | 'challenging'
+
+const SYSTEM_PROMPT = `You are a senior PMP exam question writer and PMP/PMI content quality auditor.
+
+You must respond with ONLY a valid JSON array.
+No text before or after.
+No markdown.
+No code blocks.
+The response must start with [ and end with ].
+
+Every item must be a JSON object with exactly the requested keys.`
+
+const FRAMEWORKS: ExamFramework[] = ['pmbok7', 'pmbok8', 'bridge']
+const DOMAINS: EcoDomain[] = ['people', 'process', 'business-environment']
+const DIFFICULTIES: QuestionDifficulty[] = ['entry', 'paced', 'difficult', 'challenging']
+
+function normalizeFramework(value: unknown): ExamFramework {
+  return FRAMEWORKS.includes(value as ExamFramework) ? (value as ExamFramework) : 'pmbok7'
 }
 
-// ─── Build the user prompt ───────────────────────────────────────
-function buildPrompt(domain: string, difficulty: string, count: number, seed: string): string {
-  return `Generate ${count} PMP exam questions for:
-- Domain: ${domain}
-- Difficulty: ${difficulty}
+function normalizeDomain(value: unknown): EcoDomain {
+  return DOMAINS.includes(value as EcoDomain) ? (value as EcoDomain) : 'people'
+}
+
+function normalizeDifficulty(value: unknown): QuestionDifficulty {
+  if (DIFFICULTIES.includes(value as QuestionDifficulty)) return value as QuestionDifficulty
+
+  const legacyMap: Record<string, QuestionDifficulty> = {
+    intermediate: 'paced',
+    advanced: 'challenging',
+    expert: 'difficult',
+    moderate: 'paced',
+  }
+
+  return legacyMap[String(value || '')] || 'entry'
+}
+
+function clampInteger(value: unknown, fallback: number, min: number, max: number) {
+  const parsed = Number.parseInt(String(value ?? ''), 10)
+  if (!Number.isFinite(parsed)) return fallback
+  return Math.min(Math.max(parsed, min), max)
+}
+
+function domainLabel(domain: EcoDomain) {
+  if (domain === 'people') return 'People'
+  if (domain === 'process') return 'Process'
+  return 'Business Environment'
+}
+
+function frameworkContext(framework: ExamFramework) {
+  if (framework === 'pmbok8') {
+    return `Framework: PMBOK 8 + ECO 2026.
+
+SOURCE-OF-TRUTH RULES:
+- ECO 2026 exam domain weights: People 33%, Process 41%, Business Environment 26%.
+- PMBOK 8 has six principles:
+  1. Adopt a Holistic View
+  2. Focus on Value
+  3. Embed Quality Into Processes and Deliverables
+  4. Be an Accountable Leader
+  5. Integrate Sustainability Within All Project Areas
+  6. Build an Empowered Culture
+- PMBOK 8 has five Project Management Focus Areas:
+  Initiating, Planning, Executing, Monitoring and Controlling, Closing.
+- PMBOK 8 has seven Performance Domains:
+  Governance, Scope, Schedule, Finance, Stakeholders, Resources, Risk.
+- PMBOK 8 includes 40 nonprescriptive processes.
+
+STRICT GUARDRAILS:
+- Do NOT use PMBOK 7's 12 principles as PMBOK 8 principles.
+- Do NOT use PMBOK 7's eight performance domains as PMBOK 8 performance domains.
+- Do NOT say PMBOK 8 Performance Domains are People, Process, and Business Environment. Those are ECO exam domains.
+- Do NOT invent section numbers, task numbers, or page numbers.
+- pmbok_reference must use careful wording such as:
+  "PMBOK 8 - Principle: Focus on Value; Performance Domain: Governance"
+  or
+  "PMBOK 8 - Focus Area: Planning; Performance Domains: Scope, Schedule, Risk"
+- eco_reference must use careful wording such as:
+  "ECO 2026 - Process domain: planning, risk management, and integrated delivery"
+- rita_tip must be exam-strategy aligned but must not claim Rita 2026 or quote unverifiable text.`
+  }
+
+  if (framework === 'bridge') {
+    return `Framework: Bridge Mode from PMBOK 7 + ECO 2021 to PMBOK 8 + ECO 2026.
+
+SOURCE-OF-TRUTH RULES:
+- Bridge Mode helps learners transition from PMBOK 7/ECO 2021 to PMBOK 8/ECO 2026.
+- PMBOK 7: 12 principles and 8 performance domains.
+- PMBOK 8: 6 principles, 5 Focus Areas, 7 Performance Domains, and 40 nonprescriptive processes.
+- ECO 2021 weights: People 42%, Process 50%, Business Environment 8%.
+- ECO 2026 weights: People 33%, Process 41%, Business Environment 26%.
+
+STRICT GUARDRAILS:
+- Clearly distinguish ECO exam domains from PMBOK Guide performance domains.
+- Do not present PMBOK 7 structures as PMBOK 8 structures.
+- Do not invent section numbers, task numbers, or page numbers.
+- Questions should test transition judgment, comparison, and updated exam thinking.`
+  }
+
+  return `Framework: PMBOK 7 + ECO 2021.
+
+SOURCE-OF-TRUTH RULES:
+- ECO 2021 exam domain weights: People 42%, Process 50%, Business Environment 8%.
+- PMBOK 7 has 12 principles.
+- PMBOK 7 performance domains are:
+  Stakeholders, Team, Development Approach and Life Cycle, Planning, Project Work, Delivery, Measurement, Uncertainty.
+
+STRICT GUARDRAILS:
+- Do not introduce PMBOK 8/ECO 2026 unless the question explicitly asks for comparison.
+- Do not invent section numbers, task numbers, or page numbers.
+- pmbok_reference must reference PMBOK 7 concepts carefully without fake page numbers.
+- eco_reference must reference ECO 2021 domain/task concept carefully without fake task numbers.`
+}
+
+function domainGuidance(framework: ExamFramework, domain: EcoDomain) {
+  if (framework === 'pmbok8') {
+    if (domain === 'people') {
+      return `For ECO 2026 People, align questions with leadership, empowered culture, team collaboration, stakeholder engagement, communication, conflict management, coaching, knowledge transfer, accountability, and team performance.`
+    }
+
+    if (domain === 'process') {
+      return `For ECO 2026 Process, align questions with initiating, planning, executing, monitoring and controlling, closing, tailoring, scope, schedule, finance, risk, resources, quality, value delivery, and predictive/adaptive/hybrid application.`
+    }
+
+    return `For ECO 2026 Business Environment, align questions with compliance, external environment, organizational change, strategy, value, benefits, sustainability, market/regulatory/geopolitical/technology change, governance, and operational adoption.`
+  }
+
+  if (domain === 'people') {
+    return `For People, align questions with leadership, communication, stakeholder engagement, conflict, collaboration, team development, and servant leadership.`
+  }
+
+  if (domain === 'process') {
+    return `For Process, align questions with planning, execution, monitoring and controlling, risk, scope, schedule, cost, quality, procurement, and delivery approach.`
+  }
+
+  return `For Business Environment, align questions with compliance, benefits, business value, organizational change, governance, external environment, and strategic alignment.`
+}
+
+function buildPrompt({
+  framework,
+  domain,
+  difficulty,
+  count,
+  seed,
+}: {
+  framework: ExamFramework
+  domain: EcoDomain
+  difficulty: QuestionDifficulty
+  count: number
+  seed: string
+}) {
+  return `Generate ${count} PMP exam questions.
+
+${frameworkContext(framework)}
+
+Question target:
+- Framework route: ${framework}
+- ECO domain DB value: ${domain}
+- ECO domain label: ${domainLabel(domain)}
+- Difficulty DB value: ${difficulty}
 - Variation seed: ${seed}
+
+${domainGuidance(framework, domain)}
 
 Each question must be a JSON object with these exact keys:
 {
   "domain": "${domain}",
-  "subdomain": "specific subtopic within ${domain}",
+  "subdomain": "specific subtopic within ${domainLabel(domain)}",
   "difficulty": "${difficulty}",
-  "question_text": "the full question scenario and stem",
+  "question_text": "the full scenario-based question and stem",
   "option_a": "first answer choice",
   "option_b": "second answer choice",
   "option_c": "third answer choice",
   "option_d": "fourth answer choice",
-  "correct_answer": "A, B, C, or D",
-  "explanation": "why the correct answer is right and others are wrong",
-  "rita_tip": "a study tip in Rita Mulcahy style",
-  "pmbok_reference": "relevant PMBOK 7 section",
-  "eco_reference": "relevant ECO 2021 task"
+  "correct_answer": "a, b, c, or d",
+  "explanation": "why the correct answer is best and why the other three options are weak",
+  "rita_tip": "a concise exam-strategy tip aligned with Rita Mulcahy-style exam thinking but not quoted",
+  "pmbok_reference": "careful PMBOK reference without fake page or section numbers",
+  "eco_reference": "careful ECO reference without fake task numbers"
 }
 
-Requirements:
-- Questions must be scenario-based, realistic, and exam-quality
-- Each question must have exactly 4 options (A, B, C, D)
-- Only one correct answer per question
-- Explanations must reference why each wrong answer is incorrect
-- Use PMP exam language and terminology
+Quality requirements:
+- Use realistic scenario-based PMP exam style.
+- Entry questions should still be professional and situational, not trivial recall.
+- Only one option may be clearly best.
+- Distractors must be plausible but weaker.
+- Explanations must explicitly explain why the correct option is best and why the other options are weak.
+- correct_answer must be lowercase only: "a", "b", "c", or "d".
+- The domain field must be exactly "${domain}".
+- The difficulty field must be exactly "${difficulty}".
+- Avoid duplicated scenarios.
+- Avoid answer-pattern obviousness.
+- Do not include markdown or commentary outside the JSON array.
 
-Respond with ONLY the JSON array. Start your response with [ and end with ]. No other text.`
+Respond with ONLY the JSON array.`
 }
 
-// ─── POST handler ────────────────────────────────────────────────
+function cleanGeneratedQuestions({
+  questions,
+  framework,
+  domain,
+  difficulty,
+}: {
+  questions: unknown[]
+  framework: ExamFramework
+  domain: EcoDomain
+  difficulty: QuestionDifficulty
+}) {
+  return questions
+    .filter((q): q is Record<string, unknown> => q !== null && typeof q === 'object')
+    .map((q) => {
+      const correct = String(q.correct_answer || 'a').trim().toLowerCase().charAt(0)
+      return {
+        framework,
+        domain,
+        subdomain: String(q.subdomain || '').trim(),
+        difficulty,
+        question_text: String(q.question_text || '').trim(),
+        option_a: String(q.option_a || '').trim(),
+        option_b: String(q.option_b || '').trim(),
+        option_c: String(q.option_c || '').trim(),
+        option_d: String(q.option_d || '').trim(),
+        correct_answer: ['a', 'b', 'c', 'd'].includes(correct) ? correct : 'a',
+        explanation: String(q.explanation || '').trim(),
+        rita_tip: String(q.rita_tip || '').trim(),
+        pmbok_reference: String(q.pmbok_reference || '').trim(),
+        eco_reference: String(q.eco_reference || '').trim(),
+        is_active: true,
+      }
+    })
+    .filter(
+      (q) =>
+        q.question_text &&
+        q.option_a &&
+        q.option_b &&
+        q.option_c &&
+        q.option_d &&
+        q.explanation
+    )
+}
+
 export async function POST(req: NextRequest) {
   try {
-    // 1. Auth check
     const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // 2. Parse request body
-    const body = await req.json()
-    const {
-      domain = 'People',
-      difficulty = 'moderate',
-      count = 5,
-      variants = 1,
-    } = body
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
 
-    // 3. Validate API key exists
+    if (profile?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const body = await req.json()
+
+    const framework = normalizeFramework(body.framework)
+    const domain = normalizeDomain(body.domain)
+    const difficulty = normalizeDifficulty(body.difficulty)
+    const count = clampInteger(body.count, 5, 1, 20)
+    const variants = clampInteger(body.variants, 1, 1, 3)
+
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
-      console.error('[QUESTION GEN] ANTHROPIC_API_KEY is not set!')
+      console.error('[QUESTION GEN] ANTHROPIC_API_KEY is not set')
       return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
     }
 
@@ -77,12 +286,11 @@ export async function POST(req: NextRequest) {
     const allGenerated: unknown[] = []
     const errors: string[] = []
 
-    // 4. Generate questions in batches
     for (let v = 1; v <= variants; v++) {
-      const variantSeed = `variant-${v}-${Date.now()}`
-      const prompt = buildPrompt(domain, difficulty, count, variantSeed)
+      const variantSeed = `${framework}-${domain}-${difficulty}-variant-${v}-${Date.now()}`
+      const prompt = buildPrompt({ framework, domain, difficulty, count, seed: variantSeed })
 
-      console.log(`[QUESTION GEN] Variant ${v}: Calling Anthropic API...`)
+      console.log(`[QUESTION GEN] ${framework}/${domain}/${difficulty} variant ${v}: Calling Anthropic API`)
 
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -93,13 +301,12 @@ export async function POST(req: NextRequest) {
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 8000,
+          max_tokens: 10000,
           system: SYSTEM_PROMPT,
           messages: [{ role: 'user', content: prompt }],
         }),
       })
 
-      // 5. Check HTTP-level errors
       if (!response.ok) {
         const errorBody = await response.text()
         console.error(`[QUESTION GEN] Variant ${v}: API HTTP error ${response.status}:`, errorBody)
@@ -107,30 +314,20 @@ export async function POST(req: NextRequest) {
         continue
       }
 
-      // 6. Parse API response
       const data = await response.json()
-      console.log(`[QUESTION GEN] Variant ${v}: Response type:`, data.type)
-      console.log(`[QUESTION GEN] Variant ${v}: Content blocks:`, data.content?.length)
-      console.log(`[QUESTION GEN] Variant ${v}: Stop reason:`, data.stop_reason)
 
-      // Extract text from content blocks
-      const raw = data.content
-        ?.filter((block: { type: string }) => block.type === 'text')
-        ?.map((block: { text: string }) => block.text)
-        ?.join('') || ''
-
-      console.log(`[QUESTION GEN] Variant ${v}: Raw length: ${raw.length}`)
-      console.log(`[QUESTION GEN] Variant ${v}: Raw preview:`, raw.substring(0, 300))
+      const raw =
+        data.content
+          ?.filter((block: { type: string }) => block.type === 'text')
+          ?.map((block: { text: string }) => block.text)
+          ?.join('') || ''
 
       if (raw.length === 0) {
-        console.error(`[QUESTION GEN] Variant ${v}: Empty response from API`)
-        console.error(`[QUESTION GEN] Variant ${v}: Full data:`, JSON.stringify(data).substring(0, 500))
         errors.push(`Variant ${v}: Empty response from API`)
         continue
       }
 
       try {
-        // 7. Extract JSON array from response
         let cleaned = raw
           .replace(/```json\n?/gi, '')
           .replace(/```\n?/g, '')
@@ -140,51 +337,40 @@ export async function POST(req: NextRequest) {
         const endIdx = cleaned.lastIndexOf(']')
 
         if (startIdx === -1 || endIdx === -1) {
-          console.error(`[QUESTION GEN] Variant ${v}: No JSON array brackets found in response`)
-          console.error(`[QUESTION GEN] Variant ${v}: Cleaned preview:`, cleaned.substring(0, 300))
           errors.push(`Variant ${v}: No JSON array found in response`)
           continue
         }
 
         cleaned = cleaned.slice(startIdx, endIdx + 1)
-        const questions = JSON.parse(cleaned)
+        const parsed = JSON.parse(cleaned)
 
-        if (!Array.isArray(questions)) {
+        if (!Array.isArray(parsed)) {
           errors.push(`Variant ${v}: Response was not an array`)
           continue
         }
 
-        console.log(`[QUESTION GEN] Variant ${v}: Parsed ${questions.length} questions`)
+        const toInsert = cleanGeneratedQuestions({
+          questions: parsed,
+          framework,
+          domain,
+          difficulty,
+        })
 
-        // 8. Map to Supabase columns and insert
-        const toInsert = questions.map((q: Record<string, unknown>) => ({
-          framework: 'pmbok7',
-          domain: (q.domain as string) || domain,
-          subdomain: (q.subdomain as string) || '',
-          difficulty: DIFFICULTY_MAP[difficulty] || 'paced',
-          question_text: (q.question_text as string) || '',
-          option_a: (q.option_a as string) || '',
-          option_b: (q.option_b as string) || '',
-          option_c: (q.option_c as string) || '',
-          option_d: (q.option_d as string) || '',
-          correct_answer: ((q.correct_answer as string) || 'a').trim().charAt(0).toLowerCase(),
-          explanation: (q.explanation as string) || '',
-          rita_tip: (q.rita_tip as string) || '',
-          pmbok_reference: (q.pmbok_reference as string) || '',
-          eco_reference: (q.eco_reference as string) || '',
-          is_active: true,
-        }))
+        if (toInsert.length === 0) {
+          errors.push(`Variant ${v}: No valid questions after validation`)
+          continue
+        }
 
         const { data: inserted, error: insertError } = await adminSupabase
           .from('questions')
           .insert(toInsert)
-          .select('id')
+          .select('id, framework, domain, difficulty')
 
         if (insertError) {
           console.error(`[QUESTION GEN] Variant ${v}: DB insert error:`, insertError.message)
           errors.push(`Variant ${v}: DB error — ${insertError.message}`)
         } else {
-          console.log(`[QUESTION GEN] Variant ${v}: Inserted ${inserted?.length} questions`)
+          console.log(`[QUESTION GEN] Variant ${v}: Inserted ${inserted?.length || 0} questions`)
           allGenerated.push(...(inserted || []))
         }
       } catch (parseErr) {
@@ -194,7 +380,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      success: true,
+      success: errors.length === 0,
+      framework,
+      domain,
+      difficulty,
       generated: allGenerated.length,
       errors: errors.length > 0 ? errors : undefined,
     })
