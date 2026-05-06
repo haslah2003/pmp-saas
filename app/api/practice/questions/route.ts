@@ -129,6 +129,39 @@ async function countQuestionsForFrameworks({
   return count || 0;
 }
 
+
+async function fetchQuestionsForFrameworks({
+  supabase,
+  frameworks,
+  domain,
+  difficulty,
+  excludeIds,
+  limit,
+}: {
+  supabase: any;
+  frameworks: string[];
+  domain: string;
+  difficulty: string;
+  excludeIds: string[];
+  limit: number;
+}) {
+  let query = supabase
+    .from('questions')
+    .select('*')
+    .in('framework', frameworks)
+    .eq('difficulty', difficulty)
+    .eq('is_active', true);
+
+  if (domain !== 'all') query = query.eq('domain', domain);
+  if (excludeIds.length > 0) query = query.not('id', 'in', `(${excludeIds.join(',')})`);
+
+  const { data, error } = await query.limit(limit);
+  if (error) throw error;
+
+  return (data || []) as QuestionRow[];
+}
+
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -150,16 +183,8 @@ export async function GET(req: NextRequest) {
       : 5;
     const queryLimit = Math.max(20, requestedCount * 2);
 
-    // Build query
-    let query = supabase
-      .from('questions')
-      .select('*')
-      .in('framework', frameworkCandidates)
-      .eq('difficulty', difficulty)
-      .eq('is_active', true);
-
-    if (domain !== 'all') query = query.eq('domain', domain);
-    if (excludeIds.length > 0) query = query.not('id', 'in', `(${excludeIds.join(',')})`);
+    // Candidate order is reported for transparency.
+    // Actual selection below is native-first, then fallback only for shortage.
 
     // Get learning profile to adapt questions
     const { data: profile } = await supabase
@@ -217,52 +242,91 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const { data: questions, error } = await query.limit(queryLimit);
-    if (error) throw error;
-    if (!questions || questions.length === 0) {
-      // Fallback: remove exclude filter
-      const { data: fallback } = await supabase
-        .from('questions')
-        .select('*')
-        .in('framework', frameworkCandidates)
-        .eq('difficulty', difficulty)
-        .eq('is_active', true)
-        .limit(queryLimit);
-      
-      if (!fallback || fallback.length === 0) {
-        return NextResponse.json({ error: 'No questions available' }, { status: 404 });
+    let nativeQuestions = await fetchQuestionsForFrameworks({
+      supabase,
+      frameworks: nativeFrameworksForRoute(activeFramework),
+      domain,
+      difficulty,
+      excludeIds,
+      limit: queryLimit,
+    });
+
+    let fallbackQuestions =
+      activeFramework !== 'pmbok7' && nativeQuestions.length < requestedCount
+        ? await fetchQuestionsForFrameworks({
+            supabase,
+            frameworks: ['pmbok7'],
+            domain,
+            difficulty,
+            excludeIds,
+            limit: queryLimit,
+          })
+        : [];
+
+    // If exclusions emptied the available pool, retry without exclusions while preserving domain/difficulty.
+    if (nativeQuestions.length === 0 && fallbackQuestions.length === 0 && excludeIds.length > 0) {
+      nativeQuestions = await fetchQuestionsForFrameworks({
+        supabase,
+        frameworks: nativeFrameworksForRoute(activeFramework),
+        domain,
+        difficulty,
+        excludeIds: [],
+        limit: queryLimit,
+      });
+
+      fallbackQuestions =
+        activeFramework !== 'pmbok7' && nativeQuestions.length < requestedCount
+          ? await fetchQuestionsForFrameworks({
+              supabase,
+              frameworks: ['pmbok7'],
+              domain,
+              difficulty,
+              excludeIds: [],
+              limit: queryLimit,
+            })
+          : [];
+    }
+
+    if (nativeQuestions.length === 0 && fallbackQuestions.length === 0) {
+      return NextResponse.json({ error: 'No questions available' }, { status: 404 });
+    }
+
+    const prioritizeByProfile = (rows: QuestionRow[]) => {
+      if (profile?.weak_areas && Array.isArray(profile.weak_areas) && profile.weak_areas.length > 0) {
+        const weakDomains = profile.weak_areas.map((w: { domain: string }) => w.domain);
+        const weakQuestions = rows.filter(
+          (q) => typeof q.domain === 'string' && weakDomains.includes(q.domain)
+        );
+        const otherQuestions = rows.filter(
+          (q) => !(typeof q.domain === 'string' && weakDomains.includes(q.domain))
+        );
+        return [...weakQuestions, ...otherQuestions];
       }
-      
-      const shuffled = fallback.sort(() => Math.random() - 0.5).slice(0, requestedCount);
-      const localizedFallback = shuffled.map((q) => localizeQuestion(q, useArabic));
-      const questionBankStatus = buildQuestionBankStatus({
-        requestedFramework: activeFramework,
-        selectedQuestions: shuffled,
-        nativeQuestionCount,
-        fallbackQuestionCount,
-        useArabic,
-      });
 
-      return NextResponse.json({
-        questions: localizedFallback,
-        profile,
-        activeFramework,
-        questionFrameworks: frameworkCandidates,
-        questionBankNotice: questionBankStatus.message,
-        questionBankStatus,
-      });
-    }
+      return [...rows];
+    };
 
-    // Prioritize weak area questions if profile exists
-    let prioritized = [...questions];
-    if (profile?.weak_areas && Array.isArray(profile.weak_areas) && profile.weak_areas.length > 0) {
-      const weakDomains = profile.weak_areas.map((w: { domain: string }) => w.domain);
-      const weakQuestions = questions.filter(q => weakDomains.includes(q.domain));
-      const otherQuestions = questions.filter(q => !weakDomains.includes(q.domain));
-      prioritized = [...weakQuestions, ...otherQuestions];
-    }
+    const selectedNative = prioritizeByProfile(nativeQuestions)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, requestedCount);
 
-    const selected = prioritized.sort(() => Math.random() - 0.5).slice(0, requestedCount);
+    const selectedNativeIds = new Set(
+      selectedNative
+        .map((row) => row.id)
+        .filter((value): value is string => typeof value === 'string')
+    );
+
+    const shortage = requestedCount - selectedNative.length;
+
+    const selectedFallback =
+      shortage > 0
+        ? prioritizeByProfile(fallbackQuestions)
+            .filter((row) => !(typeof row.id === 'string' && selectedNativeIds.has(row.id)))
+            .sort(() => Math.random() - 0.5)
+            .slice(0, shortage)
+        : [];
+
+    const selected = [...selectedNative, ...selectedFallback];
     const localizedSelected = selected.map((q) => localizeQuestion(q, useArabic));
     const questionBankStatus = buildQuestionBankStatus({
       requestedFramework: activeFramework,
