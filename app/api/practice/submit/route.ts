@@ -339,9 +339,72 @@ All fields in the JSON response must be Arabic:
 Keep the tone encouraging, executive, exam-focused, concise, and suitable for PMP learners.`
       : `Generate the full wrap-up report in English.`;
 
-    const wrapUpPrompt = `You are an expert PMP exam tutor. A learner just completed a 5-question practice block.
+    const normalizedRoute =
+      activeRoute === 'pmbok8' || activeRoute === 'bridge' ? activeRoute : 'pmbok7';
 
-Learner selected route: ${activeRoute}. Current practice question source: ${framework}. If the selected route is pmbok8 or bridge, be transparent that current practice uses PMBOK 7 baseline questions until the PMBOK 8/Bridge question bank is available, while still giving transition-aware guidance.
+    const sourceExample =
+      normalizedRoute === 'pmbok8'
+        ? 'PMBOK 8 / ECO 2026'
+        : normalizedRoute === 'bridge'
+          ? 'PMBOK 7→8 Bridge / ECO 2021→2026'
+          : 'PMBOK 7 / ECO 2021 / Rita';
+
+    const reportIdentity =
+      normalizedRoute === 'pmbok8'
+        ? {
+            name: 'Sovereign Strategic Dashboard',
+            frameworkLabel: 'PMBOK 8 + ECO 2026',
+            domainWeights: 'People 33%, Process 41%, Business Environment 26%',
+            analyticalFocus:
+              'PMBOK 8 six principles, five Focus Areas, seven Performance Domains, value delivery, governance, sustainability, and strategic business context',
+          }
+        : normalizedRoute === 'bridge'
+          ? {
+              name: 'Bridge Intelligence Dashboard',
+              frameworkLabel: 'PMBOK 7 + ECO 2021 → PMBOK 8 + ECO 2026',
+              domainWeights:
+                'ECO 2021: People 42%, Process 50%, Business Environment 8%; ECO 2026: People 33%, Process 41%, Business Environment 26%',
+              analyticalFocus:
+                'what the learner should preserve from PMBOK 7, unlearn from legacy habits, and upgrade for PMBOK 8',
+            }
+          : {
+              name: 'Principles & Performance Dashboard',
+              frameworkLabel: 'PMBOK 7 + ECO 2021',
+              domainWeights: 'People 42%, Process 50%, Business Environment 8%',
+              analyticalFocus:
+                'PMBOK 7 principles, PMBOK 7 performance domains, ECO 2021 exam domains, and Rita-style exam discipline',
+            };
+
+    const routeInstruction =
+      normalizedRoute === 'pmbok8'
+        ? `Learner selected route: PMBOK 8 + ECO 2026. Current practice question source: ${framework}.
+Treat this wrap-up as native PMBOK 8 + ECO 2026 practice.
+Use these PMBOK 8 route facts only: six principles; five Focus Areas (Initiating, Planning, Executing, Monitoring and Controlling, Closing); seven Performance Domains (Governance, Scope, Schedule, Finance, Stakeholders, Resources, Risk); and ECO 2026 weights: People 33%, Process 41%, Business Environment 26%.
+Do NOT describe PMBOK 8 practice as temporary, legacy-based, provisional, or waiting for a future bank.
+Do NOT label PMBOK 8 learning points as PMBOK 7.
+Do NOT use PMBOK 7's 12 principles or PMBOK 7's eight performance domains unless explicitly comparing frameworks; this 5-question PMBOK 8 wrap-up should not compare frameworks.
+Emphasize value delivery, governance, sustainability, strategic judgment, AI/digital fluency when relevant, and Business Environment as a stronger strategic exam area.`
+        : normalizedRoute === 'bridge'
+          ? `Learner selected route: Bridge Mode from PMBOK 7 + ECO 2021 to PMBOK 8 + ECO 2026. Current practice question source: ${framework}.
+Treat this wrap-up as transition-aware bridge practice.
+Clearly distinguish ECO exam domains from PMBOK Guide performance domains.
+Use Bridge source labels that reflect transition learning, such as PMBOK 7→8 Bridge / ECO 2021→2026.
+Show what the learner should preserve from PMBOK 7, what must be upgraded for PMBOK 8, and where legacy thinking may create exam risk.`
+          : `Learner selected route: PMBOK 7 + ECO 2021. Current practice question source: ${framework}.
+Treat this wrap-up as PMBOK 7 + ECO 2021 practice.
+Use PMBOK 7 principles, PMBOK 7 performance domains, ECO 2021 exam domains, and Rita-style PMP exam strategy.`;
+
+    const wrapUpPrompt = `You are a senior PMP exam tutor, PMBOK framework expert, and learner-diagnostics coach.
+
+A learner just completed a 5-question practice block. Generate a compact but high-value progress report, not a generic congratulatory summary.
+
+REPORT IDENTITY:
+- Report name: ${reportIdentity.name}
+- Framework: ${reportIdentity.frameworkLabel}
+- Domain weights: ${reportIdentity.domainWeights}
+- Analytical focus: ${reportIdentity.analyticalFocus}
+
+${routeInstruction}
 
 ${languageInstruction}
 
@@ -359,19 +422,43 @@ RESULTS:
         : 'None — perfect score!'
     }
 
-Generate a wrap-up with EXACTLY this JSON structure. Return only valid JSON. Do not include markdown.
+DIAGNOSTIC REQUIREMENTS:
+1. Domain Proficiency:
+   - Infer the strongest and weakest ECO domain only from the actual block evidence.
+2. Growth Velocity:
+   - If no previous-cycle data is available in the prompt, say historical trend data is not yet sufficient.
+   - Do not invent previous scores or progress trends.
+3. Mindset Gap:
+   - Identify whether the learner is thinking like a task manager or like a strategic project leader.
+4. Tailoring Decisiveness:
+   - Comment on predictive, agile, or hybrid judgment only when supported by the questions shown.
+5. Gamification:
+   - Award one meaningful badge based on observed strength.
+   - Suitable badge examples: Conflict Resolver, Governance Architect, Strategic Value Defender, Hybrid Thinker, Stakeholder Diplomat, Risk Pathfinder, Sustainability Integrator, AI-Fluent PM.
+
+OUTPUT RULES:
+- Return only valid JSON.
+- Do not include markdown.
+- Do not include commentary outside JSON.
+- Keep the existing JSON structure exactly so the current frontend does not break.
+- Keep key_learnings to max 3 items.
+- Keep mindmap_branches to 3-4 branches.
+- Use specific coaching based on the learner's wrong answers and selected route.
+- Do not invent page numbers, section numbers, quotes, or references not supplied in the prompt.
+
+Generate EXACTLY this JSON structure:
 
 {
-  "score_message": "A warm, encouraging 1-sentence message about their score",
+  "score_message": "A motivational executive-coaching style message with a readiness insight, not generic praise",
   "key_learnings": [
     {
-      "concept": "concept name",
-      "insight": "1-2 sentence learning point",
-      "source": "PMBOK 7 / ECO 2021 / Rita"
+      "concept": "short diagnostic concept name, e.g. Mindset Gap, Domain Proficiency, Tailoring Decisiveness, Governance Judgment, Strategic Value",
+      "insight": "specific 1-2 sentence diagnostic insight based on the learner's answers and selected route",
+      "source": "${sourceExample}"
     }
   ],
-  "rita_technique": "1 specific Rita Mulcahy exam technique relevant to the questions they struggled with",
-  "mindmap_center": "The central concept for the radial mind map (1-3 words)",
+  "rita_technique": "one exam technique phrased as strategic coaching; Rita-style is acceptable for PMBOK 7, but do not invent book quotes or edition-specific claims",
+  "mindmap_center": "1-3 word strategic center concept",
   "mindmap_branches": [
     {
       "label": "branch name",
@@ -384,10 +471,13 @@ Generate a wrap-up with EXACTLY this JSON structure. Return only valid JSON. Do 
       ]
     }
   ],
-  "next_focus": "1 sentence on what they should focus on next"
+  "next_focus": "one specific next action that helps the learner improve strategically"
 }
 
-Keep key_learnings to max 3 items. Keep mindmap_branches to 3-4 branches. Make it encouraging and practical.`;
+Route-specific expectations:
+- For PMBOK 7: reflect Principles & Performance thinking, including PMBOK 7 principles, PMBOK 7 performance domains, ECO 2021 weights, and stable exam discipline.
+- For PMBOK 8: reflect Sovereign Strategic thinking, including value delivery heatmap logic, governance, sustainability, AI/digital fluency when relevant, and the Business Environment strategic jump to 26%.
+- For Bridge: reflect transition logic from PMBOK 7/ECO 2021 to PMBOK 8/ECO 2026.`;
 
     let wrapUp: WrapUp;
 
