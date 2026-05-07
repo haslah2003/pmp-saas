@@ -69,6 +69,59 @@ interface WrapUp {
   next_focus: string;
 }
 
+interface StrategicReport {
+  report_title: string;
+  route_label: string;
+  cycle_label: string;
+  executive_summary: string;
+  readiness_score: number;
+  readiness_label: string;
+  overall_score: {
+    correct: number;
+    total: number;
+    pct: number;
+  };
+  domain_proficiency: {
+    domain: string;
+    correct: number;
+    total: number;
+    pct: number;
+    status: string;
+    insight: string;
+  }[];
+  growth_velocity: {
+    value: string;
+    insight: string;
+  };
+  mindset_gap: {
+    label: string;
+    risk_level: string;
+    insight: string;
+  };
+  tailoring_decisiveness: {
+    score: number | null;
+    evidence_level: string;
+    insight: string;
+  };
+  badges: {
+    name: string;
+    description: string;
+    icon: string;
+  }[];
+  route_focus: {
+    label: string;
+    items: string[];
+  };
+  evidence: {
+    question: string;
+    selected: string;
+    correct: string;
+    domain: string;
+    lesson: string;
+  }[];
+  next_actions: string[];
+}
+
 interface GuruReport {
   greeting: string;
   overall_assessment: string;
@@ -676,9 +729,11 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [blockResults, setBlockResults] = useState<QuestionResult[]>([]);
+  const [cycleResults, setCycleResults] = useState<QuestionResult[]>([]);
   const [answeredIds, setAnsweredIds] = useState<string[]>([]);
 
   const [wrapUp, setWrapUp] = useState<WrapUp | null>(null);
+  const [strategicReport, setStrategicReport] = useState<StrategicReport | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
   const [blockScore, setBlockScore] = useState({ correct: 0, total: 0 });
 
@@ -705,8 +760,10 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
     setSelectedAnswer(null);
     setSubmitted(false);
     setBlockResults([]);
+    setCycleResults([]);
     setAnsweredIds([]);
     setWrapUp(null);
+    setStrategicReport(null);
     setVideos([]);
     setBlockScore({ correct: 0, total: 0 });
     setGuruReport(null);
@@ -832,6 +889,7 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
     setMode('loading');
 
     const finalResults = blockResults;
+    const nextCycleResults = [...cycleResults, ...finalResults];
     const newAnsweredIds = [...answeredIds, ...questions.map((question) => question.id)];
     setAnsweredIds(newAnsweredIds);
 
@@ -846,6 +904,7 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
           framework: practiceQuestionBankFramework,
           activeFramework: framework,
           language: isArabic ? 'ar' : 'en',
+          cycleResults: nextCycleResults,
         }),
       });
 
@@ -856,9 +915,11 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
       }
 
       setWrapUp(data.wrapUp);
+      setStrategicReport(data.strategicReport || null);
       setVideos(data.videos || []);
       setBlockScore({ correct: data.correct, total: data.total });
       setBlockNumber((previous) => previous + 1);
+      setCycleResults(data.strategicReport ? [] : nextCycleResults);
 
       if (data.guruReport) {
         setGuruReport(data.guruReport);
@@ -1395,7 +1456,11 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
           </div>
         )}
 
-        <WrapUpTabs wrapUp={wrapUp} videos={videos} isArabic={isArabic} />
+        {strategicReport ? (
+          <AdvancedSmartReport report={strategicReport} isArabic={isArabic} />
+        ) : (
+          <WrapUpTabs wrapUp={wrapUp} videos={videos} isArabic={isArabic} />
+        )}
 
         <div className="mt-6 space-y-3">
           {guruReport && !showGuru && (
@@ -1418,7 +1483,10 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
           )}
 
           <button
-            onClick={() => loadBlock(sessionId!, answeredIds)}
+            onClick={() => {
+              setStrategicReport(null);
+              loadBlock(sessionId!, answeredIds);
+            }}
             className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 rounded-xl transition-all"
           >
             {isArabic ? 'متابعة — البلوك التالي من 5 ←' : 'Continue — Next Block of 5 →'}
@@ -1430,9 +1498,11 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
               setBlockNumber(1);
               setAnsweredIds([]);
               setBlockResults([]);
+              setCycleResults([]);
               setQuestions([]);
               setCurrentQ(0);
               setWrapUp(null);
+              setStrategicReport(null);
               setVideos([]);
               setBlockScore({ correct: 0, total: 0 });
               setGuruReport(null);
@@ -1461,6 +1531,192 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
 
   return null;
 }
+
+
+function AdvancedSmartReport({
+  report,
+  isArabic,
+}: {
+  report: StrategicReport;
+  isArabic: boolean;
+}) {
+  const textAlign = isArabic ? 'text-right' : 'text-left';
+
+  return (
+    <div dir={rtlDir(isArabic)} className={`space-y-5 ${textAlign}`}>
+      <div className="rounded-3xl bg-slate-950 text-white p-6 overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-cyan-500/10 to-violet-500/20" />
+        <div className="relative">
+          <p className="text-xs uppercase tracking-[0.25em] text-cyan-200 mb-2">
+            {report.cycle_label}
+          </p>
+          <h3 className="text-2xl font-bold mb-2">{report.report_title}</h3>
+          <p className="text-sm text-slate-300 mb-4">{report.route_label}</p>
+          <p className="text-sm leading-relaxed text-slate-100 max-w-4xl">
+            {report.executive_summary}
+          </p>
+
+          <div className="grid md:grid-cols-4 gap-3 mt-6">
+            <div className="bg-white/10 border border-white/10 rounded-2xl p-4">
+              <p className="text-xs text-slate-300">
+                {isArabic ? 'درجة الجاهزية' : 'Readiness Score'}
+              </p>
+              <p className="text-4xl font-bold mt-1">{report.readiness_score}%</p>
+              <p className="text-xs text-cyan-100 mt-1">{report.readiness_label}</p>
+            </div>
+
+            <div className="bg-white/10 border border-white/10 rounded-2xl p-4">
+              <p className="text-xs text-slate-300">
+                {isArabic ? 'إجمالي الدورة' : 'Cycle Score'}
+              </p>
+              <p className="text-3xl font-bold mt-1">
+                {report.overall_score.correct}/{report.overall_score.total}
+              </p>
+              <p className="text-xs text-cyan-100 mt-1">
+                {report.overall_score.pct}%
+              </p>
+            </div>
+
+            <div className="bg-white/10 border border-white/10 rounded-2xl p-4">
+              <p className="text-xs text-slate-300">
+                {isArabic ? 'سرعة النمو' : 'Growth Velocity'}
+              </p>
+              <p className="text-lg font-bold mt-2">{report.growth_velocity.value}</p>
+              <p className="text-xs text-slate-300 mt-1">{report.growth_velocity.insight}</p>
+            </div>
+
+            <div className="bg-white/10 border border-white/10 rounded-2xl p-4">
+              <p className="text-xs text-slate-300">
+                {isArabic ? 'الفجوة الذهنية' : 'Mindset Gap'}
+              </p>
+              <p className="text-lg font-bold mt-2">{report.mindset_gap.label}</p>
+              <p className="text-xs text-cyan-100 mt-1">
+                {isArabic ? 'مستوى المخاطر:' : 'Risk:'} {report.mindset_gap.risk_level}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {report.badges.length > 0 && (
+        <div className="grid md:grid-cols-2 gap-4">
+          {report.badges.map((badge, index) => (
+            <div
+              key={index}
+              className="rounded-2xl border border-amber-200 bg-amber-50 p-5"
+            >
+              <div className="text-3xl mb-2">{badge.icon}</div>
+              <p className="text-xs font-bold text-amber-600 uppercase tracking-wider">
+                {isArabic ? 'شارة استراتيجية' : 'Strategic Badge'}
+              </p>
+              <h4 className="text-lg font-bold text-gray-900 mt-1">{badge.name}</h4>
+              <p className="text-sm text-gray-700 mt-1">{badge.description}</p>
+            </div>
+          ))}
+
+          <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5">
+            <p className="text-xs font-bold text-cyan-700 uppercase tracking-wider">
+              {isArabic ? 'حسم تكييف النهج' : 'Tailoring Decisiveness'}
+            </p>
+            <h4 className="text-lg font-bold text-gray-900 mt-1">
+              {report.tailoring_decisiveness.score === null
+                ? '—'
+                : `${report.tailoring_decisiveness.score}%`}
+            </h4>
+            <p className="text-xs text-cyan-700 mt-1">
+              {report.tailoring_decisiveness.evidence_level}
+            </p>
+            <p className="text-sm text-gray-700 mt-2">
+              {report.tailoring_decisiveness.insight}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="grid lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-5">
+          <h4 className="font-bold text-gray-900 mb-4">
+            {isArabic ? 'إتقان المجالات' : 'Domain Proficiency'}
+          </h4>
+
+          <div className="space-y-4">
+            {report.domain_proficiency.map((domain, index) => (
+              <div key={index}>
+                <div className="flex items-center justify-between gap-3 mb-1">
+                  <p className="text-sm font-semibold text-gray-800">{domain.domain}</p>
+                  <p className="text-xs text-gray-500">
+                    {domain.correct}/{domain.total} · {domain.pct}% · {domain.status}
+                  </p>
+                </div>
+                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-violet-600 rounded-full"
+                    style={{ width: `${domain.pct}%` }}
+                  />
+                </div>
+                <p className="text-xs text-gray-600 mt-1">{domain.insight}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+          <h4 className="font-bold text-gray-900 mb-3">{report.route_focus.label}</h4>
+          <ul className={`space-y-2 text-sm text-gray-700 ${isArabic ? 'list-disc list-inside' : 'list-disc list-inside'}`}>
+            {report.route_focus.items.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+
+          <div className="mt-5 bg-slate-50 border border-slate-200 rounded-xl p-3">
+            <p className="text-xs font-bold text-slate-500 mb-1">
+              {isArabic ? 'تشخيص الفجوة الذهنية' : 'Mindset Diagnosis'}
+            </p>
+            <p className="text-sm text-slate-700 leading-relaxed">
+              {report.mindset_gap.insight}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {report.evidence.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+          <h4 className="font-bold text-gray-900 mb-3">
+            {isArabic ? 'أدلة من الإجابات الخاطئة' : 'Evidence From Weak Answers'}
+          </h4>
+
+          <div className="grid md:grid-cols-2 gap-3">
+            {report.evidence.map((item, index) => (
+              <div key={index} className="border border-gray-100 rounded-xl p-3">
+                <p className="text-xs font-semibold text-violet-700 mb-1">{item.domain}</p>
+                <p className="text-sm font-medium text-gray-900 line-clamp-3">
+                  {item.question}
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  {isArabic ? 'إجابتك:' : 'Selected:'} {item.selected} ·{' '}
+                  {isArabic ? 'الصحيح:' : 'Correct:'} {item.correct}
+                </p>
+                <p className="text-xs text-gray-600 mt-2 leading-relaxed">{item.lesson}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="bg-violet-50 border border-violet-200 rounded-2xl p-5">
+        <h4 className="font-bold text-violet-900 mb-3">
+          {isArabic ? 'الإجراءات الثلاثة التالية' : 'Next 3 Actions'}
+        </h4>
+        <ol className="space-y-2 text-sm text-violet-900 list-decimal list-inside">
+          {report.next_actions.map((action, index) => (
+            <li key={index}>{action}</li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
 
 // ─── Wrap-up Tabs ─────────────────────────────────────────────────────────────
 

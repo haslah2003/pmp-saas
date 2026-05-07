@@ -38,6 +38,59 @@ interface WrapUp {
   next_focus: string;
 }
 
+interface StrategicReport {
+  report_title: string;
+  route_label: string;
+  cycle_label: string;
+  executive_summary: string;
+  readiness_score: number;
+  readiness_label: string;
+  overall_score: {
+    correct: number;
+    total: number;
+    pct: number;
+  };
+  domain_proficiency: {
+    domain: string;
+    correct: number;
+    total: number;
+    pct: number;
+    status: string;
+    insight: string;
+  }[];
+  growth_velocity: {
+    value: string;
+    insight: string;
+  };
+  mindset_gap: {
+    label: string;
+    risk_level: string;
+    insight: string;
+  };
+  tailoring_decisiveness: {
+    score: number | null;
+    evidence_level: string;
+    insight: string;
+  };
+  badges: {
+    name: string;
+    description: string;
+    icon: string;
+  }[];
+  route_focus: {
+    label: string;
+    items: string[];
+  };
+  evidence: {
+    question: string;
+    selected: string;
+    correct: string;
+    domain: string;
+    lesson: string;
+  }[];
+  next_actions: string[];
+}
+
 function domainLabel(domain: string, isArabic: boolean): string {
   const labels: Record<string, { en: string; ar: string }> = {
     people: { en: 'People', ar: 'مجال الأفراد' },
@@ -210,6 +263,343 @@ function buildFallbackWrapUp({
   };
 }
 
+
+function buildStrategicReport({
+  cycleResults,
+  route,
+  isArabic,
+  blockNumber,
+}: {
+  cycleResults: QuestionResult[];
+  route: string;
+  isArabic: boolean;
+  blockNumber: number;
+}): StrategicReport {
+  const routeKey = route === 'pmbok8' || route === 'bridge' ? route : 'pmbok7';
+  const usableResults = cycleResults.length > 0 ? cycleResults : [];
+  const total = usableResults.length;
+  const correct = usableResults.filter((r) => r.isCorrect).length;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+  const routeLabel =
+    routeKey === 'pmbok8'
+      ? 'PMBOK 8 + ECO 2026'
+      : routeKey === 'bridge'
+        ? 'PMBOK 7→8 Bridge / ECO 2021→2026'
+        : 'PMBOK 7 + ECO 2021';
+
+  const reportTitle = isArabic
+    ? routeKey === 'pmbok8'
+      ? 'لوحة التقرير الاستراتيجي السيادي'
+      : routeKey === 'bridge'
+        ? 'لوحة ذكاء الانتقال بين الإصدارات'
+        : 'لوحة المبادئ والأداء'
+    : routeKey === 'pmbok8'
+      ? 'Sovereign Strategic Dashboard'
+      : routeKey === 'bridge'
+        ? 'Bridge Intelligence Dashboard'
+        : 'Principles & Performance Dashboard';
+
+  const readinessLabel = isArabic
+    ? pct >= 80
+      ? 'جاهزية قوية للتقدم'
+      : pct >= 60
+        ? 'جاهزية نامية تحتاج إلى ضبط'
+        : 'جاهزية تأسيسية تحتاج إلى تعزيز'
+    : pct >= 80
+      ? 'Strong readiness to advance'
+      : pct >= 60
+        ? 'Developing readiness with calibration needed'
+        : 'Foundation readiness requires reinforcement';
+
+  const stats: Record<string, { correct: number; total: number }> = {};
+
+  for (const result of usableResults) {
+    const domain = result.domain || 'general';
+
+    if (!stats[domain]) {
+      stats[domain] = { correct: 0, total: 0 };
+    }
+
+    stats[domain].total += 1;
+
+    if (result.isCorrect) {
+      stats[domain].correct += 1;
+    }
+  }
+
+  const domainProficiency = Object.entries(stats)
+    .map(([domain, value]) => {
+      const domainPct =
+        value.total > 0 ? Math.round((value.correct / value.total) * 100) : 0;
+
+      const status = isArabic
+        ? domainPct >= 80
+          ? 'قوي'
+          : domainPct >= 60
+            ? 'مستقر'
+            : 'يحتاج إلى تدخل'
+        : domainPct >= 80
+          ? 'Strong'
+          : domainPct >= 60
+            ? 'Stable'
+            : 'Needs intervention';
+
+      const insight = isArabic
+        ? `${domainLabel(domain, true)}: ${value.correct}/${value.total}. ${
+            domainPct >= 80
+              ? 'هذا مجال قوة واضح في هذه الدورة.'
+              : domainPct >= 60
+                ? 'الأداء مقبول، لكن يحتاج إلى ثبات أعلى في السيناريوهات المركبة.'
+                : 'هذا المجال يمثل فجوة تعلم يجب علاجها قبل الانتقال إلى أسئلة أصعب.'
+          }`
+        : `${domainLabel(domain, false)}: ${value.correct}/${value.total}. ${
+            domainPct >= 80
+              ? 'This is a clear strength in this cycle.'
+              : domainPct >= 60
+                ? 'Performance is acceptable, but consistency is still needed in complex scenarios.'
+                : 'This is a learning gap that should be treated before moving to harder questions.'
+          }`;
+
+      return {
+        domain: domainLabel(domain, isArabic),
+        correct: value.correct,
+        total: value.total,
+        pct: domainPct,
+        status,
+        insight,
+      };
+    })
+    .sort((a, b) => b.total - a.total);
+
+  const wrongResults = usableResults.filter((r) => !r.isCorrect);
+
+  const allText = usableResults
+    .map((r) => `${r.questionText} ${r.explanation} ${r.ritaTip}`)
+    .join(' ')
+    .toLowerCase();
+
+  const tailoringEvidenceFound =
+    /agile|scrum|sprint|hybrid|predictive|waterfall|iterative|incremental/.test(allText);
+
+  const strategicKeywordsFound =
+    /stakeholder|value|governance|risk|benefit|business|sponsor|priority|change|sustainability|quality/.test(
+      allText
+    );
+
+  const mindsetGap = isArabic
+    ? wrongResults.length === 0
+      ? {
+          label: 'تفكير قيادي استراتيجي',
+          risk_level: 'منخفض',
+          insight:
+            'عدم وجود أخطاء في هذه الدورة يشير إلى قدرة جيدة على قراءة السيناريوهات واتخاذ القرار المناسب، مع ضرورة تأكيد ذلك في الدورة التالية.',
+        }
+      : strategicKeywordsFound
+        ? {
+            label: 'فجوة بين التنفيذ والقيمة',
+            risk_level: pct >= 60 ? 'متوسط' : 'مرتفع',
+            insight:
+              'تظهر بعض الإجابات الخاطئة حاجة إلى تقوية التفكير كقائد مشروع يوازن بين القيمة، أصحاب المصلحة، الحوكمة، والمخاطر، وليس فقط تنفيذ الإجراء الظاهر.',
+          }
+        : {
+            label: 'فجوة في قراءة السيناريو',
+            risk_level: pct >= 60 ? 'متوسط' : 'مرتفع',
+            insight:
+              'الخطأ الأساسي يبدو مرتبطًا بتحليل المطلوب من السؤال واستبعاد الخيارات الأقل مهنية قبل اختيار الإجابة.',
+          }
+    : wrongResults.length === 0
+      ? {
+          label: 'Strategic project-leader mindset',
+          risk_level: 'Low',
+          insight:
+            'A clean cycle suggests strong scenario reading and decision discipline; the next cycle should confirm this under higher complexity.',
+        }
+      : strategicKeywordsFound
+        ? {
+            label: 'Execution-to-value gap',
+            risk_level: pct >= 60 ? 'Medium' : 'High',
+            insight:
+              'Some wrong answers suggest the learner should think less like a task executor and more like a project leader balancing value, stakeholders, governance, and risk.',
+          }
+        : {
+            label: 'Scenario-reading gap',
+            risk_level: pct >= 60 ? 'Medium' : 'High',
+            insight:
+              'The main risk appears to be interpreting what the question is truly asking and eliminating less professional options before selecting the answer.',
+          };
+
+  const tailoringDecisiveness = tailoringEvidenceFound
+    ? {
+        score: pct,
+        evidence_level: isArabic ? 'دليل موجود في أسئلة الدورة' : 'Evidence found in this cycle',
+        insight: isArabic
+          ? 'تضمنت الدورة مؤشرات على سياقات Agile أو Hybrid أو Predictive؛ لذلك يجب التركيز على اختيار النهج المناسب بدل تطبيق قاعدة واحدة على كل السيناريوهات.'
+          : 'This cycle included signals of Agile, Hybrid, or Predictive contexts; the learner should focus on choosing the right delivery logic rather than applying one rule to every scenario.',
+      }
+    : {
+        score: null,
+        evidence_level: isArabic ? 'دليل غير كافٍ' : 'Insufficient evidence',
+        insight: isArabic
+          ? 'لا توجد أدلة كافية في هذه الدورة للحكم بدقة على حسم المتعلم في تكييف النهج بين Agile وPredictive وHybrid.'
+          : 'This cycle does not provide enough evidence to judge tailoring decisiveness across Agile, Predictive, and Hybrid contexts.',
+      };
+
+  const badge =
+    pct >= 80
+      ? routeKey === 'pmbok8'
+        ? {
+            name: isArabic ? 'حامي القيمة الاستراتيجية' : 'Strategic Value Defender',
+            description: isArabic
+              ? 'أظهرت قدرة قوية على ربط قرارات المشروع بالقيمة والنتائج.'
+              : 'You showed strong ability to connect project decisions to value and outcomes.',
+            icon: '🛡️',
+          }
+        : {
+            name: isArabic ? 'ممارس أداء قوي' : 'Performance Anchor',
+            description: isArabic
+              ? 'أظهرت ثباتًا جيدًا في تطبيق منطق اختبار PMP.'
+              : 'You showed solid consistency in applying PMP exam logic.',
+            icon: '🎯',
+          }
+      : pct >= 60
+        ? {
+            name: isArabic ? 'مفكر هجين نامٍ' : 'Developing Hybrid Thinker',
+            description: isArabic
+              ? 'لديك أساس جيد، والمرحلة التالية هي رفع دقة الحكم في السيناريوهات المركبة.'
+              : 'You have a workable base; the next step is sharper judgment in mixed scenarios.',
+            icon: '🧭',
+          }
+        : {
+            name: isArabic ? 'باحث عن المسار الصحيح' : 'Pathfinder in Progress',
+            description: isArabic
+              ? 'هذه الدورة كشفت فجوات مهمة يمكن تحويلها بسرعة إلى تقدم واضح.'
+              : 'This cycle exposed important gaps that can be converted into visible progress.',
+            icon: '🧩',
+          };
+
+  const routeFocus =
+    routeKey === 'pmbok8'
+      ? {
+          label: isArabic ? 'تركيز PMBOK 8 / ECO 2026' : 'PMBOK 8 / ECO 2026 Focus',
+          items: isArabic
+            ? [
+                'اربط كل قرار بقيمة قابلة للقياس.',
+                'انتبه للحوكمة والاستدامة وبيئة الأعمال.',
+                'ميز بين مجالات الأداء السبعة ومجالات ECO الثلاثة.',
+                'تعامل مع الذكاء الرقمي والذكاء الاصطناعي كجزء من نضج مدير المشروع.',
+              ]
+            : [
+                'Connect every decision to measurable value.',
+                'Watch governance, sustainability, and business context.',
+                'Distinguish the seven performance domains from the three ECO domains.',
+                'Treat digital and AI fluency as part of modern PM maturity.',
+              ],
+        }
+      : routeKey === 'bridge'
+        ? {
+            label: isArabic ? 'تركيز وضع الجسر' : 'Bridge Mode Focus',
+            items: isArabic
+              ? [
+                  'حافظ على منطق PMBOK 7 الذي لا يزال صالحًا.',
+                  'تجنب إسقاط هياكل PMBOK 7 القديمة على PMBOK 8 دون تمييز.',
+                  'راقب تغير وزن بيئة الأعمال من 8% إلى 26%.',
+                  'حوّل التفكير من حفظ الهياكل إلى الحكم السياقي.',
+                ]
+              : [
+                  'Preserve the valid PMBOK 7 reasoning that still applies.',
+                  'Avoid forcing old PMBOK 7 structures into PMBOK 8.',
+                  'Watch the Business Environment jump from 8% to 26%.',
+                  'Shift from structure recall to contextual judgment.',
+                ],
+          }
+        : {
+            label: isArabic ? 'تركيز PMBOK 7 / ECO 2021' : 'PMBOK 7 / ECO 2021 Focus',
+            items: isArabic
+              ? [
+                  'ثبّت منطق المجالات الثلاثة في ECO 2021.',
+                  'اربط الإجابات بالمبادئ ومجالات الأداء في PMBOK 7.',
+                  'استخدم الاستبعاد المنهجي قبل اختيار الإجابة.',
+                  'ركز على People وProcess لأنهما يحملان الوزن الأكبر.',
+                ]
+              : [
+                  'Stabilize the three ECO 2021 exam domains.',
+                  'Connect answers to PMBOK 7 principles and performance domains.',
+                  'Use disciplined elimination before selecting an answer.',
+                  'Prioritize People and Process because they carry the highest weight.',
+                ],
+          };
+
+  const evidence = wrongResults.slice(0, 4).map((r) => ({
+    question: r.questionText,
+    selected: r.selectedAnswer,
+    correct: r.correctAnswer,
+    domain: domainLabel(r.domain, isArabic),
+    lesson:
+      r.explanation ||
+      (isArabic
+        ? 'راجع سبب الإجابة الصحيحة وحدد لماذا كان الخيار المحدد أقل دقة.'
+        : 'Review why the correct answer is stronger and why the selected option was less precise.'),
+  }));
+
+  const executiveSummary = isArabic
+    ? `أكملت دورة استراتيجية من ${total} سؤالًا بنتيجة ${correct}/${total} (${pct}%). هذا التقرير لا يقيّم الدرجة فقط، بل يحدد نمط التفكير، قوة المجالات، والفجوات التي يجب علاجها في الدورة التالية.`
+    : `You completed a strategic ${total}-question cycle with ${correct}/${total} (${pct}%). This report does not only grade the score; it identifies thinking pattern, domain strength, and the next gaps to close.`;
+
+  return {
+    report_title: reportTitle,
+    route_label: routeLabel,
+    cycle_label: isArabic
+      ? `الدورة الاستراتيجية رقم ${Math.ceil(blockNumber / 3)}`
+      : `Strategic Cycle ${Math.ceil(blockNumber / 3)}`,
+    executive_summary: executiveSummary,
+    readiness_score: pct,
+    readiness_label: readinessLabel,
+    overall_score: {
+      correct,
+      total,
+      pct,
+    },
+    domain_proficiency: domainProficiency,
+    growth_velocity: {
+      value: isArabic ? 'خط أساس أولي' : 'Baseline cycle',
+      insight: isArabic
+        ? 'هذه أول دورة استراتيجية من 15 سؤالًا في هذا السياق؛ قياس سرعة النمو بدقة يحتاج إلى دورة استراتيجية ثانية للمقارنة.'
+        : 'This is the first 15-question strategic cycle in this context; true growth velocity needs a second strategic cycle for comparison.',
+    },
+    mindset_gap: mindsetGap,
+    tailoring_decisiveness: tailoringDecisiveness,
+    badges: [badge],
+    route_focus: routeFocus,
+    evidence,
+    next_actions:
+      wrongResults.length > 0
+        ? isArabic
+          ? [
+              'راجع الأسئلة الخاطئة وحدد الكلمة أو الجملة التي غيرت معنى السؤال.',
+              'أعد حل 5 أسئلة في أضعف مجال قبل الانتقال إلى مستوى أصعب.',
+              'اكتب سبب استبعاد كل خيار خاطئ في سؤالين على الأقل.',
+            ]
+          : [
+              'Review wrong questions and identify the phrase that changed the meaning.',
+              'Attempt 5 more questions in the weakest domain before moving harder.',
+              'Write why each wrong option is weaker for at least two questions.',
+            ]
+        : isArabic
+          ? [
+              'انتقل إلى مستوى صعوبة أعلى مع الحفاظ على نفس منهجية التحليل.',
+              'اختبر نفسك في مجال مختلف للتأكد من أن الأداء ليس مرتبطًا بمجال واحد فقط.',
+              'ابدأ دورة استراتيجية ثانية لقياس سرعة النمو مقارنة بهذا الخط الأساس.',
+            ]
+          : [
+              'Move to a higher difficulty while keeping the same analysis discipline.',
+              'Test a different domain to confirm the performance is not domain-specific.',
+              'Start a second strategic cycle to measure growth velocity against this baseline.',
+            ],
+  };
+}
+
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -231,6 +621,7 @@ export async function POST(req: NextRequest) {
       framework,
       activeFramework,
       language,
+      cycleResults,
     } = body as {
       sessionId: string;
       blockNumber: number;
@@ -238,6 +629,7 @@ export async function POST(req: NextRequest) {
       framework: string;
       activeFramework?: string;
       language?: string;
+      cycleResults?: QuestionResult[];
     };
 
     const isArabic = language === 'ar';
@@ -502,6 +894,19 @@ Route-specific expectations:
       });
     }
 
+    const strategicCycleResults =
+      Array.isArray(cycleResults) && cycleResults.length > 0 ? cycleResults : results;
+
+    const strategicReport =
+      blockNumber % 3 === 0
+        ? buildStrategicReport({
+            cycleResults: strategicCycleResults,
+            route: activeRoute,
+            isArabic,
+            blockNumber,
+          })
+        : null;
+
     const { data: videos } = await supabase
       .from('video_recommendations')
       .select('*')
@@ -514,6 +919,7 @@ Route-specific expectations:
       score,
       blocksCompleted,
       wrapUp,
+      strategicReport,
       videos: videos || [],
     });
   } catch (error) {
