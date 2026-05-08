@@ -734,6 +734,7 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
 
   const [wrapUp, setWrapUp] = useState<WrapUp | null>(null);
   const [strategicReport, setStrategicReport] = useState<StrategicReport | null>(null);
+  const [strategicReportId, setStrategicReportId] = useState<string | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
   const [blockScore, setBlockScore] = useState({ correct: 0, total: 0 });
 
@@ -764,6 +765,7 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
     setAnsweredIds([]);
     setWrapUp(null);
     setStrategicReport(null);
+    setStrategicReportId(null);
     setVideos([]);
     setBlockScore({ correct: 0, total: 0 });
     setGuruReport(null);
@@ -916,6 +918,7 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
 
       setWrapUp(data.wrapUp);
       setStrategicReport(data.strategicReport || null);
+      setStrategicReportId(data.strategicReportId || null);
       setVideos(data.videos || []);
       setBlockScore({ correct: data.correct, total: data.total });
       setBlockNumber((previous) => previous + 1);
@@ -1505,9 +1508,33 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
             </a>
           )}
 
+          {strategicReport && strategicReportId && (
+            <div className="grid md:grid-cols-2 gap-3">
+              <a
+                href={`/dashboard/strategic-report/${strategicReportId}`}
+                target="_blank"
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-center"
+              >
+                {isArabic ? '🏛️ فتح التقرير الاستراتيجي الكامل' : '🏛️ Open Full Strategic Report'}
+              </a>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const reportUrl = `${window.location.origin}/dashboard/strategic-report/${strategicReportId}`;
+                  navigator.clipboard?.writeText(reportUrl);
+                }}
+                className="w-full bg-white hover:bg-violet-50 text-violet-700 border border-violet-200 font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-center"
+              >
+                {isArabic ? '🔗 نسخ رابط التقرير' : '🔗 Copy Report Link'}
+              </button>
+            </div>
+          )}
+
           <button
             onClick={() => {
               setStrategicReport(null);
+              setStrategicReportId(null);
               loadBlock(sessionId!, answeredIds);
             }}
             className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 rounded-xl transition-all"
@@ -1526,6 +1553,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
               setCurrentQ(0);
               setWrapUp(null);
               setStrategicReport(null);
+              setStrategicReportId(null);
               setVideos([]);
               setBlockScore({ correct: 0, total: 0 });
               setGuruReport(null);

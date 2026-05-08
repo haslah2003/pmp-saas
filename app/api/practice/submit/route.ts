@@ -907,6 +907,36 @@ Route-specific expectations:
           })
         : null;
 
+    let strategicReportId: string | null = null;
+
+    if (strategicReport) {
+      const { data: savedStrategicReport, error: strategicReportError } = await supabase
+        .from('strategic_reports')
+        .insert({
+          user_id: user.id,
+          session_id: sessionId,
+          framework,
+          active_route: activeRoute,
+          cycle_number: Math.ceil(blockNumber / 3),
+          block_number: blockNumber,
+          report_title: strategicReport.report_title,
+          route_label: strategicReport.route_label,
+          readiness_score: strategicReport.readiness_score,
+          overall_correct: strategicReport.overall_score.correct,
+          overall_total: strategicReport.overall_score.total,
+          overall_pct: strategicReport.overall_score.pct,
+          report_payload: strategicReport,
+        })
+        .select('id')
+        .single();
+
+      if (strategicReportError) {
+        console.error('Strategic report save error:', strategicReportError);
+      } else {
+        strategicReportId = savedStrategicReport?.id || null;
+      }
+    }
+
     const { data: videos } = await supabase
       .from('video_recommendations')
       .select('*')
@@ -920,6 +950,7 @@ Route-specific expectations:
       blocksCompleted,
       wrapUp,
       strategicReport,
+      strategicReportId,
       videos: videos || [],
     });
   } catch (error) {
