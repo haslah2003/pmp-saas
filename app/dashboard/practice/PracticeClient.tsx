@@ -1400,7 +1400,32 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
 
   if (mode === 'wrapup' && wrapUp) {
     const pct = blockScore.total > 0 ? Math.round((blockScore.correct / blockScore.total) * 100) : 0;
-    const emoji = pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '💪';
+    const displayPct = strategicReport ? strategicReport.overall_score.pct : pct;
+    const displayCorrect = strategicReport ? strategicReport.overall_score.correct : blockScore.correct;
+    const displayTotal = strategicReport ? strategicReport.overall_score.total : blockScore.total;
+    const emoji = strategicReport ? '🏛️' : displayPct >= 80 ? '🎉' : displayPct >= 60 ? '👍' : '💪';
+    const headerTitle = strategicReport
+      ? isArabic
+        ? `${strategicReport.cycle_label} اكتملت`
+        : `${strategicReport.cycle_label} Complete`
+      : isArabic
+        ? `اكتمل البلوك ${blockNumber - 1}`
+        : `Block ${blockNumber - 1} Complete`;
+    const headerMessage = strategicReport ? strategicReport.readiness_label : wrapUp.score_message;
+    const headerIconClass = strategicReport
+      ? 'bg-violet-100 border border-violet-200 shadow-sm'
+      : displayPct >= 80
+        ? 'bg-green-100'
+        : displayPct >= 60
+          ? 'bg-yellow-100'
+          : 'bg-orange-100';
+    const headerScoreColor = strategicReport
+      ? '#322057'
+      : displayPct >= 80
+        ? '#16a34a'
+        : displayPct >= 60
+          ? '#d97706'
+          : '#ea580c';
 
     return (
       <div
@@ -1409,27 +1434,25 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
       >
         <div className="text-center mb-6">
           <div
-            className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 ${
-              pct >= 80 ? 'bg-green-100' : pct >= 60 ? 'bg-yellow-100' : 'bg-orange-100'
-            }`}
+            className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 ${headerIconClass}`}
           >
             {emoji}
           </div>
 
           <h2 className="text-2xl font-bold text-gray-900">
-            {isArabic ? `اكتمل البلوك ${blockNumber - 1}` : `Block ${blockNumber - 1} Complete`}
+            {headerTitle}
           </h2>
 
           <p
             className="text-4xl font-bold mt-1"
             style={{
-              color: pct >= 80 ? '#16a34a' : pct >= 60 ? '#d97706' : '#ea580c',
+              color: headerScoreColor,
             }}
           >
-            {blockScore.correct}/{blockScore.total}
+            {displayCorrect}/{displayTotal}
           </p>
 
-          <p className="text-gray-500 text-sm mt-1">{wrapUp.score_message}</p>
+          <p className="text-gray-500 text-sm mt-1">{headerMessage}</p>
 
           {overallScore && (
             <div className="mt-3 bg-violet-50 border border-violet-200 rounded-xl px-4 py-2 inline-block">
@@ -1544,8 +1567,8 @@ function AdvancedSmartReport({
 
   return (
     <div dir={rtlDir(isArabic)} className={`space-y-5 ${textAlign}`}>
-      <div className="rounded-3xl bg-slate-950 text-white p-6 overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-cyan-500/10 to-violet-500/20" />
+      <div className="rounded-3xl bg-gradient-to-br from-[#322057] via-violet-950 to-slate-950 text-white p-6 overflow-hidden relative shadow-xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-400/10 via-violet-400/15 to-cyan-400/10" />
         <div className="relative">
           <p className="text-xs uppercase tracking-[0.25em] text-cyan-200 mb-2">
             {report.cycle_label}
@@ -1579,7 +1602,7 @@ function AdvancedSmartReport({
 
             <div className="bg-white/10 border border-white/10 rounded-2xl p-4">
               <p className="text-xs text-slate-300">
-                {isArabic ? 'سرعة النمو' : 'Growth Velocity'}
+                {isArabic ? 'سرعة جاهزية PMP' : 'PMP Readiness Velocity'}
               </p>
               <p className="text-lg font-bold mt-2">{report.growth_velocity.value}</p>
               <p className="text-xs text-slate-300 mt-1">{report.growth_velocity.insight}</p>
@@ -1587,7 +1610,7 @@ function AdvancedSmartReport({
 
             <div className="bg-white/10 border border-white/10 rounded-2xl p-4">
               <p className="text-xs text-slate-300">
-                {isArabic ? 'الفجوة الذهنية' : 'Mindset Gap'}
+                {isArabic ? 'فجوة التفكير وفق PMP' : 'PMP Mindset Gap'}
               </p>
               <p className="text-lg font-bold mt-2">{report.mindset_gap.label}</p>
               <p className="text-xs text-cyan-100 mt-1">
@@ -1616,7 +1639,7 @@ function AdvancedSmartReport({
 
           <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5">
             <p className="text-xs font-bold text-cyan-700 uppercase tracking-wider">
-              {isArabic ? 'حسم تكييف النهج' : 'Tailoring Decisiveness'}
+              {isArabic ? 'الحكم السياقي في PMP' : 'PMP Contextual Judgment'}
             </p>
             <h4 className="text-lg font-bold text-gray-900 mt-1">
               {report.tailoring_decisiveness.score === null
@@ -1625,6 +1648,11 @@ function AdvancedSmartReport({
             </h4>
             <p className="text-xs text-cyan-700 mt-1">
               {report.tailoring_decisiveness.evidence_level}
+            </p>
+            <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+              {isArabic
+                ? 'يقيس مدى قدرتك على تكييف قرارك مع سياق السؤال، نمط التسليم، أصحاب المصلحة، المخاطر، الحوكمة، وقيمة المشروع.'
+                : 'Measures how well you adapt PMP decisions to delivery approach, stakeholder context, risk, governance, and value impact.'}
             </p>
             <p className="text-sm text-gray-700 mt-2">
               {report.tailoring_decisiveness.insight}
@@ -1670,7 +1698,7 @@ function AdvancedSmartReport({
 
           <div className="mt-5 bg-slate-50 border border-slate-200 rounded-xl p-3">
             <p className="text-xs font-bold text-slate-500 mb-1">
-              {isArabic ? 'تشخيص الفجوة الذهنية' : 'Mindset Diagnosis'}
+              {isArabic ? 'تشخيص فجوة التفكير وفق PMP' : 'PMP Mindset Diagnosis'}
             </p>
             <p className="text-sm text-slate-700 leading-relaxed">
               {report.mindset_gap.insight}
