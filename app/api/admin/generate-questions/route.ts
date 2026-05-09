@@ -190,6 +190,111 @@ const ASSESSMENT_METHODS = [
   },
 ]
 
+const DOMAIN_ANGLE_PLANS: Record<EcoDomain, Array<{ label: string; instruction: string }>> = {
+  people: [
+    {
+      label: 'accountable-leadership',
+      instruction: 'Test accountable leadership, ownership, transparency, and decision-making under uncertainty.',
+    },
+    {
+      label: 'team-collaboration-psychological-safety',
+      instruction: 'Test team collaboration, trust, psychological safety, and constructive participation.',
+    },
+    {
+      label: 'stakeholder-communication-engagement',
+      instruction: 'Test stakeholder communication, engagement, expectation management, and active listening.',
+    },
+    {
+      label: 'conflict-management-negotiation',
+      instruction: 'Test conflict management, negotiation, facilitation, and resolution of competing interests.',
+    },
+    {
+      label: 'coaching-mentoring-knowledge-transfer',
+      instruction: 'Test coaching, mentoring, knowledge transfer, learning culture, and capability building.',
+    },
+    {
+      label: 'empowerment-motivation-delegation',
+      instruction: 'Test empowerment, motivation, delegation, autonomy, and servant-leadership behaviors.',
+    },
+    {
+      label: 'virtual-cross-cultural-communication',
+      instruction: 'Test virtual, distributed, cross-cultural, or hybrid team communication and inclusion.',
+    },
+    {
+      label: 'ethics-transparency-professional-responsibility',
+      instruction: 'Test ethics, transparency, fairness, professional responsibility, and respectful conduct.',
+    },
+  ],
+  process: [
+    {
+      label: 'initiating-planning-judgment',
+      instruction: 'Test initiating and planning judgment, including objectives, assumptions, constraints, and stakeholder alignment.',
+    },
+    {
+      label: 'scope-schedule-finance-tradeoffs',
+      instruction: 'Test scope, schedule, finance, resource, and value trade-offs in realistic delivery decisions.',
+    },
+    {
+      label: 'risk-issue-response',
+      instruction: 'Test risk and issue response, escalation, ownership, contingency, and proactive decision-making.',
+    },
+    {
+      label: 'quality-delivery-performance',
+      instruction: 'Test quality, delivery performance, acceptance criteria, defects, and outcome-focused control.',
+    },
+    {
+      label: 'monitoring-controlling-decisions',
+      instruction: 'Test monitoring and controlling decisions using performance evidence, corrective action, and governance judgment.',
+    },
+    {
+      label: 'predictive-adaptive-hybrid-tailoring',
+      instruction: 'Test predictive, adaptive, and hybrid tailoring decisions based on project context and uncertainty.',
+    },
+    {
+      label: 'governance-change-control',
+      instruction: 'Test governance, decision rights, change control, compliance, escalation, and integrated control.',
+    },
+    {
+      label: 'closing-acceptance-lessons-value-handover',
+      instruction: 'Test closing, formal acceptance, lessons learned, benefits transition, and value handover.',
+    },
+  ],
+  'business-environment': [
+    {
+      label: 'compliance-regulatory-change',
+      instruction: 'Test compliance, regulatory change, legal constraints, policy shifts, and required project response.',
+    },
+    {
+      label: 'strategy-alignment-business-value',
+      instruction: 'Test strategy alignment, business value, portfolio fit, and prioritization of outcomes.',
+    },
+    {
+      label: 'benefits-realization',
+      instruction: 'Test benefits realization, benefits ownership, measurement, tracking, and value sustainability.',
+    },
+    {
+      label: 'organizational-change-adoption',
+      instruction: 'Test organizational change, adoption, readiness, resistance, and transition planning.',
+    },
+    {
+      label: 'sustainability-external-impact',
+      instruction: 'Test sustainability, environmental or social impact, and responsible long-term project decisions.',
+    },
+    {
+      label: 'market-technology-geopolitical-economic-change',
+      instruction: 'Test market, technology, geopolitical, or economic change and its impact on project direction.',
+    },
+    {
+      label: 'governance-operational-transition',
+      instruction: 'Test governance alignment, operational transition, business ownership, and post-project accountability.',
+    },
+    {
+      label: 'stakeholder-business-readiness',
+      instruction: 'Test stakeholder readiness, business readiness, operational acceptance, and organizational capability to absorb change.',
+    },
+  ],
+}
+
 function stableHash(value: string) {
   let hash = 0
 
@@ -218,6 +323,16 @@ function buildMandatoryTechniquePlan(count: number, seed: string) {
   }).join('\n')
 }
 
+function buildMandatoryDomainAnglePlan(domain: EcoDomain, count: number, seed: string) {
+  const angles = DOMAIN_ANGLE_PLANS[domain]
+  const offset = stableHash(`${seed}-${domain}-domain-angle`) % angles.length
+
+  return Array.from({ length: count }, (_, index) => {
+    const angle = angles[(index + offset) % angles.length]
+    return `- Question ${index + 1}: ${angle.label}. ${angle.instruction}`
+  }).join('\n')
+}
+
 function buildPrompt({
   framework,
   domain,
@@ -233,6 +348,7 @@ function buildPrompt({
 }) {
   const mandatoryAnswerKeyPlan = buildMandatoryAnswerKeyPlan(count, seed)
   const mandatoryTechniquePlan = buildMandatoryTechniquePlan(count, seed)
+  const mandatoryDomainAnglePlan = buildMandatoryDomainAnglePlan(domain, count, seed)
 
   return `Generate ${count} PMP exam questions.
 
@@ -253,7 +369,13 @@ Mandatory assessment-method plan:
 The generated JSON array must use these varied assessment methods by object order:
 ${mandatoryTechniquePlan}
 
+Mandatory domain-angle plan:
+The generated JSON array must use these balanced ${domainLabel(domain)} domain angles by object order:
+${mandatoryDomainAnglePlan}
+
 The first object in the JSON array is Question 1, the second object is Question 2, and so on.
+
+Use the mandatory domain-angle plan so each generated variant behaves like a balanced mini-exam within the selected domain, not a narrow topic drill.
 
 ${domainGuidance(framework, domain)}
 
