@@ -23,6 +23,7 @@ const DIFFICULTIES: QuestionDifficulty[] = ['entry', 'paced', 'difficult', 'chal
 type AnswerKey = 'a' | 'b' | 'c' | 'd'
 
 const ANSWER_KEYS: AnswerKey[] = ['a', 'b', 'c', 'd']
+const MAX_VARIANT_ATTEMPTS = 2
 
 function normalizeFramework(value: unknown): ExamFramework {
   return FRAMEWORKS.includes(value as ExamFramework) ? (value as ExamFramework) : 'pmbok7'
@@ -339,16 +340,21 @@ function buildPrompt({
   difficulty,
   count,
   seed,
+  retryReason,
 }: {
   framework: ExamFramework
   domain: EcoDomain
   difficulty: QuestionDifficulty
   count: number
   seed: string
+  retryReason?: string
 }) {
   const mandatoryAnswerKeyPlan = buildMandatoryAnswerKeyPlan(count, seed)
   const mandatoryTechniquePlan = buildMandatoryTechniquePlan(count, seed)
   const mandatoryDomainAnglePlan = buildMandatoryDomainAnglePlan(domain, count, seed)
+  const retryInstruction = retryReason
+    ? `\nRetry correction requirement:\nThe previous generation attempt failed quality audit because: ${retryReason}\nRegenerate the full JSON array from scratch. Do not reuse the failed questions. Strictly obey the mandatory answer-key plan, assessment-method plan, and domain-angle plan.\n`
+    : ''
 
   return `Generate ${count} PMP exam questions.
 
@@ -360,7 +366,7 @@ Question target:
 - ECO domain label: ${domainLabel(domain)}
 - Difficulty DB value: ${difficulty}
 - Variation seed: ${seed}
-
+${retryInstruction}
 Mandatory answer-key plan:
 The generated JSON array must follow this exact answer-key distribution by object order:
 ${mandatoryAnswerKeyPlan}
@@ -705,125 +711,194 @@ export async function POST(req: NextRequest) {
     }
 
     for (let v = 1; v <= variants; v++) {
-      const variantSeed = `${framework}-${domain}-${difficulty}-variant-${v}-${Date.now()}`
-      const prompt = buildPrompt({ framework, domain, difficulty, count, seed: variantSeed })
+      let variantSucceeded = false
+      let retryReason: string | undefined
 
-      console.log(`[QUESTION GEN] ${framework}/${domain}/${difficulty} variant ${v}: Calling Anthropic API`)
-
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 10000,
-          system: SYSTEM_PROMPT,
-          messages: [{ role: 'user', content: prompt }],
-        }),
-      })
-
-      if (!response.ok) {
-        const errorBody = await response.text()
-        console.error(`[QUESTION GEN] Variant ${v}: API HTTP error ${response.status}:`, errorBody)
-        errors.push(`Variant ${v}: API error ${response.status}`)
-        continue
-      }
-
-      const data = await response.json()
-
-      const raw =
-        data.content
-          ?.filter((block: { type: string }) => block.type === 'text')
-          ?.map((block: { text: string }) => block.text)
-          ?.join('') || ''
-
-      if (raw.length === 0) {
-        errors.push(`Variant ${v}: Empty response from API`)
-        continue
-      }
-
-      try {
-        let cleaned = raw
-          .replace(/```json\n?/gi, '')
-          .replace(/```\n?/g, '')
-          .trim()
-
-        const startIdx = cleaned.indexOf('[')
-        const endIdx = cleaned.lastIndexOf(']')
-
-        if (startIdx === -1 || endIdx === -1) {
-          errors.push(`Variant ${v}: No JSON array found in response`)
-          continue
-        }
-
-        cleaned = cleaned.slice(startIdx, endIdx + 1)
-        const parsed = JSON.parse(cleaned)
-
-        if (!Array.isArray(parsed)) {
-          errors.push(`Variant ${v}: Response was not an array`)
-          continue
-        }
-
-        const cleanedQuestions = cleanGeneratedQuestions({
-          questions: parsed,
+      for (let attempt = 1; attempt <= MAX_VARIANT_ATTEMPTS; attempt += 1) {
+        const variantSeed = `${framework}-${domain}-${difficulty}-variant-${v}-attempt-${attempt}-${Date.now()}`
+        const prompt = buildPrompt({
           framework,
           domain,
           difficulty,
+          count,
+          seed: variantSeed,
+          retryReason,
         })
 
-        if (cleanedQuestions.length === 0) {
-          errors.push(`Variant ${v}: No valid questions after validation`)
-          continue
-        }
+        console.log(
+          `[QUESTION GEN] ${framework}/${domain}/${difficulty} variant ${v}, attempt ${attempt}: Calling Anthropic API`
+        )
 
-        const duplicateAudit = removeDuplicateQuestions({
-          questions: cleanedQuestions,
-          knownNormalizedQuestions,
-          knownQuestionTexts,
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 10000,
+            system: SYSTEM_PROMPT,
+            messages: [{ role: 'user', content: prompt }],
+          }),
         })
 
-        skippedExactDuplicates += duplicateAudit.skippedExactDuplicates
-        skippedNearDuplicates += duplicateAudit.skippedNearDuplicates
-        skippedWeakOptions += duplicateAudit.skippedWeakOptions
-
-        const toInsert = duplicateAudit.questions
-
-        if (toInsert.length === 0) {
-          errors.push(`Variant ${v}: Duplicate/quality filters removed all generated questions`)
+        if (!response.ok) {
+          const errorBody = await response.text()
+          console.error(
+            `[QUESTION GEN] Variant ${v}, attempt ${attempt}: API HTTP error ${response.status}:`,
+            errorBody
+          )
+          retryReason = `API error ${response.status}`
+          if (attempt === MAX_VARIANT_ATTEMPTS) {
+            errors.push(`Variant ${v}: API error ${response.status}`)
+          }
           continue
         }
 
-        const qualityAudit = auditGeneratedQuestionBatch(toInsert)
+        const data = await response.json()
 
-        warnings.push(...qualityAudit.warnings.map((warning) => `Variant ${v}: ${warning}`))
+        const raw =
+          data.content
+            ?.filter((block: { type: string }) => block.type === 'text')
+            ?.map((block: { text: string }) => block.text)
+            ?.join('') || ''
 
-        if (qualityAudit.errors.length > 0) {
-          errors.push(...qualityAudit.errors.map((error) => `Variant ${v}: ${error}`))
+        if (raw.length === 0) {
+          retryReason = 'Empty response from API'
+          if (attempt === MAX_VARIANT_ATTEMPTS) {
+            errors.push(`Variant ${v}: Empty response from API`)
+          }
           continue
         }
 
-        for (const key of ANSWER_KEYS) {
-          totalAnswerDistribution[key] += qualityAudit.answerDistribution[key]
-        }
+        try {
+          let cleaned = raw
+            .replace(/```json\n?/gi, '')
+            .replace(/```\n?/g, '')
+            .trim()
 
-        const { data: inserted, error: insertError } = await adminSupabase
-          .from('questions')
-          .insert(toInsert)
-          .select('id, framework, domain, difficulty')
+          const startIdx = cleaned.indexOf('[')
+          const endIdx = cleaned.lastIndexOf(']')
 
-        if (insertError) {
-          console.error(`[QUESTION GEN] Variant ${v}: DB insert error:`, insertError.message)
-          errors.push(`Variant ${v}: DB error — ${insertError.message}`)
-        } else {
-          console.log(`[QUESTION GEN] Variant ${v}: Inserted ${inserted?.length || 0} questions`)
+          if (startIdx === -1 || endIdx === -1) {
+            retryReason = 'No JSON array found in response'
+            if (attempt === MAX_VARIANT_ATTEMPTS) {
+              errors.push(`Variant ${v}: No JSON array found in response`)
+            }
+            continue
+          }
+
+          cleaned = cleaned.slice(startIdx, endIdx + 1)
+          const parsed = JSON.parse(cleaned)
+
+          if (!Array.isArray(parsed)) {
+            retryReason = 'Response was not an array'
+            if (attempt === MAX_VARIANT_ATTEMPTS) {
+              errors.push(`Variant ${v}: Response was not an array`)
+            }
+            continue
+          }
+
+          const cleanedQuestions = cleanGeneratedQuestions({
+            questions: parsed,
+            framework,
+            domain,
+            difficulty,
+          })
+
+          if (cleanedQuestions.length === 0) {
+            retryReason = 'No valid questions after validation'
+            if (attempt === MAX_VARIANT_ATTEMPTS) {
+              errors.push(`Variant ${v}: No valid questions after validation`)
+            }
+            continue
+          }
+
+          const attemptKnownNormalizedQuestions = new Set(knownNormalizedQuestions)
+          const attemptKnownQuestionTexts = [...knownQuestionTexts]
+
+          const duplicateAudit = removeDuplicateQuestions({
+            questions: cleanedQuestions,
+            knownNormalizedQuestions: attemptKnownNormalizedQuestions,
+            knownQuestionTexts: attemptKnownQuestionTexts,
+          })
+
+          const toInsert = duplicateAudit.questions
+
+          if (toInsert.length === 0) {
+            retryReason = 'Duplicate/quality filters removed all generated questions'
+            if (attempt === MAX_VARIANT_ATTEMPTS) {
+              skippedExactDuplicates += duplicateAudit.skippedExactDuplicates
+              skippedNearDuplicates += duplicateAudit.skippedNearDuplicates
+              skippedWeakOptions += duplicateAudit.skippedWeakOptions
+              errors.push(`Variant ${v}: Duplicate/quality filters removed all generated questions`)
+            }
+            continue
+          }
+
+          const qualityAudit = auditGeneratedQuestionBatch(toInsert)
+
+          if (qualityAudit.errors.length > 0) {
+            retryReason = qualityAudit.errors.join('; ')
+            if (attempt === MAX_VARIANT_ATTEMPTS) {
+              skippedExactDuplicates += duplicateAudit.skippedExactDuplicates
+              skippedNearDuplicates += duplicateAudit.skippedNearDuplicates
+              skippedWeakOptions += duplicateAudit.skippedWeakOptions
+              warnings.push(...qualityAudit.warnings.map((warning) => `Variant ${v}: ${warning}`))
+              errors.push(...qualityAudit.errors.map((error) => `Variant ${v}: ${error}`))
+            }
+            continue
+          }
+
+          skippedExactDuplicates += duplicateAudit.skippedExactDuplicates
+          skippedNearDuplicates += duplicateAudit.skippedNearDuplicates
+          skippedWeakOptions += duplicateAudit.skippedWeakOptions
+          warnings.push(...qualityAudit.warnings.map((warning) => `Variant ${v}: ${warning}`))
+
+          for (const key of ANSWER_KEYS) {
+            totalAnswerDistribution[key] += qualityAudit.answerDistribution[key]
+          }
+
+          const { data: inserted, error: insertError } = await adminSupabase
+            .from('questions')
+            .insert(toInsert)
+            .select('id, framework, domain, difficulty')
+
+          if (insertError) {
+            console.error(`[QUESTION GEN] Variant ${v}: DB insert error:`, insertError.message)
+            retryReason = `DB error — ${insertError.message}`
+            if (attempt === MAX_VARIANT_ATTEMPTS) {
+              errors.push(`Variant ${v}: DB error — ${insertError.message}`)
+            }
+            continue
+          }
+
+          for (const question of toInsert) {
+            const normalized = normalizeQuestionForComparison(question.question_text)
+            if (!normalized) continue
+            knownNormalizedQuestions.add(normalized)
+            knownQuestionTexts.push(normalized)
+          }
+
+          console.log(
+            `[QUESTION GEN] Variant ${v}, attempt ${attempt}: Inserted ${inserted?.length || 0} questions`
+          )
           allGenerated.push(...(inserted || []))
+          variantSucceeded = true
+          break
+        } catch (parseErr) {
+          console.error(`[QUESTION GEN] Variant ${v}, attempt ${attempt}: JSON parse error:`, parseErr)
+          retryReason = 'JSON parse failed'
+          if (attempt === MAX_VARIANT_ATTEMPTS) {
+            errors.push(`Variant ${v}: JSON parse failed`)
+          }
         }
-      } catch (parseErr) {
-        console.error(`[QUESTION GEN] Variant ${v}: JSON parse error:`, parseErr)
-        errors.push(`Variant ${v}: JSON parse failed`)
+      }
+
+      if (!variantSucceeded) {
+        console.warn(`[QUESTION GEN] Variant ${v}: Failed after ${MAX_VARIANT_ATTEMPTS} attempts`)
       }
     }
 
