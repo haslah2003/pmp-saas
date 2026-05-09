@@ -227,7 +227,7 @@ export default function AdminQuestionsPage() {
         await loadStats()
       }
     } catch {
-      setError('Network error — please try again')
+      setError('Generation request timed out or the connection was interrupted. Try 1 variant at a time or reduce the batch size, then retry.')
     } finally {
       setGenerating(false)
     }

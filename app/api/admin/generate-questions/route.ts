@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+export const maxDuration = 60
+
 type ExamFramework = 'pmbok7' | 'pmbok8' | 'bridge'
 type EcoDomain = 'people' | 'process' | 'business-environment'
 type QuestionDifficulty = 'entry' | 'paced' | 'difficult' | 'challenging'
