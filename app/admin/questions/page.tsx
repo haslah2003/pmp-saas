@@ -123,6 +123,16 @@ interface GenerateResult {
   domain?: string
   difficulty?: string
   generated: number
+  skipped_exact_duplicates?: number
+  skipped_near_duplicates?: number
+  skipped_weak_options?: number
+  answer_distribution?: {
+    a?: number
+    b?: number
+    c?: number
+    d?: number
+  }
+  warnings?: string[]
   errors?: string[]
 }
 
@@ -426,13 +436,67 @@ export default function AdminQuestionsPage() {
           )}
 
           {result && (
-            <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700">
+            <div
+              className={`mb-4 border rounded-lg p-3 text-sm ${
+                result.errors && result.errors.length > 0
+                  ? 'bg-orange-50 border-orange-200 text-orange-800'
+                  : 'bg-green-50 border-green-200 text-green-700'
+              }`}
+            >
               ✅ Generated and saved <strong>{result.generated} questions</strong> to database.
               <p className="text-xs mt-1">
                 Route: {result.framework} · Domain: {result.domain} · Difficulty: {result.difficulty}
               </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3 text-xs">
+                <div className="bg-white/70 border border-white rounded-lg p-2">
+                  <p className="font-semibold text-gray-700">Exact duplicates skipped</p>
+                  <p className="text-lg font-bold text-gray-900">{result.skipped_exact_duplicates ?? 0}</p>
+                </div>
+
+                <div className="bg-white/70 border border-white rounded-lg p-2">
+                  <p className="font-semibold text-gray-700">Near duplicates skipped</p>
+                  <p className="text-lg font-bold text-gray-900">{result.skipped_near_duplicates ?? 0}</p>
+                </div>
+
+                <div className="bg-white/70 border border-white rounded-lg p-2">
+                  <p className="font-semibold text-gray-700">Weak options skipped</p>
+                  <p className="text-lg font-bold text-gray-900">{result.skipped_weak_options ?? 0}</p>
+                </div>
+              </div>
+
+              {result.answer_distribution && (
+                <div className="mt-3 bg-white/70 border border-white rounded-lg p-2 text-xs">
+                  <p className="font-semibold text-gray-700 mb-1">Correct-answer distribution</p>
+                  <p className="text-gray-900">
+                    A: <strong>{result.answer_distribution.a ?? 0}</strong> ·{' '}
+                    B: <strong>{result.answer_distribution.b ?? 0}</strong> ·{' '}
+                    C: <strong>{result.answer_distribution.c ?? 0}</strong> ·{' '}
+                    D: <strong>{result.answer_distribution.d ?? 0}</strong>
+                  </p>
+                </div>
+              )}
+
+              {result.warnings && result.warnings.length > 0 && (
+                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-2 text-xs text-amber-800">
+                  <p className="font-semibold mb-1">Warnings</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {result.warnings.map((warning, index) => (
+                      <li key={index}>{warning}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {result.errors && result.errors.length > 0 && (
-                <p className="text-orange-600 mt-1">⚠️ {result.errors.join(', ')}</p>
+                <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-2 text-xs text-red-700">
+                  <p className="font-semibold mb-1">Errors</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {result.errors.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
           )}
