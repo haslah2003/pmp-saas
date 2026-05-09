@@ -188,10 +188,14 @@ Each question must be a JSON object with these exact keys:
 Quality requirements:
 - Use realistic scenario-based PMP exam style.
 - Entry questions should still be professional and situational, not trivial recall.
+- Use varied assessment techniques across the batch, including a mix of best next action, first action, root-cause diagnosis, prevention, value trade-off, governance judgment, stakeholder response, delivery approach judgment, and ethical/professional responsibility.
+- Do not make every question use the same stem such as "What should the project manager do first?"
 - Only one option may be clearly best.
-- Distractors must be plausible but weaker.
-- Explanations must explicitly explain why the correct option is best and why the other options are weak.
+- Distractors must be plausible but weaker; avoid cartoonishly wrong distractors such as simply ignoring the issue, firing people, or escalating everything unless the scenario genuinely supports that as a weak option.
+- Explanations must explicitly explain why the correct option is best and why the other three options are weak.
 - correct_answer must be lowercase only: "a", "b", "c", or "d".
+- Distribute correct_answer values as evenly as mathematically possible across a, b, c, and d for this batch.
+- Do not cluster the correct answer in one letter.
 - The domain field must be exactly "${domain}".
 - The difficulty field must be exactly "${difficulty}".
 - Avoid duplicated scenarios.
@@ -245,6 +249,184 @@ function cleanGeneratedQuestions({
     )
 }
 
+type AnswerKey = 'a' | 'b' | 'c' | 'd'
+
+const ANSWER_KEYS: AnswerKey[] = ['a', 'b', 'c', 'd']
+
+type CleanQuestion = ReturnType<typeof cleanGeneratedQuestions>[number]
+
+function normalizeQuestionForComparison(value: string) {
+  return value
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\b(the|a|an|and|or|but|to|of|in|on|for|with|by|as|is|are|be|been|being)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function tokenSet(value: string) {
+  return new Set(normalizeQuestionForComparison(value).split(' ').filter(Boolean))
+}
+
+function tokenSimilarity(a: string, b: string) {
+  const aTokens = tokenSet(a)
+  const bTokens = tokenSet(b)
+
+  if (aTokens.size === 0 || bTokens.size === 0) return 0
+
+  let intersection = 0
+  for (const token of aTokens) {
+    if (bTokens.has(token)) intersection += 1
+  }
+
+  const union = new Set([...aTokens, ...bTokens]).size
+  return union === 0 ? 0 : intersection / union
+}
+
+function isNearDuplicateQuestion(a: string, b: string) {
+  const normalizedA = normalizeQuestionForComparison(a)
+  const normalizedB = normalizeQuestionForComparison(b)
+
+  if (!normalizedA || !normalizedB) return false
+  if (normalizedA === normalizedB) return true
+
+  const shorterLength = Math.min(normalizedA.length, normalizedB.length)
+  if (shorterLength < 90) return false
+
+  return tokenSimilarity(normalizedA, normalizedB) >= 0.82
+}
+
+function hasUniqueOptions(q: CleanQuestion) {
+  const options = [q.option_a, q.option_b, q.option_c, q.option_d].map(normalizeQuestionForComparison)
+  return new Set(options).size === 4
+}
+
+function removeDuplicateQuestions({
+  questions,
+  knownNormalizedQuestions,
+  knownQuestionTexts,
+}: {
+  questions: CleanQuestion[]
+  knownNormalizedQuestions: Set<string>
+  knownQuestionTexts: string[]
+}) {
+  const accepted: CleanQuestion[] = []
+  let skippedExactDuplicates = 0
+  let skippedNearDuplicates = 0
+  let skippedWeakOptions = 0
+
+  for (const question of questions) {
+    const normalized = normalizeQuestionForComparison(question.question_text)
+
+    if (!normalized) continue
+
+    if (!hasUniqueOptions(question)) {
+      skippedWeakOptions += 1
+      continue
+    }
+
+    if (knownNormalizedQuestions.has(normalized)) {
+      skippedExactDuplicates += 1
+      continue
+    }
+
+    const isNearDuplicate = knownQuestionTexts.some((existing) =>
+      isNearDuplicateQuestion(normalized, existing)
+    )
+
+    if (isNearDuplicate) {
+      skippedNearDuplicates += 1
+      continue
+    }
+
+    accepted.push(question)
+    knownNormalizedQuestions.add(normalized)
+    knownQuestionTexts.push(normalized)
+  }
+
+  return {
+    questions: accepted,
+    skippedExactDuplicates,
+    skippedNearDuplicates,
+    skippedWeakOptions,
+  }
+}
+
+function answerDistribution(questions: CleanQuestion[]) {
+  const distribution: Record<AnswerKey, number> = { a: 0, b: 0, c: 0, d: 0 }
+
+  for (const question of questions) {
+    const answer = question.correct_answer as AnswerKey
+    if (ANSWER_KEYS.includes(answer)) {
+      distribution[answer] += 1
+    }
+  }
+
+  return distribution
+}
+
+function classifyQuestionTechnique(questionText: string) {
+  const q = questionText.toLowerCase()
+
+  if (q.includes('avoid') || q.includes('should not')) return 'avoidance-judgment'
+  if (q.includes('root cause') || q.includes('most likely cause')) return 'root-cause-diagnosis'
+  if (q.includes('prevent recurrence') || q.includes('prevent this') || q.includes('prevent a similar')) return 'prevention'
+  if (q.includes('do first') || q.includes('first action') || q.includes('immediate priority')) return 'first-action'
+  if (q.includes('best next') || q.includes('next step')) return 'next-step'
+  if (q.includes('value') || q.includes('benefit')) return 'value-tradeoff'
+  if (q.includes('governance') || q.includes('compliance')) return 'governance-judgment'
+  if (q.includes('how should')) return 'response-strategy'
+  if (q.includes('what should')) return 'best-action'
+
+  return 'scenario-judgment'
+}
+
+function techniqueDistribution(questions: CleanQuestion[]) {
+  return questions.reduce<Record<string, number>>((acc, question) => {
+    const technique = classifyQuestionTechnique(question.question_text)
+    acc[technique] = (acc[technique] || 0) + 1
+    return acc
+  }, {})
+}
+
+function auditGeneratedQuestionBatch(questions: CleanQuestion[]) {
+  const errors: string[] = []
+  const warnings: string[] = []
+
+  const answers = answerDistribution(questions)
+  const answerCounts = ANSWER_KEYS.map((key) => answers[key])
+  const maxAnswerCount = Math.max(...answerCounts)
+  const minAnswerCount = Math.min(...answerCounts)
+
+  if (questions.length >= 4 && maxAnswerCount - minAnswerCount > 1) {
+    errors.push(
+      `Answer key distribution is biased: a=${answers.a}, b=${answers.b}, c=${answers.c}, d=${answers.d}`
+    )
+  }
+
+  const techniques = techniqueDistribution(questions)
+  const dominantTechnique = Object.entries(techniques).sort((a, b) => b[1] - a[1])[0]
+
+  if (questions.length >= 8 && dominantTechnique && dominantTechnique[1] / questions.length > 0.6) {
+    errors.push(
+      `Question technique mix is too repetitive: ${dominantTechnique[0]} appears ${dominantTechnique[1]} of ${questions.length} times`
+    )
+  } else if (questions.length >= 8 && dominantTechnique && dominantTechnique[1] / questions.length > 0.45) {
+    warnings.push(
+      `Question technique mix may be repetitive: ${dominantTechnique[0]} appears ${dominantTechnique[1]} of ${questions.length} times`
+    )
+  }
+
+  return {
+    errors,
+    warnings,
+    answerDistribution: answers,
+    techniqueDistribution: techniques,
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient()
@@ -285,6 +467,35 @@ export async function POST(req: NextRequest) {
     const adminSupabase = createAdminClient()
     const allGenerated: unknown[] = []
     const errors: string[] = []
+    const warnings: string[] = []
+    let skippedExactDuplicates = 0
+    let skippedNearDuplicates = 0
+    let skippedWeakOptions = 0
+    const totalAnswerDistribution: Record<AnswerKey, number> = { a: 0, b: 0, c: 0, d: 0 }
+
+    const { data: existingQuestions, error: existingQuestionsError } = await adminSupabase
+      .from('questions')
+      .select('id, framework, domain, difficulty, question_text')
+      .eq('is_active', true)
+
+    if (existingQuestionsError) {
+      console.error('[QUESTION GEN] Could not load existing questions:', existingQuestionsError.message)
+      return NextResponse.json(
+        { error: 'Could not audit existing question bank before generation' },
+        { status: 500 }
+      )
+    }
+
+    const knownNormalizedQuestions = new Set<string>()
+    const knownQuestionTexts: string[] = []
+
+    for (const existing of existingQuestions || []) {
+      const normalized = normalizeQuestionForComparison(String(existing.question_text || ''))
+      if (!normalized) continue
+
+      knownNormalizedQuestions.add(normalized)
+      knownQuestionTexts.push(normalized)
+    }
 
     for (let v = 1; v <= variants; v++) {
       const variantSeed = `${framework}-${domain}-${difficulty}-variant-${v}-${Date.now()}`
@@ -349,16 +560,46 @@ export async function POST(req: NextRequest) {
           continue
         }
 
-        const toInsert = cleanGeneratedQuestions({
+        const cleanedQuestions = cleanGeneratedQuestions({
           questions: parsed,
           framework,
           domain,
           difficulty,
         })
 
-        if (toInsert.length === 0) {
+        if (cleanedQuestions.length === 0) {
           errors.push(`Variant ${v}: No valid questions after validation`)
           continue
+        }
+
+        const duplicateAudit = removeDuplicateQuestions({
+          questions: cleanedQuestions,
+          knownNormalizedQuestions,
+          knownQuestionTexts,
+        })
+
+        skippedExactDuplicates += duplicateAudit.skippedExactDuplicates
+        skippedNearDuplicates += duplicateAudit.skippedNearDuplicates
+        skippedWeakOptions += duplicateAudit.skippedWeakOptions
+
+        const toInsert = duplicateAudit.questions
+
+        if (toInsert.length === 0) {
+          errors.push(`Variant ${v}: Duplicate/quality filters removed all generated questions`)
+          continue
+        }
+
+        const qualityAudit = auditGeneratedQuestionBatch(toInsert)
+
+        warnings.push(...qualityAudit.warnings.map((warning) => `Variant ${v}: ${warning}`))
+
+        if (qualityAudit.errors.length > 0) {
+          errors.push(...qualityAudit.errors.map((error) => `Variant ${v}: ${error}`))
+          continue
+        }
+
+        for (const key of ANSWER_KEYS) {
+          totalAnswerDistribution[key] += qualityAudit.answerDistribution[key]
         }
 
         const { data: inserted, error: insertError } = await adminSupabase
@@ -385,6 +626,11 @@ export async function POST(req: NextRequest) {
       domain,
       difficulty,
       generated: allGenerated.length,
+      skipped_exact_duplicates: skippedExactDuplicates,
+      skipped_near_duplicates: skippedNearDuplicates,
+      skipped_weak_options: skippedWeakOptions,
+      answer_distribution: totalAnswerDistribution,
+      warnings: warnings.length > 0 ? warnings : undefined,
       errors: errors.length > 0 ? errors : undefined,
     })
   } catch (err) {
