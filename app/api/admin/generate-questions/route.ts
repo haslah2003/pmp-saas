@@ -663,7 +663,7 @@ export async function POST(req: NextRequest) {
     const domain = normalizeDomain(body.domain)
     const difficulty = normalizeDifficulty(body.difficulty)
     const count = clampInteger(body.count, 5, 1, 20)
-    const variants = clampInteger(body.variants, 1, 1, 3)
+    const variants = clampInteger(body.variants, 1, 1, 6)
 
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {

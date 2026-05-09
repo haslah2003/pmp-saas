@@ -405,7 +405,7 @@ export default function AdminQuestionsPage() {
                 onChange={(e) => setVariants(Number(e.target.value))}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
               >
-                {[1, 2, 3].map((n) => (
+                {[1, 2, 3, 4, 5, 6].map((n) => (
                   <option key={n} value={n}>
                     {n} variant{n > 1 ? 's' : ''}
                   </option>
