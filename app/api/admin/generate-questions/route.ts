@@ -20,6 +20,10 @@ const FRAMEWORKS: ExamFramework[] = ['pmbok7', 'pmbok8', 'bridge']
 const DOMAINS: EcoDomain[] = ['people', 'process', 'business-environment']
 const DIFFICULTIES: QuestionDifficulty[] = ['entry', 'paced', 'difficult', 'challenging']
 
+type AnswerKey = 'a' | 'b' | 'c' | 'd'
+
+const ANSWER_KEYS: AnswerKey[] = ['a', 'b', 'c', 'd']
+
 function normalizeFramework(value: unknown): ExamFramework {
   return FRAMEWORKS.includes(value as ExamFramework) ? (value as ExamFramework) : 'pmbok7'
 }
@@ -142,6 +146,78 @@ function domainGuidance(framework: ExamFramework, domain: EcoDomain) {
   return `For Business Environment, align questions with compliance, benefits, business value, organizational change, governance, external environment, and strategic alignment.`
 }
 
+
+const ASSESSMENT_METHODS = [
+  {
+    label: 'first-action',
+    instruction: 'Use a first-action stem such as: "What should the project manager do first?"',
+  },
+  {
+    label: 'next-step',
+    instruction: 'Use a next-step stem such as: "What is the best next step?"',
+  },
+  {
+    label: 'root-cause-diagnosis',
+    instruction: 'Use a diagnosis stem such as: "What is the most likely root cause?"',
+  },
+  {
+    label: 'prevention',
+    instruction: 'Use a prevention stem such as: "What should be done to prevent recurrence?"',
+  },
+  {
+    label: 'value-tradeoff',
+    instruction: 'Use a value-focused stem such as: "Which action best supports value delivery?"',
+  },
+  {
+    label: 'governance-judgment',
+    instruction: 'Use a governance/compliance stem involving decision rights, oversight, escalation, or compliance judgment.',
+  },
+  {
+    label: 'response-strategy',
+    instruction: 'Use a response-strategy stem such as: "How should the project manager respond?"',
+  },
+  {
+    label: 'avoidance-judgment',
+    instruction: 'Use an avoidance stem such as: "What should the project manager avoid?"',
+  },
+  {
+    label: 'delivery-approach-judgment',
+    instruction: 'Use a delivery approach stem involving predictive, adaptive, or hybrid context judgment.',
+  },
+  {
+    label: 'ethical-professional-judgment',
+    instruction: 'Use an ethics/professional responsibility stem involving transparency, accountability, fairness, or integrity.',
+  },
+]
+
+function stableHash(value: string) {
+  let hash = 0
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = ((hash << 5) - hash + value.charCodeAt(index)) | 0
+  }
+
+  return Math.abs(hash)
+}
+
+function buildMandatoryAnswerKeyPlan(count: number, seed: string) {
+  const offset = stableHash(seed) % ANSWER_KEYS.length
+
+  return Array.from({ length: count }, (_, index) => {
+    const answer = ANSWER_KEYS[(index + offset) % ANSWER_KEYS.length]
+    return `- Question ${index + 1}: correct_answer must be "${answer}"`
+  }).join('\n')
+}
+
+function buildMandatoryTechniquePlan(count: number, seed: string) {
+  const offset = stableHash(`${seed}-technique`) % ASSESSMENT_METHODS.length
+
+  return Array.from({ length: count }, (_, index) => {
+    const method = ASSESSMENT_METHODS[(index + offset) % ASSESSMENT_METHODS.length]
+    return `- Question ${index + 1}: ${method.label}. ${method.instruction}`
+  }).join('\n')
+}
+
 function buildPrompt({
   framework,
   domain,
@@ -155,6 +231,9 @@ function buildPrompt({
   count: number
   seed: string
 }) {
+  const mandatoryAnswerKeyPlan = buildMandatoryAnswerKeyPlan(count, seed)
+  const mandatoryTechniquePlan = buildMandatoryTechniquePlan(count, seed)
+
   return `Generate ${count} PMP exam questions.
 
 ${frameworkContext(framework)}
@@ -165,6 +244,16 @@ Question target:
 - ECO domain label: ${domainLabel(domain)}
 - Difficulty DB value: ${difficulty}
 - Variation seed: ${seed}
+
+Mandatory answer-key plan:
+The generated JSON array must follow this exact answer-key distribution by object order:
+${mandatoryAnswerKeyPlan}
+
+Mandatory assessment-method plan:
+The generated JSON array must use these varied assessment methods by object order:
+${mandatoryTechniquePlan}
+
+The first object in the JSON array is Question 1, the second object is Question 2, and so on.
 
 ${domainGuidance(framework, domain)}
 
@@ -248,10 +337,6 @@ function cleanGeneratedQuestions({
         q.explanation
     )
 }
-
-type AnswerKey = 'a' | 'b' | 'c' | 'd'
-
-const ANSWER_KEYS: AnswerKey[] = ['a', 'b', 'c', 'd']
 
 type CleanQuestion = ReturnType<typeof cleanGeneratedQuestions>[number]
 
