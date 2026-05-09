@@ -1483,7 +1483,71 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
         )}
 
         {strategicReport ? (
-          <AdvancedSmartReport report={strategicReport} isArabic={isArabic} />
+          <div className="bg-white border border-violet-100 rounded-3xl shadow-sm p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+              <div className={isArabic ? 'text-right' : 'text-left'}>
+                <p className="text-xs font-bold uppercase tracking-[0.25em] text-violet-500 mb-2">
+                  {isArabic ? 'تقرير استراتيجي محفوظ' : 'Strategic report saved'}
+                </p>
+                <h3 className="text-2xl font-bold text-[#322057] mb-2">
+                  {isArabic
+                    ? 'تم إنشاء التقرير الاستراتيجي الكامل وحفظه بنجاح.'
+                    : 'Your full strategic report has been generated and saved.'}
+                </h3>
+                <p className="text-sm text-gray-600 leading-6 max-w-3xl">
+                  {isArabic
+                    ? 'افتح التقرير الكامل للاطلاع على تحليل الجاهزية، قوة المجالات، الفجوات، وخطة التحسين. هذه الشاشة مختصرة حتى تبقى رحلة التدريب واضحة وغير مكررة.'
+                    : 'Open the full report to review readiness analysis, domain strengths, gaps, and improvement guidance. This screen stays compact so the practice flow remains clear and non-duplicative.'}
+                </p>
+              </div>
+
+              <div className="bg-violet-50 border border-violet-100 rounded-2xl px-5 py-4 text-center min-w-[180px]">
+                <p className="text-xs font-semibold text-violet-500 mb-1">
+                  {isArabic ? 'درجة جاهزية PMP' : 'PMP readiness score'}
+                </p>
+                <p className="text-3xl font-bold text-[#322057]">
+                  {displayPct}%
+                </p>
+                <p className="text-xs text-violet-600 mt-1">
+                  {headerMessage}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-3 mt-6">
+              <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+                <p className="text-xs font-semibold text-gray-500 mb-1">
+                  {isArabic ? 'المسار' : 'Route'}
+                </p>
+                <p className="text-sm font-bold text-gray-900">
+                  {(
+                    (strategicReport as { route_label?: string; active_route?: string; framework?: string }).route_label ||
+                    (strategicReport as { route_label?: string; active_route?: string; framework?: string }).active_route ||
+                    (strategicReport as { route_label?: string; active_route?: string; framework?: string }).framework ||
+                    (isArabic ? 'مسار PMP المحدد' : 'Selected PMP route')
+                  )}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+                <p className="text-xs font-semibold text-gray-500 mb-1">
+                  {isArabic ? 'نتيجة الدورة' : 'Cycle score'}
+                </p>
+                <p className="text-sm font-bold text-gray-900">
+                  {displayCorrect}/{displayTotal} ({displayPct}%)
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+                <p className="text-xs font-semibold text-gray-500 mb-1">
+                  {isArabic ? 'الخطوة التالية' : 'Next step'}
+                </p>
+                <p className="text-sm font-bold text-gray-900">
+                  {isArabic ? 'افتح التقرير الكامل أو تابع التدريب.' : 'Open the full report or continue practicing.'}
+                </p>
+              </div>
+            </div>
+          </div>
         ) : (
           <WrapUpTabs wrapUp={wrapUp} videos={videos} isArabic={isArabic} />
         )}
@@ -1583,198 +1647,6 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
   return null;
 }
 
-
-function AdvancedSmartReport({
-  report,
-  isArabic,
-}: {
-  report: StrategicReport;
-  isArabic: boolean;
-}) {
-  const textAlign = isArabic ? 'text-right' : 'text-left';
-
-  return (
-    <div dir={rtlDir(isArabic)} className={`space-y-5 ${textAlign}`}>
-      <div className="rounded-3xl bg-gradient-to-br from-[#322057] via-violet-950 to-slate-950 text-white p-6 overflow-hidden relative shadow-xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-400/10 via-violet-400/15 to-cyan-400/10" />
-        <div className="relative">
-          <p className="text-xs uppercase tracking-[0.25em] text-cyan-200 mb-2">
-            {report.cycle_label}
-          </p>
-          <h3 className="text-2xl font-bold mb-2">{report.report_title}</h3>
-          <p className="text-sm text-slate-300 mb-4">{report.route_label}</p>
-          <p className="text-sm leading-relaxed text-slate-100 max-w-4xl">
-            {report.executive_summary}
-          </p>
-
-          <div className="grid md:grid-cols-4 gap-3 mt-6">
-            <div className="bg-white/10 border border-white/10 rounded-2xl p-4">
-              <p className="text-xs text-slate-300">
-                {isArabic ? 'درجة الجاهزية' : 'Readiness Score'}
-              </p>
-              <p className="text-4xl font-bold mt-1">{report.readiness_score}%</p>
-              <p className="text-xs text-cyan-100 mt-1">{report.readiness_label}</p>
-            </div>
-
-            <div className="bg-white/10 border border-white/10 rounded-2xl p-4">
-              <p className="text-xs text-slate-300">
-                {isArabic ? 'إجمالي الدورة' : 'Cycle Score'}
-              </p>
-              <p className="text-3xl font-bold mt-1">
-                {report.overall_score.correct}/{report.overall_score.total}
-              </p>
-              <p className="text-xs text-cyan-100 mt-1">
-                {report.overall_score.pct}%
-              </p>
-            </div>
-
-            <div className="bg-white/10 border border-white/10 rounded-2xl p-4">
-              <p className="text-xs text-slate-300">
-                {isArabic ? 'سرعة جاهزية PMP' : 'PMP Readiness Velocity'}
-              </p>
-              <p className="text-lg font-bold mt-2">{report.growth_velocity.value}</p>
-              <p className="text-xs text-slate-300 mt-1">{report.growth_velocity.insight}</p>
-            </div>
-
-            <div className="bg-white/10 border border-white/10 rounded-2xl p-4">
-              <p className="text-xs text-slate-300">
-                {isArabic ? 'فجوة التفكير وفق PMP' : 'PMP Mindset Gap'}
-              </p>
-              <p className="text-lg font-bold mt-2">{report.mindset_gap.label}</p>
-              <p className="text-xs text-cyan-100 mt-1">
-                {isArabic ? 'مستوى المخاطر:' : 'Risk:'} {report.mindset_gap.risk_level}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {report.badges.length > 0 && (
-        <div className="grid md:grid-cols-2 gap-4">
-          {report.badges.map((badge, index) => (
-            <div
-              key={index}
-              className="rounded-2xl border border-amber-200 bg-amber-50 p-5"
-            >
-              <div className="text-3xl mb-2">{badge.icon}</div>
-              <p className="text-xs font-bold text-amber-600 uppercase tracking-wider">
-                {isArabic ? 'شارة استراتيجية' : 'Strategic Badge'}
-              </p>
-              <h4 className="text-lg font-bold text-gray-900 mt-1">{badge.name}</h4>
-              <p className="text-sm text-gray-700 mt-1">{badge.description}</p>
-            </div>
-          ))}
-
-          <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5">
-            <p className="text-xs font-bold text-cyan-700 uppercase tracking-wider">
-              {isArabic ? 'الحكم السياقي في PMP' : 'PMP Contextual Judgment'}
-            </p>
-            <h4 className="text-lg font-bold text-gray-900 mt-1">
-              {report.tailoring_decisiveness.score === null
-                ? '—'
-                : `${report.tailoring_decisiveness.score}%`}
-            </h4>
-            <p className="text-xs text-cyan-700 mt-1">
-              {report.tailoring_decisiveness.evidence_level}
-            </p>
-            <p className="text-xs text-gray-500 mt-2 leading-relaxed">
-              {isArabic
-                ? 'يقيس مدى قدرتك على تكييف قرارك مع سياق السؤال، نمط التسليم، أصحاب المصلحة، المخاطر، الحوكمة، وقيمة المشروع.'
-                : 'Measures how well you adapt PMP decisions to delivery approach, stakeholder context, risk, governance, and value impact.'}
-            </p>
-            <p className="text-sm text-gray-700 mt-2">
-              {report.tailoring_decisiveness.insight}
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="grid lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-5">
-          <h4 className="font-bold text-gray-900 mb-4">
-            {isArabic ? 'إتقان المجالات' : 'Domain Proficiency'}
-          </h4>
-
-          <div className="space-y-4">
-            {report.domain_proficiency.map((domain, index) => (
-              <div key={index}>
-                <div className="flex items-center justify-between gap-3 mb-1">
-                  <p className="text-sm font-semibold text-gray-800">{domain.domain}</p>
-                  <p className="text-xs text-gray-500">
-                    {domain.correct}/{domain.total} · {domain.pct}% · {domain.status}
-                  </p>
-                </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-violet-600 rounded-full"
-                    style={{ width: `${domain.pct}%` }}
-                  />
-                </div>
-                <p className="text-xs text-gray-600 mt-1">{domain.insight}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h4 className="font-bold text-gray-900 mb-3">{report.route_focus.label}</h4>
-          <ul className={`space-y-2 text-sm text-gray-700 ${isArabic ? 'list-disc list-inside' : 'list-disc list-inside'}`}>
-            {report.route_focus.items.map((item, index) => (
-              <li key={index}>{item}</li>
-            ))}
-          </ul>
-
-          <div className="mt-5 bg-slate-50 border border-slate-200 rounded-xl p-3">
-            <p className="text-xs font-bold text-slate-500 mb-1">
-              {isArabic ? 'تشخيص فجوة التفكير وفق PMP' : 'PMP Mindset Diagnosis'}
-            </p>
-            <p className="text-sm text-slate-700 leading-relaxed">
-              {report.mindset_gap.insight}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {report.evidence.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h4 className="font-bold text-gray-900 mb-3">
-            {isArabic ? 'أدلة من الإجابات الخاطئة' : 'Evidence From Weak Answers'}
-          </h4>
-
-          <div className="grid md:grid-cols-2 gap-3">
-            {report.evidence.map((item, index) => (
-              <div key={index} className="border border-gray-100 rounded-xl p-3">
-                <p className="text-xs font-semibold text-violet-700 mb-1">{item.domain}</p>
-                <p className="text-sm font-medium text-gray-900 line-clamp-3">
-                  {item.question}
-                </p>
-                <p className="text-xs text-gray-500 mt-2">
-                  {isArabic ? 'إجابتك:' : 'Selected:'} {item.selected} ·{' '}
-                  {isArabic ? 'الصحيح:' : 'Correct:'} {item.correct}
-                </p>
-                <p className="text-xs text-gray-600 mt-2 leading-relaxed">{item.lesson}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="bg-violet-50 border border-violet-200 rounded-2xl p-5">
-        <h4 className="font-bold text-violet-900 mb-3">
-          {isArabic ? 'الإجراءات الثلاثة التالية' : 'Next 3 Actions'}
-        </h4>
-        <ol className="space-y-2 text-sm text-violet-900 list-decimal list-inside">
-          {report.next_actions.map((action, index) => (
-            <li key={index}>{action}</li>
-          ))}
-        </ol>
-      </div>
-    </div>
-  );
-}
-
-
-// ─── Wrap-up Tabs ─────────────────────────────────────────────────────────────
 
 function WrapUpTabs({
   wrapUp,
