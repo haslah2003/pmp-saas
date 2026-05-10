@@ -65,6 +65,48 @@ function questionBankNotice(framework: PracticeFramework, useArabic: boolean) {
     : 'This route question bank is being prepared. PMBOK 7 baseline questions were used temporarily to keep practice available.';
 }
 
+const ECO_2026_DOMAIN_WEIGHTS = [
+  { domain: 'people', weight: 33 },
+  { domain: 'process', weight: 41 },
+  { domain: 'business-environment', weight: 26 },
+];
+
+function shuffleQuestions<T>(rows: T[]) {
+  return [...rows].sort(() => Math.random() - 0.5);
+}
+
+function buildEco2026DomainAllocation(count: number) {
+  const rawAllocations = ECO_2026_DOMAIN_WEIGHTS.map((item) => {
+    const exact = (count * item.weight) / 100;
+
+    return {
+      domain: item.domain,
+      count: Math.floor(exact),
+      remainder: exact - Math.floor(exact),
+    };
+  });
+
+  const assigned = rawAllocations.reduce((total, item) => total + item.count, 0);
+  const remaining = count - assigned;
+  const remainderOrder = rawAllocations
+    .map((item, index) => ({
+      index,
+      remainder: item.remainder,
+      weight: ECO_2026_DOMAIN_WEIGHTS[index]?.weight || 0,
+    }))
+    .sort((a, b) => b.remainder - a.remainder || b.weight - a.weight);
+
+  for (let index = 0; index < remaining; index += 1) {
+    const allocationIndex = remainderOrder[index]?.index;
+
+    if (typeof allocationIndex === 'number') {
+      rawAllocations[allocationIndex].count += 1;
+    }
+  }
+
+  return rawAllocations.map(({ domain, count }) => ({ domain, count }));
+}
+
 function buildQuestionBankStatus({
   requestedFramework,
   selectedQuestions,
@@ -242,6 +284,117 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    if (activeFramework === 'pmbok8' && difficulty === 'paced' && domain === 'all') {
+      const allocation = buildEco2026DomainAllocation(requestedCount);
+      const selectedBalancedQuestions: QuestionRow[] = [];
+      const balancedSamplingPlan = [];
+
+      for (const domainAllocation of allocation) {
+        if (domainAllocation.count <= 0) continue;
+
+        const domainQueryLimit = Math.max(20, domainAllocation.count * 4);
+
+        let domainNativeQuestions = await fetchQuestionsForFrameworks({
+          supabase,
+          frameworks: nativeFrameworksForRoute(activeFramework),
+          domain: domainAllocation.domain,
+          difficulty,
+          excludeIds,
+          limit: domainQueryLimit,
+        });
+
+        let domainFallbackQuestions =
+          domainNativeQuestions.length < domainAllocation.count
+            ? await fetchQuestionsForFrameworks({
+                supabase,
+                frameworks: ['pmbok7'],
+                domain: domainAllocation.domain,
+                difficulty,
+                excludeIds,
+                limit: domainQueryLimit,
+              })
+            : [];
+
+        if (
+          domainNativeQuestions.length === 0 &&
+          domainFallbackQuestions.length === 0 &&
+          excludeIds.length > 0
+        ) {
+          domainNativeQuestions = await fetchQuestionsForFrameworks({
+            supabase,
+            frameworks: nativeFrameworksForRoute(activeFramework),
+            domain: domainAllocation.domain,
+            difficulty,
+            excludeIds: [],
+            limit: domainQueryLimit,
+          });
+
+          domainFallbackQuestions =
+            domainNativeQuestions.length < domainAllocation.count
+              ? await fetchQuestionsForFrameworks({
+                  supabase,
+                  frameworks: ['pmbok7'],
+                  domain: domainAllocation.domain,
+                  difficulty,
+                  excludeIds: [],
+                  limit: domainQueryLimit,
+                })
+              : [];
+        }
+
+        const selectedDomainNative = shuffleQuestions(domainNativeQuestions).slice(0, domainAllocation.count);
+        const selectedDomainNativeIds = new Set(
+          selectedDomainNative
+            .map((row) => row.id)
+            .filter((value): value is string => typeof value === 'string')
+        );
+        const domainShortage = domainAllocation.count - selectedDomainNative.length;
+        const selectedDomainFallback =
+          domainShortage > 0
+            ? shuffleQuestions(domainFallbackQuestions)
+                .filter((row) => !(typeof row.id === 'string' && selectedDomainNativeIds.has(row.id)))
+                .slice(0, domainShortage)
+            : [];
+
+        selectedBalancedQuestions.push(...selectedDomainNative, ...selectedDomainFallback);
+        balancedSamplingPlan.push({
+          domain: domainAllocation.domain,
+          target: domainAllocation.count,
+          selected: selectedDomainNative.length + selectedDomainFallback.length,
+          nativeSelected: selectedDomainNative.length,
+          fallbackSelected: selectedDomainFallback.length,
+        });
+      }
+
+      if (selectedBalancedQuestions.length === 0) {
+        return NextResponse.json({ error: 'No questions available' }, { status: 404 });
+      }
+
+      const selected = shuffleQuestions(selectedBalancedQuestions).slice(0, requestedCount);
+      const localizedSelected = selected.map((q) => localizeQuestion(q, useArabic));
+      const questionBankStatus = buildQuestionBankStatus({
+        requestedFramework: activeFramework,
+        selectedQuestions: selected,
+        nativeQuestionCount,
+        fallbackQuestionCount,
+        useArabic,
+      });
+
+      return NextResponse.json({
+        questions: localizedSelected,
+        profile,
+        activeFramework,
+        questionFrameworks: frameworkCandidates,
+        questionBankNotice: questionBankStatus.message,
+        questionBankStatus,
+        balancedSampling: {
+          strategy: 'eco2026-weighted-domain-allocation',
+          requestedCount,
+          allocation: balancedSamplingPlan,
+        },
+      });
+    }
+
     let nativeQuestions = await fetchQuestionsForFrameworks({
       supabase,
       frameworks: nativeFrameworksForRoute(activeFramework),
@@ -306,9 +459,7 @@ export async function GET(req: NextRequest) {
       return [...rows];
     };
 
-    const selectedNative = prioritizeByProfile(nativeQuestions)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, requestedCount);
+    const selectedNative = shuffleQuestions(prioritizeByProfile(nativeQuestions)).slice(0, requestedCount);
 
     const selectedNativeIds = new Set(
       selectedNative
@@ -320,9 +471,8 @@ export async function GET(req: NextRequest) {
 
     const selectedFallback =
       shortage > 0
-        ? prioritizeByProfile(fallbackQuestions)
+        ? shuffleQuestions(prioritizeByProfile(fallbackQuestions))
             .filter((row) => !(typeof row.id === 'string' && selectedNativeIds.has(row.id)))
-            .sort(() => Math.random() - 0.5)
             .slice(0, shortage)
         : [];
 
