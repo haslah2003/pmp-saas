@@ -214,14 +214,43 @@ export default async function DashboardPage() {
     Math.max(curriculumModules.length, 1)
   );
 
+  const nextModule = curriculumModules.find((module) => module.progress < 100) ?? curriculumModules[0];
+  const nextModuleTitle = nextModule ? localized(nextModule.title, locale) : localized(curriculum.heroTitle, locale);
+  const nextModuleHref = nextModule ? dashboardModuleHref(nextModule) : "/dashboard/course";
+
+  const missionTasks = [
+    {
+      href: nextModuleHref,
+      icon: "🧭",
+      title: isArabic ? "تابع مسارك التعليمي" : "Continue My PMP Path",
+      description: isArabic ? `أكمل: ${nextModuleTitle}` : `Complete: ${nextModuleTitle}`,
+    },
+    {
+      href: "/dashboard/practice",
+      icon: "✏️",
+      title: isArabic ? "تدرّب بذكاء" : "Practice in the Lab",
+      description: isArabic ? "ابدأ مجموعة قصيرة لاكتشاف نقاط الضعف." : "Start a focused set to expose weak signals.",
+    },
+    {
+      href: "/dashboard/progress",
+      icon: "📈",
+      title: isArabic ? "راجع الجاهزية" : "Review Readiness",
+      description: isArabic ? "افتح تقرير التقدم بعد التدريب." : "Open your readiness report after practice.",
+    },
+  ];
+
   return (
     <div dir={isArabic ? "rtl" : "ltr"} className={`space-y-8 ${isArabic ? "text-right" : ""}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{localized(curriculum.heroTitle, locale)}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isArabic ? "مهمة PMP اليوم" : "Your PMP Mission Today"}
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
-            {localized(curriculum.heroDescription, locale)}
+            {isArabic
+              ? "مركزك اليومي لمعرفة الخطوة التالية في رحلتك نحو جاهزية اختبار PMP."
+              : "Your daily command center for the next best action toward PMP exam readiness."}
           </p>
           <div
             className="mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold"
@@ -238,7 +267,7 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
           <div className="text-right">
-            <p className="text-xs text-gray-400">{isArabic ? "التقدم العام" : "Overall Progress"}</p>
+            <p className="text-xs text-gray-400">{isArabic ? "تقدم المسار" : "Path Progress"}</p>
             <p className="text-xl font-bold text-gray-900">{overallProgress}%</p>
           </div>
           <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: `conic-gradient(#3b82f6 ${overallProgress * 3.6}deg, #e5e7eb 0deg)` }}>
@@ -248,6 +277,118 @@ export default async function DashboardPage() {
       </div>
 
       <ExamPathSelector initialPath={activeFramework} locale={locale} />
+
+      <section className="grid lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 rounded-3xl border border-violet-100 bg-gradient-to-br from-white via-violet-50 to-white p-6 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-violet-500">
+                {isArabic ? "مركز المهمة" : "Mission Control"}
+              </p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight text-gray-950">
+                {isArabic ? "ما هي أفضل خطوة الآن؟" : "What is the best next action now?"}
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
+                {isArabic
+                  ? "يعرض AiTuTorZ الآن مسار تعلمك كرحلة موجهة: تعلّم، طبّق، تدرّب، راجع، ثم عالج نقاط الضعف."
+                  : "AiTuTorZ now treats your study as a guided mastery journey: learn, apply, practice, review, then repair weak areas."}
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-white/80 border border-white px-4 py-3 shadow-sm min-w-[150px]">
+              <p className="text-xs font-semibold text-gray-400">{isArabic ? "المسار الحالي" : "Current Path"}</p>
+              <p className="mt-1 text-sm font-black" style={{ color: activePathColor }}>
+                {activePathCopy.shortLabel}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-2xl bg-white border border-violet-100 p-5">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+              {isArabic ? "مهمة اليوم" : "Today’s Mission"}
+            </p>
+            <h3 className="mt-2 text-lg font-black text-gray-900">
+              {isArabic ? `أكمل: ${nextModuleTitle}` : `Complete: ${nextModuleTitle}`}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-gray-600">
+              {isArabic
+                ? "بعد التعلم، انتقل مباشرة إلى مختبر التمرين حتى تتحول المعرفة إلى جاهزية اختبارية."
+                : "After learning, move directly into Practice Lab so knowledge becomes exam-ready performance."}
+            </p>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link
+                href={nextModuleHref}
+                className="rounded-xl px-5 py-3 text-sm font-bold text-white shadow-sm hover:opacity-90 transition"
+                style={{ backgroundColor: activePathColor }}
+              >
+                {isArabic ? "ابدأ مهمة اليوم" : "Start Today’s Mission"}
+              </Link>
+              <Link
+                href="/dashboard/practice"
+                className="rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition"
+              >
+                {isArabic ? "اذهب إلى مختبر التمرين" : "Go to Practice Lab"}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-gray-400">
+            {isArabic ? "PMP Exam GPS" : "PMP Exam GPS"}
+          </p>
+          <h2 className="mt-3 text-xl font-black text-gray-900">
+            {isArabic ? "توقع الجاهزية" : "Readiness Forecast"}
+          </h2>
+          <div className="mt-5 rounded-2xl bg-amber-50 border border-amber-100 p-4">
+            <p className="text-sm font-bold text-amber-800">
+              {isArabic ? "الخط الأساسي قيد التكوين" : "Baseline pending"}
+            </p>
+            <p className="mt-2 text-xs leading-5 text-amber-700">
+              {isArabic
+                ? "أكمل دورة تمرين من 15 سؤالًا حتى يتم إنشاء توقع مبني على الأداء الفعلي."
+                : "Complete one 15-question practice cycle to generate an evidence-based forecast."}
+            </p>
+          </div>
+          <Link
+            href="/dashboard/progress"
+            className="mt-5 inline-flex w-full justify-center rounded-xl bg-gray-900 px-4 py-3 text-sm font-bold text-white hover:bg-gray-800 transition"
+          >
+            {isArabic ? "افتح تقرير الجاهزية" : "Open Readiness Report"}
+          </Link>
+        </div>
+      </section>
+
+      <section className="grid md:grid-cols-3 gap-4">
+        {missionTasks.map((task) => (
+          <Link
+            key={task.href}
+            href={task.href}
+            className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md transition group"
+          >
+            <div className="text-3xl">{task.icon}</div>
+            <h3 className="mt-3 text-sm font-black text-gray-900 group-hover:text-violet-700 transition">
+              {task.title}
+            </h3>
+            <p className="mt-2 text-xs leading-5 text-gray-500">{task.description}</p>
+          </Link>
+        ))}
+      </section>
+
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-gray-400">
+            {isArabic ? "خارطة الطريق" : "Roadmap"}
+          </p>
+          <h2 className="text-xl font-black text-gray-900">
+            {isArabic ? "لمحة عن مساري في PMP" : "My PMP Path Snapshot"}
+          </h2>
+        </div>
+        <Link href="/dashboard/course" className="text-sm font-bold text-violet-600 hover:text-violet-700">
+          {isArabic ? "عرض المسار الكامل" : "View full path"}
+        </Link>
+      </div>
 
       {curriculum.sections.map((section, sectionIndex) => (
         <div key={section.id}>
