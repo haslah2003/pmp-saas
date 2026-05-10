@@ -24,24 +24,67 @@ export default async function CoursesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50" dir={language === "ar" ? "rtl" : "ltr"}>
-      {/* ── Header ── */}
+      {/* ── My PMP Path Header ── */}
       <div className="bg-white border-b border-gray-100 px-6 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">🎓</span>
-            <h1 className="text-3xl font-bold text-gray-900">{t(language as Locale, 'course.library_title')}</h1>
+            <span className="text-3xl">🧭</span>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-violet-500">
+                {language === 'ar' ? 'خارطة الجاهزية' : 'Guided Readiness Roadmap'}
+              </p>
+              <h1 className="text-3xl font-black text-gray-900">
+                {language === 'ar' ? 'مساري في PMP' : 'My PMP Path'}
+              </h1>
+            </div>
           </div>
-          <p className="text-gray-500 mt-1 max-w-2xl">
-            {t(language as Locale, 'course.library_desc')} {TOTAL_LESSONS} {t(language as Locale, 'course.lessons')} — {COURSES.length} {t(language as Locale, 'course.perf_domains')}.
+
+          <p className="text-gray-500 mt-3 max-w-3xl leading-relaxed">
+            {language === 'ar'
+              ? `رحلة منظمة من الأساسيات إلى المحاكاة، تضم ${TOTAL_LESSONS} درسًا وتربط التعلم بالتطبيق والتمرين والتحليل.`
+              : `A guided journey from foundations to simulation, connecting ${TOTAL_LESSONS} lessons with application, practice, feedback, and readiness tracking.`}
           </p>
 
+          {/* Path phases */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+            {[
+              { icon: '🌱', title: language === 'ar' ? 'الأساس' : 'Foundation', desc: language === 'ar' ? 'المفاهيم والذهنية' : 'Concepts and mindset' },
+              { icon: '🎯', title: language === 'ar' ? 'الإتقان' : 'Mastery', desc: language === 'ar' ? 'الأفراد والعمليات والأعمال' : 'People, Process, Business' },
+              { icon: '🔗', title: language === 'ar' ? 'الدمج' : 'Integration', desc: language === 'ar' ? 'أدوات وعلاقات وسيناريوهات' : 'Tools, links, scenarios' },
+              { icon: '🏁', title: language === 'ar' ? 'المحاكاة' : 'Simulation', desc: language === 'ar' ? 'اختبارات وتقارير جاهزية' : 'Mocks and readiness reports' },
+            ].map((phase) => (
+              <div key={phase.title} className="rounded-2xl border border-violet-100 bg-violet-50/50 p-4">
+                <div className="text-2xl">{phase.icon}</div>
+                <p className="mt-2 text-sm font-black text-gray-900">{phase.title}</p>
+                <p className="mt-1 text-xs text-gray-500">{phase.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Learning loop */}
+          <div className="mt-6 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+              {language === 'ar' ? 'دورة التعلم داخل كل وحدة' : 'Learning loop inside every unit'}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(language === 'ar'
+                ? ['معاينة', 'تعلّم', 'تصوّر', 'طبّق', 'تدرّب', 'اشرح', 'راجع']
+                : ['Preview', 'Learn', 'Visualize', 'Apply', 'Practice', 'Explain', 'Review']
+              ).map((step, index) => (
+                <span key={step} className="rounded-full bg-white border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-700">
+                  {index + 1}. {step}
+                </span>
+              ))}
+            </div>
+          </div>
+
           {/* Stats strip */}
-          <div className="flex items-center gap-6 mt-5">
+          <div className="flex flex-wrap items-center gap-6 mt-5">
             {[
               { label: t(language as Locale, 'course.perf_domains'), value: COURSES.length },
               { label: t(language as Locale, 'course.total_lessons'), value: TOTAL_LESSONS },
               { label: t(language as Locale, 'course.avg_per_lesson'), value: '18 ' + t(language as Locale, 'course.min') },
-              { label: t(language as Locale, 'course.practice_ctas'), value: t(language as Locale, 'course.every_lesson') },
+              { label: language === 'ar' ? 'خطوة تالية واحدة' : 'One next action', value: language === 'ar' ? 'واضحة' : 'Clear' },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-xl font-bold text-violet-600">{s.value}</p>
@@ -52,7 +95,7 @@ export default async function CoursesPage() {
         </div>
       </div>
 
-      {/* ── Course Grid ── */}
+      {/* ── Roadmap Units ── */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {activeCourses.map((course, idx) => (
@@ -117,7 +160,7 @@ export default async function CoursesPage() {
                     <span>🗺️ {t(language as Locale, 'course.mindmap_label')}</span>
                   </div>
                   <span className={`text-xs font-semibold ${course.textColor} group-hover:translate-x-0.5 transition-transform`}>
-                    {t(language as Locale, 'course.start')} →
+                    {language === 'ar' ? 'تابع المسار' : 'Continue Path'} →
                   </span>
                 </div>
               </div>
