@@ -36,17 +36,26 @@ export type TranslationKeys = {
 
   // ── Sidebar / Nav ──
   'nav.learning': string
+  'nav.tools': string
+  'nav.progress': string
+  'nav.account': string
   'nav.dashboard': string
+  'nav.today': string
   'nav.mindmap': string
   'nav.course': string
+  'nav.pmp_path': string
   'nav.study_studio': string
   'nav.practice': string
+  'nav.practice_lab': string
   'nav.mock_exam': string
+  'nav.exam_simulator': string
   'nav.tutor': string
+  'nav.ai_coach': string
   'nav.formulas': string
   'nav.processes': string
   'nav.artifacts': string
   'nav.billing': string
+  'nav.readiness_report': string
   'nav.admin': string
   'nav.branding': string
   'nav.analytics': string
@@ -258,17 +267,26 @@ const en: TranslationKeys = {
 
   // Nav
   'nav.learning': 'Learning',
+  'nav.tools': 'PMP Toolkit',
+  'nav.progress': 'Progress',
+  'nav.account': 'Account',
   'nav.dashboard': 'Dashboard',
-  'nav.mindmap': 'Mind Map',
+  'nav.today': 'Today',
+  'nav.mindmap': 'Mind Maps',
   'nav.course': 'Course',
+  'nav.pmp_path': 'My PMP Path',
   'nav.study_studio': 'Study Studio',
   'nav.practice': 'Practice',
+  'nav.practice_lab': 'Practice Lab',
   'nav.mock_exam': 'Mock Exam',
+  'nav.exam_simulator': 'Exam Simulator',
   'nav.tutor': 'AiTuTorZ',
+  'nav.ai_coach': 'AI Coach',
   'nav.formulas': 'Formulas',
   'nav.processes': 'Processes',
   'nav.artifacts': 'Artifacts',
   'nav.billing': 'Billing',
+  'nav.readiness_report': 'Readiness Report',
   'nav.admin': 'Admin',
   'nav.branding': 'Branding',
   'nav.analytics': 'Analytics',
@@ -480,17 +498,26 @@ const ar: TranslationKeys = {
 
   // Nav
   'nav.learning': 'التعلم',
+  'nav.tools': 'أدوات PMP',
+  'nav.progress': 'التقدم',
+  'nav.account': 'الحساب',
   'nav.dashboard': 'لوحة التحكم',
-  'nav.mindmap': 'الخريطة الذهنية',
+  'nav.today': 'اليوم',
+  'nav.mindmap': 'الخرائط الذهنية',
   'nav.course': 'الدورة',
+  'nav.pmp_path': 'مساري في PMP',
   'nav.study_studio': 'استوديو الدراسة',
   'nav.practice': 'التمرين',
+  'nav.practice_lab': 'مختبر التمرين',
   'nav.mock_exam': 'اختبار تجريبي',
+  'nav.exam_simulator': 'محاكي الاختبار',
   'nav.tutor': 'AiTuTorZ',
+  'nav.ai_coach': 'المدرب الذكي',
   'nav.formulas': 'المعادلات',
   'nav.processes': 'العمليات',
   'nav.artifacts': 'المخرجات',
   'nav.billing': 'الفواتير',
+  'nav.readiness_report': 'تقرير الجاهزية',
   'nav.admin': 'الإدارة',
   'nav.branding': 'العلامة التجارية',
   'nav.analytics': 'التحليلات',

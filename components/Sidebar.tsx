@@ -16,18 +16,39 @@ interface SidebarProps {
   activeFramework: ExamPathId
 }
 
-const NAV_ITEMS = [
-  { href: '/dashboard', icon: '🏠', key: 'nav.dashboard' as const },
-  { href: '/dashboard/mindmap', icon: '🧠', key: 'nav.mindmap' as const },
-  { href: '/dashboard/course', icon: '📚', key: 'nav.course' as const },
-  { href: '/dashboard/study-studio', icon: '💡', key: 'nav.study_studio' as const },
-  { href: '/dashboard/practice', icon: '✏️', key: 'nav.practice' as const },
-  { href: '/dashboard/exam', icon: '⏱️', key: 'nav.mock_exam' as const },
-  { href: '/dashboard/tutor', icon: '🤖', key: 'nav.tutor' as const },
-  { href: '/dashboard/formulas', icon: '📐', key: 'nav.formulas' as const },
-  { href: '/dashboard/processes', icon: '🔄', key: 'nav.processes' as const },
-  { href: '/dashboard/artifacts', icon: '📋', key: 'nav.artifacts' as const },
-  { href: '/dashboard/billing', icon: '💳', key: 'nav.billing' as const },
+const NAV_SECTIONS = [
+  {
+    sectionKey: 'nav.learning' as const,
+    items: [
+      { href: '/dashboard', icon: '🎯', key: 'nav.today' as const },
+      { href: '/dashboard/course', icon: '🧭', key: 'nav.pmp_path' as const },
+      { href: '/dashboard/practice', icon: '✏️', key: 'nav.practice_lab' as const },
+      { href: '/dashboard/exam', icon: '⏱️', key: 'nav.exam_simulator' as const },
+      { href: '/dashboard/tutor', icon: '🤖', key: 'nav.ai_coach' as const },
+    ],
+  },
+  {
+    sectionKey: 'nav.tools' as const,
+    items: [
+      { href: '/dashboard/mindmap', icon: '🧠', key: 'nav.mindmap' as const },
+      { href: '/dashboard/processes', icon: '🔄', key: 'nav.processes' as const },
+      { href: '/dashboard/artifacts', icon: '📋', key: 'nav.artifacts' as const },
+      { href: '/dashboard/formulas', icon: '📐', key: 'nav.formulas' as const },
+      { href: '/dashboard/study-studio', icon: '💡', key: 'nav.study_studio' as const },
+    ],
+  },
+  {
+    sectionKey: 'nav.progress' as const,
+    items: [
+      { href: '/dashboard/progress', icon: '📈', key: 'nav.readiness_report' as const },
+    ],
+  },
+  {
+    sectionKey: 'nav.account' as const,
+    items: [
+      { href: '/dashboard/billing', icon: '💳', key: 'nav.billing' as const },
+    ],
+  },
 ]
 
 const ADMIN_ITEMS = [
@@ -68,24 +89,28 @@ export default function Sidebar({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-2">
-          {t('nav.learning')}
-        </p>
-        {NAV_ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all group"
-          >
-            <span
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-base group-hover:scale-110 transition-transform"
-              style={{ backgroundColor: primaryColor + '15' }}
-            >
-              {item.icon}
-            </span>
-            <span>{t(item.key)}</span>
-          </Link>
+      <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.sectionKey} className="space-y-0.5">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-2">
+              {t(section.sectionKey)}
+            </p>
+            {section.items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all group"
+              >
+                <span
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-base group-hover:scale-110 transition-transform"
+                  style={{ backgroundColor: primaryColor + '15' }}
+                >
+                  {item.icon}
+                </span>
+                <span>{t(item.key)}</span>
+              </Link>
+            ))}
+          </div>
         ))}
 
         {isAdmin && (
