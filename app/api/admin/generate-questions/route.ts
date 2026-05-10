@@ -308,13 +308,16 @@ function stableHash(value: string) {
   return Math.abs(hash)
 }
 
-function buildMandatoryAnswerKeyPlan(count: number, seed: string) {
+function buildMandatoryAnswerKeySequence(count: number, seed: string) {
   const offset = stableHash(seed) % ANSWER_KEYS.length
 
-  return Array.from({ length: count }, (_, index) => {
-    const answer = ANSWER_KEYS[(index + offset) % ANSWER_KEYS.length]
-    return `- Question ${index + 1}: correct_answer must be "${answer}"`
-  }).join('\n')
+  return Array.from({ length: count }, (_, index) => ANSWER_KEYS[(index + offset) % ANSWER_KEYS.length])
+}
+
+function buildMandatoryAnswerKeyPlan(count: number, seed: string) {
+  return buildMandatoryAnswerKeySequence(count, seed)
+    .map((answer, index) => `- Question ${index + 1}: correct_answer must be "${answer}"`)
+    .join('\n')
 }
 
 function buildMandatoryTechniquePlan(count: number, seed: string) {
@@ -411,7 +414,9 @@ Quality requirements:
 - Do not make every question use the same stem such as "What should the project manager do first?"
 - Only one option may be clearly best.
 - Distractors must be plausible but weaker; avoid cartoonishly wrong distractors such as simply ignoring the issue, firing people, or escalating everything unless the scenario genuinely supports that as a weak option.
-- Explanations must explicitly explain why the correct option is best and why the other three options are weak.
+- Explanations must be letter-neutral: do not mention "option A", "choice B", "answer C", or similar letter labels.
+- Explain answer choices by their content/reasoning, not by their letter, so server-side answer-key alignment remains safe.
+- Explanations must explicitly explain why the correct answer choice is best and why the other three answer choices are weak.
 - correct_answer must be lowercase only: "a", "b", "c", or "d".
 - Distribute correct_answer values as evenly as mathematically possible across a, b, c, and d for this batch.
 - Do not cluster the correct answer in one letter.
@@ -469,6 +474,71 @@ function cleanGeneratedQuestions({
 }
 
 type CleanQuestion = ReturnType<typeof cleanGeneratedQuestions>[number]
+
+function readAnswerOption(question: CleanQuestion, answer: string) {
+  switch (answer) {
+    case 'a':
+      return question.option_a
+    case 'b':
+      return question.option_b
+    case 'c':
+      return question.option_c
+    case 'd':
+      return question.option_d
+    default:
+      return ''
+  }
+}
+
+function writeAnswerOption(question: CleanQuestion, answer: string, value: string) {
+  switch (answer) {
+    case 'a':
+      question.option_a = value
+      break
+    case 'b':
+      question.option_b = value
+      break
+    case 'c':
+      question.option_c = value
+      break
+    case 'd':
+      question.option_d = value
+      break
+  }
+}
+
+function alignQuestionsToMandatoryAnswerKey({
+  questions,
+  seed,
+}: {
+  questions: CleanQuestion[]
+  seed: string
+}) {
+  const plannedAnswerKeys = buildMandatoryAnswerKeySequence(questions.length, seed)
+
+  return questions.map((question, index) => {
+    const plannedAnswer = plannedAnswerKeys[index]
+
+    if (!plannedAnswer || question.correct_answer === plannedAnswer) {
+      return question
+    }
+
+    const currentAnswerText = readAnswerOption(question, question.correct_answer)
+    const plannedAnswerText = readAnswerOption(question, plannedAnswer)
+
+    if (!currentAnswerText || !plannedAnswerText) {
+      return question
+    }
+
+    const alignedQuestion = { ...question }
+
+    writeAnswerOption(alignedQuestion, question.correct_answer, plannedAnswerText)
+    writeAnswerOption(alignedQuestion, plannedAnswer, currentAnswerText)
+    alignedQuestion.correct_answer = plannedAnswer
+
+    return alignedQuestion
+  })
+}
 
 function normalizeQuestionForComparison(value: string) {
   return value
@@ -818,11 +888,16 @@ export async function POST(req: NextRequest) {
             continue
           }
 
+          const alignedQuestions = alignQuestionsToMandatoryAnswerKey({
+            questions: cleanedQuestions,
+            seed: variantSeed,
+          })
+
           const attemptKnownNormalizedQuestions = new Set(knownNormalizedQuestions)
           const attemptKnownQuestionTexts = [...knownQuestionTexts]
 
           const duplicateAudit = removeDuplicateQuestions({
-            questions: cleanedQuestions,
+            questions: alignedQuestions,
             knownNormalizedQuestions: attemptKnownNormalizedQuestions,
             knownQuestionTexts: attemptKnownQuestionTexts,
           })
