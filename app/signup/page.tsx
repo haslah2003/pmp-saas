@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const FRAMEWORK_LABELS: Record<string, { title: string; subtitle: string; color: string }> = {
-  pmbok7: { title: "PMP Prep — PMBOK 7", subtitle: "PMBOK 7th Edition + ECO 2021", color: "#1e40af" },
-  pmbok8: { title: "PMP Prep — PMBOK 8", subtitle: "PMBOK 8th Edition + ECO 2026", color: "#0f766e" },
+  pmbok7: { title: "PMP Prep — Full Access", subtitle: "PMBOK 7 + Bridge + PMBOK 8 / ECO 2026", color: "#1e40af" },
+  pmbok8: { title: "PMP Prep — Full Access", subtitle: "PMBOK 7 + Bridge + PMBOK 8 / ECO 2026", color: "#0f766e" },
 };
 
 const PLAN_LABELS: Record<string, { label: string; price: number; period: string }> = {
