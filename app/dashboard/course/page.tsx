@@ -158,8 +158,8 @@ function currentLearningStep(progress: number, isArabic: boolean): LearningStep 
   return steps[0]
 }
 
-function nextActionHref(module: DashboardCurriculumModule, step: LearningStep) {
-  const topic = encodeURIComponent(module.title.en)
+function nextActionHref(roadmapModule: DashboardCurriculumModule, step: LearningStep) {
+  const topic = encodeURIComponent(roadmapModule.title.en)
 
   if (step.key === 'practice') return '/dashboard/practice'
   if (step.key === 'explain') return `/dashboard/tutor?topic=${topic}`
@@ -167,7 +167,7 @@ function nextActionHref(module: DashboardCurriculumModule, step: LearningStep) {
   if (step.key === 'visualize') return '/dashboard/mindmap'
   if (step.key === 'apply') return `/dashboard/tutor?topic=${topic}`
 
-  return module.slug ? `/dashboard/course/${module.slug}` : `/dashboard/tutor?topic=${topic}`
+  return roadmapModule.slug ? `/dashboard/course/${roadmapModule.slug}` : `/dashboard/tutor?topic=${topic}`
 }
 
 function buildGuidedPhases(
@@ -280,15 +280,15 @@ function phaseProgress(phase: GuidedPhase) {
   if (modules.length === 0) return 0
 
   return Math.round(
-    modules.reduce((sum, module) => sum + module.progress, 0) / modules.length
+    modules.reduce((sum, roadmapModule) => sum + roadmapModule.progress, 0) / modules.length
   )
 }
 
 function findNextModule(phases: GuidedPhase[]) {
   for (const phase of phases) {
     for (const section of phase.sections) {
-      for (const module of section.modules) {
-        if (module.progress < 100) return { phase, section, module }
+      for (const roadmapModule of section.modules) {
+        if (roadmapModule.progress < 100) return { phase, section, module: roadmapModule }
       }
     }
   }
@@ -342,7 +342,7 @@ export default async function CoursesPage() {
     phase.sections.flatMap((section) => section.modules)
   )
   const overallProgress = Math.round(
-    allModules.reduce((sum, module) => sum + module.progress, 0) /
+    allModules.reduce((sum, roadmapModule) => sum + roadmapModule.progress, 0) /
     Math.max(allModules.length, 1)
   )
   const next = findNextModule(phases)
@@ -501,15 +501,15 @@ export default async function CoursesPage() {
                         </div>
 
                         <div className="space-y-3">
-                          {section.modules.map((module) => {
-                            const step = currentLearningStep(module.progress, isArabic)
-                            const href = nextActionHref(module, step)
-                            const title = localized(module.title, locale)
-                            const description = localized(module.description, locale)
+                          {section.modules.map((roadmapModule) => {
+                            const step = currentLearningStep(roadmapModule.progress, isArabic)
+                            const href = nextActionHref(roadmapModule, step)
+                            const title = localized(roadmapModule.title, locale)
+                            const description = localized(roadmapModule.description, locale)
 
                             return (
                               <article
-                                key={`${section.id}-${module.id}`}
+                                key={`${section.id}-${roadmapModule.id}`}
                                 className="rounded-2xl border border-gray-100 bg-white p-5"
                               >
                                 <div className="grid gap-4 lg:grid-cols-[1fr_210px] lg:items-center">
@@ -517,19 +517,19 @@ export default async function CoursesPage() {
                                     <div className="mb-3 flex flex-wrap items-center gap-2">
                                       <span
                                         className="rounded-full px-3 py-1 text-xs font-black text-white"
-                                        style={{ backgroundColor: module.color }}
+                                        style={{ backgroundColor: roadmapModule.color }}
                                       >
-                                        {module.numberLabel ?? module.id}
+                                        {roadmapModule.numberLabel ?? roadmapModule.id}
                                       </span>
                                       <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-500">
-                                        {module.lessons} {isArabic ? 'دروس' : 'lessons'} · {formatHours(module.hours, isArabic)}
+                                        {roadmapModule.lessons} {isArabic ? 'دروس' : 'lessons'} · {formatHours(roadmapModule.hours, isArabic)}
                                       </span>
-                                      {module.domain && (
+                                      {roadmapModule.domain && (
                                         <span
                                           className="rounded-full px-3 py-1 text-xs font-bold"
-                                          style={{ backgroundColor: module.color + '12', color: module.color }}
+                                          style={{ backgroundColor: roadmapModule.color + '12', color: roadmapModule.color }}
                                         >
-                                          {localized(module.domain, locale)}
+                                          {localized(roadmapModule.domain, locale)}
                                         </span>
                                       )}
                                     </div>
@@ -546,14 +546,14 @@ export default async function CoursesPage() {
                                         <span className="font-bold text-gray-500">
                                           {isArabic ? 'تقدم الوحدة' : 'Module Progress'}
                                         </span>
-                                        <span className="font-black" style={{ color: module.color }}>
-                                          {module.progress}%
+                                        <span className="font-black" style={{ color: roadmapModule.color }}>
+                                          {roadmapModule.progress}%
                                         </span>
                                       </div>
                                       <div className="h-2 rounded-full bg-gray-100">
                                         <div
                                           className="h-2 rounded-full"
-                                          style={{ width: `${module.progress}%`, backgroundColor: module.color }}
+                                          style={{ width: `${roadmapModule.progress}%`, backgroundColor: roadmapModule.color }}
                                         />
                                       </div>
                                     </div>
@@ -572,7 +572,7 @@ export default async function CoursesPage() {
                                     <Link
                                       href={href}
                                       className="mt-4 inline-flex w-full justify-center rounded-xl px-4 py-2.5 text-xs font-black text-white transition hover:opacity-90"
-                                      style={{ backgroundColor: module.color }}
+                                      style={{ backgroundColor: roadmapModule.color }}
                                     >
                                       {step.cta}
                                     </Link>
