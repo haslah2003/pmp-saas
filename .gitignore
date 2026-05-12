@@ -7,3 +7,8 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# Sprint/hotfix backup snapshots (auto-cleaned, not committed)
+*.before-*
+*.bak
+backups/
