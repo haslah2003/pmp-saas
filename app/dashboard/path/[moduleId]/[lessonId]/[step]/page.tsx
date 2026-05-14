@@ -1,9 +1,3 @@
-/**
- * app/dashboard/path/[moduleId]/[lessonId]/[step]/page.tsx
- * Lesson player placeholder for Sprint R-Path-1.5.
- * Replaced by the real 7-step learning loop player in Sprint R-Path-2.
- */
-
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
@@ -13,138 +7,112 @@ import { LEARNING_STEPS } from '@/lib/pmp-path/types';
 import { ALL_TRACKS } from '@/lib/pmp-path/tracks';
 import { themeFor } from '@/lib/pmp-path/colors';
 
+import { PreviewStep } from '@/components/path/steps/PreviewStep';
+import { LearnStep } from '@/components/path/steps/LearnStep';
+import { VisualizeStep } from '@/components/path/steps/VisualizeStep';
+import { StepBodyPlaceholder } from '@/components/path/steps/StepBodyPlaceholder';
+
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
-  params: Promise<{
-    moduleId: string;
-    lessonId: string;
-    step: string;
-  }>;
+  params: Promise<{ moduleId: string; lessonId: string; step: string }>;
 }
 
 const STEP_LABELS: Record<LearningStep, { en: string; ar: string }> = {
-  preview:   { en: 'Preview',   ar: 'معاينة'  },
-  learn:     { en: 'Learn',     ar: 'تعلّم'   },
-  visualize: { en: 'Visualize', ar: 'تصوّر'   },
-  apply:     { en: 'Apply',     ar: 'تطبيق'   },
-  practice:  { en: 'Practice',  ar: 'تمرين'   },
-  explain:   { en: 'Explain',   ar: 'توضيح'   },
-  review:    { en: 'Review',    ar: 'مراجعة'  },
+  preview: { en: 'Preview', ar: 'معاينة' },
+  learn: { en: 'Learn', ar: 'تعلّم' },
+  visualize: { en: 'Visualize', ar: 'تصوّر' },
+  apply: { en: 'Apply', ar: 'تطبيق' },
+  practice: { en: 'Practice', ar: 'تمرين' },
+  explain: { en: 'Explain', ar: 'توضيح' },
+  review: { en: 'Review', ar: 'مراجعة' },
 };
 
-export default async function LessonPlayerPlaceholder({ params }: PageProps) {
+const FALLBACK_THEME = {
+  primary: '#7030A0',
+  pale: '#F5F4FF',
+  palest: '#F8F7FD',
+  textOnPale: '#3C3489',
+  textOnPrimary: '#FFFFFF',
+};
+
+export default async function LessonStepPage({ params }: PageProps) {
   const { moduleId, lessonId, step } = await params;
+  const currentStep = step.toLowerCase() as LearningStep;
+
+  if (!LEARNING_STEPS.includes(currentStep)) {
+    notFound();
+  }
+
   const cookieStore = await cookies();
   const locale: Locale = cookieStore.get('pmp_locale')?.value === 'ar' ? 'ar' : 'en';
   const isAr = locale === 'ar';
 
-  if (!(LEARNING_STEPS as readonly string[]).includes(step)) notFound();
-  const learningStep = step as LearningStep;
-
   let foundModule = null;
   let foundLesson = null;
-  let foundTrack = null;
-  for (const t of ALL_TRACKS) {
-    for (const phase of t.phases) {
-      const m = phase.modules.find((mod) => mod.id === moduleId);
-      if (m) {
-        foundModule = m;
-        foundTrack = t;
-        foundLesson = m.lessons.find((l) => l.id === lessonId) ?? null;
+
+  for (const track of ALL_TRACKS) {
+    for (const phase of track.phases) {
+      const module = phase.modules.find((m) => m.id === moduleId);
+      if (module) {
+        foundModule = module;
+        foundLesson = module.lessons.find((l) => l.id === lessonId) ?? null;
         break;
       }
     }
     if (foundModule) break;
   }
 
-  if (!foundModule || !foundLesson || !foundTrack) notFound();
+  if (!foundModule || !foundLesson) {
+    notFound();
+  }
 
-  const theme = themeFor(foundModule.phaseId);
-  const stepLabel = STEP_LABELS[learningStep][locale];
+  const theme = themeFor(foundModule.phaseId) || FALLBACK_THEME;
+  const stepLabel = STEP_LABELS[currentStep][locale];
 
   return (
-    <main
-      style={{ background: '#FAFAF9', minHeight: '100vh', padding: '24px' }}
-      dir={isAr ? 'rtl' : 'ltr'}
-    >
-      <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+    <main style={{ minHeight: '100vh', background: '#FAFAF8', paddingTop: '40px', paddingBottom: '60px' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', paddingLeft: '20px', paddingRight: '20px' }}>
         <Link
-          href={`/dashboard/path?track=${foundTrack.meta.id}`}
+          href="/dashboard/path"
           style={{
-            color: theme.textOnPale,
             fontSize: '13px',
+            color: theme.textOnPale,
             textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            marginBottom: '16px',
-            fontWeight: 500,
+            marginBottom: '20px',
+            display: 'inline-block',
           }}
         >
-          <span>{isAr ? '→' : '←'}</span>
-          <span>{isAr ? 'العودة إلى مساري PMP' : 'Back to My PMP Path'}</span>
+          ← {isAr ? 'العودة إلى مساري' : 'Back to My Path'}
         </Link>
+
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 700, color: '#1a1a1a', margin: '0 0 8px' }}>
+            {foundLesson.title[locale]}
+          </h1>
+          <p style={{ fontSize: '13px', color: '#999', margin: 0 }}>
+            {stepLabel} • {foundModule.id}
+          </p>
+        </div>
 
         <article
           style={{
             background: '#FFFFFF',
-            borderRadius: '16px',
-            padding: '32px',
-            border: '0.5px solid rgba(26,20,48,0.12)',
+            borderRadius: '14px',
+            padding: '28px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            border: '1px solid #E8E6E0',
           }}
         >
-          <span
-            style={{
-              display: 'inline-block',
-              padding: '4px 10px',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: 500,
-              background: theme.primary,
-              color: '#FFFFFF',
-              marginBottom: '12px',
-              letterSpacing: '0.02em',
-            }}
-          >
-            {foundModule.code} · {foundLesson.code} · {stepLabel}
-          </span>
-
-          <h1 style={{ fontSize: '24px', fontWeight: 500, margin: '0 0 8px', color: '#1A1430', lineHeight: 1.3 }}>
-            {foundLesson.title[locale]}
-          </h1>
-          <p style={{ fontSize: '14px', color: '#5E6078', margin: '0 0 24px', lineHeight: 1.6 }}>
-            {foundLesson.objective[locale]}
-          </p>
-
-          <div
-            style={{
-              background: theme.pale,
-              borderRadius: '12px',
-              padding: '20px',
-              borderInlineStart: '4px solid ' + theme.primary,
-            }}
-          >
-            <p
-              style={{
-                fontSize: '11px',
-                fontWeight: 500,
-                color: theme.textOnPale,
-                margin: '0 0 8px',
-                letterSpacing: '0.08em',
-              }}
-            >
-              {isAr ? 'قريباً' : 'COMING SOON'}
-            </p>
-            <p style={{ fontSize: '15px', color: theme.textOnPale, margin: '0 0 4px', lineHeight: 1.6, fontWeight: 500 }}>
-              {isAr ? 'مشغّل الدروس بحلقة التعلّم السبعية قيد التطوير' : 'The 7-step learning loop player is in development'}
-            </p>
-            <p style={{ fontSize: '13px', color: theme.textOnPale, margin: 0, lineHeight: 1.6, opacity: 0.85 }}>
-              {isAr
-                ? 'ستجد هنا قريباً الخطوات السبع: معاينة، تعلّم، تصوّر، تطبيق، تمرين، توضيح، ومراجعة. حافظ على مسارك في الوحدات الجاهزة حتى ذلك الحين.'
-                : 'You will soon see the seven learning steps here: Preview, Learn, Visualize, Apply, Practice, Explain, and Review. Stay on track with the modules in the meantime.'}
-            </p>
-          </div>
+          {currentStep === 'preview' ? (
+            <PreviewStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />
+          ) : currentStep === 'learn' ? (
+            <LearnStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />
+          ) : currentStep === 'visualize' ? (
+            <VisualizeStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />
+          ) : (
+            <StepBodyPlaceholder step={currentStep} lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />
+          )}
         </article>
       </div>
     </main>
