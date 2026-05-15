@@ -11,6 +11,7 @@ import { PreviewStep } from '@/components/path/steps/PreviewStep';
 import { LearnStep } from '@/components/path/steps/LearnStep';
 import { VisualizeStep } from '@/components/path/steps/VisualizeStep';
 import { StepBodyPlaceholder } from '@/components/path/steps/StepBodyPlaceholder';
+import { StepNavigation } from '@/components/path/StepNavigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,7 +86,7 @@ export default async function LessonStepPage({ params, searchParams }: PageProps
     <main style={{ minHeight: '100vh', background: '#FAFAF8', paddingTop: '40px', paddingBottom: '60px' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto', paddingLeft: '20px', paddingRight: '20px' }}>
         <Link
-          href="/dashboard/path"
+          href={`/dashboard/path?lang=${locale}`}
           style={{
             fontSize: '13px',
             color: theme.textOnPale,
@@ -105,6 +106,14 @@ export default async function LessonStepPage({ params, searchParams }: PageProps
             {stepLabel} • {foundModule.id}
           </p>
         </div>
+
+        <StepNavigation
+          moduleId={foundModule.id}
+          lessonId={foundLesson.id}
+          currentStep={currentStep}
+          locale={locale}
+          variant="top"
+        />
 
         <article
           style={{
