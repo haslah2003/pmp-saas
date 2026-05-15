@@ -6,6 +6,7 @@ import type { Locale, LearningStep } from '@/lib/pmp-path/types';
 import { LEARNING_STEPS } from '@/lib/pmp-path/types';
 import { ALL_TRACKS } from '@/lib/pmp-path/tracks';
 import { themeFor } from '@/lib/pmp-path/colors';
+import { frameworkFromModuleId, getLessonVideos } from '@/lib/pmp-path/videos.server';
 
 import { PreviewStep } from '@/components/path/steps/PreviewStep';
 import { LearnStep } from '@/components/path/steps/LearnStep';
@@ -81,6 +82,18 @@ export default async function LessonStepPage({ params, searchParams }: PageProps
 
   const theme = themeFor(foundModule.phaseId) || FALLBACK_THEME;
   const stepLabel = STEP_LABELS[currentStep][locale];
+  const framework = frameworkFromModuleId(foundModule.id);
+
+  const lessonVideos =
+    currentStep === 'learn'
+      ? await getLessonVideos({
+          framework,
+          moduleId: foundModule.id,
+          lessonId: foundLesson.id,
+          step: currentStep,
+          locale,
+        })
+      : [];
 
   return (
     <main style={{ minHeight: '100vh', background: '#FAFAF8', paddingTop: '40px', paddingBottom: '60px' }}>
@@ -127,7 +140,7 @@ export default async function LessonStepPage({ params, searchParams }: PageProps
           {currentStep === 'preview' ? (
             <PreviewStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />
           ) : currentStep === 'learn' ? (
-            <LearnStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />
+            <LearnStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} videos={lessonVideos} />
           ) : currentStep === 'visualize' ? (
             <VisualizeStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />
           ) : (

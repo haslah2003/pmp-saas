@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { Lesson, Locale, PhaseId } from '@/lib/pmp-path/types';
+import type { LessonVideo } from '@/lib/pmp-path/videos';
 import { themeFor } from '@/lib/pmp-path/colors';
 import { parseMarkdownSections, type MarkdownSection } from '@/lib/pmp-path/parseMarkdown';
 import { CollapsibleCapsule } from './CollapsibleCapsule';
@@ -10,6 +11,7 @@ interface Props {
   lesson: Lesson;
   phaseId: PhaseId;
   locale: Locale;
+  videos?: LessonVideo[];
 }
 
 const FALLBACK_THEME = {
@@ -65,7 +67,17 @@ function prepareLearnSections(sections: MarkdownSection[], locale: Locale): Mark
   }));
 }
 
-export function LearnStep({ lesson, phaseId, locale }: Props) {
+function formatDuration(seconds: number | null, locale: Locale) {
+  if (!seconds || seconds <= 0) return null;
+
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  const value = `${minutes}:${String(remainingSeconds).padStart(2, '0')}`;
+
+  return locale === 'ar' ? `${value} دقيقة` : `${value} min`;
+}
+
+export function LearnStep({ lesson, phaseId, locale, videos = [] }: Props) {
   const isAr = locale === 'ar';
   const theme = themeFor(phaseId) || FALLBACK_THEME;
   const [sections, setSections] = useState<MarkdownSection[]>([]);
@@ -73,6 +85,7 @@ export function LearnStep({ lesson, phaseId, locale }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const objective = isAr ? lesson.objective.ar : lesson.objective.en;
+  const hasVideos = videos.length > 0;
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -124,6 +137,100 @@ export function LearnStep({ lesson, phaseId, locale }: Props) {
 
   return (
     <div dir={isAr ? 'rtl' : 'ltr'}>
+      {hasVideos && (
+        <section
+          style={{
+            background: `linear-gradient(135deg, ${theme.palest}, #FFFFFF)`,
+            border: `1px solid ${theme.pale}`,
+            borderRadius: '16px',
+            padding: '20px',
+            marginBottom: '24px',
+          }}
+        >
+          <div style={{ marginBottom: '16px', textAlign: isAr ? 'right' : 'left' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: theme.pale,
+                color: theme.textOnPale,
+                borderRadius: '999px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: 700,
+                marginBottom: '10px',
+              }}
+            >
+              <span>▶</span>
+              <span>{isAr ? 'شاهد' : 'Watch'}</span>
+            </div>
+
+            <h2 style={{ margin: '0 0 8px', fontSize: '20px', color: '#1F1F1D' }}>
+              {isAr ? 'شرح فيديو قصير قبل التعمق في الدرس' : 'Short video explanation before the deep dive'}
+            </h2>
+
+            <p style={{ margin: 0, color: '#6B6B68', fontSize: '14px', lineHeight: 1.7 }}>
+              {isAr
+                ? 'ابدأ بمشاهدة الفكرة الأساسية، ثم انتقل إلى القراءة والتحليل المتقدم.'
+                : 'Start with the core idea, then continue into the structured explanation and advanced analysis.'}
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gap: '18px' }}>
+            {videos.map((video) => {
+              const duration = formatDuration(video.durationSeconds, locale);
+
+              return (
+                <div
+                  key={video.id}
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '14px',
+                    border: '1px solid #E8E6E0',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <video
+                    controls
+                    preload="metadata"
+                    poster={video.thumbnailUrl ?? undefined}
+                    style={{
+                      width: '100%',
+                      display: 'block',
+                      background: '#111111',
+                    }}
+                  >
+                    <source src={video.videoUrl} />
+                    {isAr
+                      ? 'متصفحك لا يدعم تشغيل الفيديو.'
+                      : 'Your browser does not support the video element.'}
+                  </video>
+
+                  <div style={{ padding: '14px 16px', textAlign: isAr ? 'right' : 'left' }}>
+                    <h3 style={{ margin: '0 0 6px', fontSize: '16px', color: '#1F1F1D' }}>
+                      {video.title}
+                    </h3>
+
+                    {video.description && (
+                      <p style={{ margin: '0 0 8px', color: '#6B6B68', fontSize: '13px', lineHeight: 1.6 }}>
+                        {video.description}
+                      </p>
+                    )}
+
+                    {duration && (
+                      <p style={{ margin: 0, color: '#999999', fontSize: '12px' }}>
+                        {isAr ? 'المدة' : 'Duration'}: {duration}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {loading && (
         <div style={{ background: '#FAFAF9', borderRadius: '8px', padding: '28px', textAlign: 'center' }}>
           <div style={{ fontSize: '20px', marginBottom: '10px' }}>⏳</div>
