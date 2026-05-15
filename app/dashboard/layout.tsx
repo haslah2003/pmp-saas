@@ -1,11 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import React from "react";
 import { DashboardLanguageWrapper } from "@/components/DashboardLanguageWrapper";
 import Sidebar from "@/components/Sidebar";
 import CompanionChat from "@/components/CompanionChat";
 import type { Locale } from "@/lib/i18n/translations";
 import { normalizeExamPath } from "@/lib/pmp/exam-paths";
+
+function normalizeLayoutLocale(value: unknown): Locale | null {
+  return value === "ar" || value === "en" ? value : null;
+}
 
 async function getBranding() {
   const supabase = await createClient();
@@ -14,6 +19,7 @@ async function getBranding() {
     .select("*")
     .eq("id", 1)
     .single();
+
   return data;
 }
 
@@ -23,7 +29,11 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -42,11 +52,14 @@ export default async function DashboardLayout({
   const isPremium = isAdmin || (sub && sub.plan !== "free" && sub.status === "active");
   const branding = await getBranding();
 
+  const headerStore = await headers();
+  const explicitLocale = normalizeLayoutLocale(headerStore.get("x-pmp-explicit-locale"));
+  const profileLocale = normalizeLayoutLocale(profile?.language);
+  const locale: Locale = explicitLocale ?? profileLocale ?? "en";
+
   const primaryColor = branding?.primary_color ?? "#1a2f5e";
   const siteName = branding?.site_name ?? "PMP Expert";
   const logoUrl = branding?.logo_url;
-  const locale = (profile?.language as Locale) || 'en';
-  const dir = locale === 'ar' ? 'rtl' : 'ltr';
   const activeFramework = normalizeExamPath(profile?.active_framework);
 
   const profileName = profile?.full_name || profile?.email || "User";
@@ -54,24 +67,20 @@ export default async function DashboardLayout({
 
   return (
     <DashboardLanguageWrapper initialLocale={locale}>
-      <div className="flex h-screen bg-gray-50" dir={dir}>
-        <Sidebar
-          logoUrl={logoUrl}
-          siteName={siteName}
-          primaryColor={primaryColor}
-          profileName={profileName}
-          profileInitial={profileInitial}
-          isAdmin={isAdmin}
-          isPremium={!!isPremium}
-          activeFramework={activeFramework}
-        />
+      <Sidebar
+        logoUrl={logoUrl}
+        siteName={siteName}
+        primaryColor={primaryColor}
+        profileName={profileName}
+        profileInitial={profileInitial}
+        isAdmin={isAdmin}
+        isPremium={!!isPremium}
+        activeFramework={activeFramework}
+      />
 
-        {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-8">{children}</main>
+      <main className="flex-1 overflow-y-auto p-8">{children}</main>
 
-        {/* PMP Companion */}
-        <CompanionChat />
-      </div>
+      <CompanionChat />
     </DashboardLanguageWrapper>
   );
 }

@@ -76,7 +76,8 @@ export function LanguageProvider({
         currentUrl.searchParams.set('lang', safeLocale)
         currentUrl.searchParams.delete('locale')
 
-        const nextHref = `${currentUrl.pathname}?${currentUrl.searchParams.toString()}${currentUrl.hash}`
+        const query = currentUrl.searchParams.toString()
+        const nextHref = `${currentUrl.pathname}${query ? `?${query}` : ''}${currentUrl.hash}`
 
         startTransition(() => {
           router.replace(nextHref, { scroll: false })
@@ -128,8 +129,10 @@ export function LanguageProvider({
 
 export function useLanguage() {
   const context = useContext(LanguageContext)
+
   if (!context) {
     throw new Error('useLanguage must be used within LanguageProvider')
   }
+
   return context
 }
