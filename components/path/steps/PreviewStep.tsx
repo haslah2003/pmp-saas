@@ -122,19 +122,26 @@ function SectionLabel({ children }: { children: ReactNode }) {
 function CheckItem({ children, isAr }: { children: ReactNode; isAr: boolean }) {
   return (
     <div
+      dir={isAr ? 'rtl' : 'ltr'}
       style={{
-        display: 'grid',
-        gridTemplateColumns: isAr ? '1fr 20px' : '20px 1fr',
+        display: 'flex',
+        alignItems: 'flex-start',
         gap: '10px',
-        alignItems: 'start',
         color: MUTED,
         fontSize: '14px',
         lineHeight: 1.65,
+        textAlign: isAr ? 'right' : 'left',
       }}
     >
-      {!isAr && <CheckCircle2 size={17} color={TEAL} style={{ marginTop: '3px' }} />}
-      <span>{children}</span>
-      {isAr && <CheckCircle2 size={17} color={TEAL} style={{ marginTop: '3px' }} />}
+      <CheckCircle2
+        size={17}
+        color={TEAL}
+        style={{
+          marginTop: '4px',
+          flex: '0 0 auto',
+        }}
+      />
+      <span style={{ flex: '1 1 auto' }}>{children}</span>
     </div>
   );
 }
