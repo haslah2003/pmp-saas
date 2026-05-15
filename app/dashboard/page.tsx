@@ -211,7 +211,7 @@ export default async function DashboardPage() {
   );
 
   const nextModuleTitle = isArabic ? "ماهية عقلية محترف إدارة المشاريع" : "What the PMP mindset is";
-  const nextModuleHref = "/dashboard/path/pmbok8-eco2026-F1/pmbok8-eco2026-F1.L1/preview";
+  const nextModuleHref = `/dashboard/path/pmbok8-eco2026-F1/pmbok8-eco2026-F1.L1/preview?lang=${locale}`;
 
   const missionTasks = [
     {

@@ -215,8 +215,9 @@ export function PreviewStep({ lesson, phaseId, locale }: Props) {
   const practiceMin = Math.max(5, Math.round(lesson.estimatedMinutes * 0.4));
   const reflectMin = Math.max(2, lesson.estimatedMinutes - readMin - visualizeMin - practiceMin);
 
-  const primaryCtaHref = `/dashboard/path/${moduleId}/${lesson.id}/learn`;
-  const practiceHref = `/dashboard/path/${moduleId}/${lesson.id}/practice`;
+  const localeQuery = `?lang=${locale}`;
+  const primaryCtaHref = `/dashboard/path/${moduleId}/${lesson.id}/learn${localeQuery}`;
+  const practiceHref = `/dashboard/path/${moduleId}/${lesson.id}/practice${localeQuery}`;
 
   const objectiveStatement = isAr
     ? 'تمييز اختيارات عقلية محترف إدارة المشاريع عن الاستجابات الإدارية التقليدية في أسئلة السيناريوهات.'

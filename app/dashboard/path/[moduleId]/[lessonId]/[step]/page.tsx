@@ -16,6 +16,7 @@ export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ moduleId: string; lessonId: string; step: string }>;
+  searchParams?: Promise<{ lang?: string | string[]; locale?: string | string[] }>;
 }
 
 const STEP_LABELS: Record<LearningStep, { en: string; ar: string }> = {
@@ -36,7 +37,12 @@ const FALLBACK_THEME = {
   textOnPrimary: '#FFFFFF',
 };
 
-export default async function LessonStepPage({ params }: PageProps) {
+function normalizeLocale(value: string | string[] | undefined | null): Locale | null {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return raw === 'ar' || raw === 'en' ? raw : null;
+}
+
+export default async function LessonStepPage({ params, searchParams }: PageProps) {
   const { moduleId, lessonId, step } = await params;
   const currentStep = step.toLowerCase() as LearningStep;
 
@@ -44,8 +50,13 @@ export default async function LessonStepPage({ params }: PageProps) {
     notFound();
   }
 
+  const query = await searchParams;
   const cookieStore = await cookies();
-  const locale: Locale = cookieStore.get('pmp_locale')?.value === 'ar' ? 'ar' : 'en';
+  const locale: Locale =
+    normalizeLocale(query?.lang) ??
+    normalizeLocale(query?.locale) ??
+    normalizeLocale(cookieStore.get('pmp_locale')?.value) ??
+    'en';
   const isAr = locale === 'ar';
 
   let foundModule = null;
