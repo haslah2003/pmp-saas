@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import type { MarkdownSection, MarkdownSubsection } from '@/lib/pmp-path/parseMarkdown';
+import type { Locale } from '@/lib/pmp-path/types';
 
 interface Props {
   section: MarkdownSection;
   sectionIndex: number;
+  locale: Locale;
 }
 
 function renderInlineMarkdown(text: string) {
@@ -24,14 +26,21 @@ function renderInlineMarkdown(text: string) {
   });
 }
 
-function TextBlock({ lines }: { lines: string[] }) {
+function TextBlock({ lines, isAr }: { lines: string[]; isAr: boolean }) {
   const cleaned = lines.filter((line, index, arr) => {
     if (line.trim()) return true;
     return arr[index - 1]?.trim() && arr[index + 1]?.trim();
   });
 
   return (
-    <div style={{ display: 'grid', gap: '12px' }}>
+    <div
+      style={{
+        display: 'grid',
+        gap: '12px',
+        direction: isAr ? 'rtl' : 'ltr',
+        textAlign: isAr ? 'right' : 'left',
+      }}
+    >
       {cleaned.map((line, index) => {
         const trimmed = line.trim();
 
@@ -45,15 +54,17 @@ function TextBlock({ lines }: { lines: string[] }) {
             <div
               key={`${trimmed}-${index}`}
               style={{
-                display: 'grid',
-                gridTemplateColumns: '18px 1fr',
+                display: 'flex',
+                flexDirection: 'row',
                 gap: '8px',
                 color: '#4A4A46',
                 fontSize: '15px',
                 lineHeight: 1.7,
+                direction: isAr ? 'rtl' : 'ltr',
+                textAlign: isAr ? 'right' : 'left',
               }}
             >
-              <span style={{ color: '#0E6F7E', fontWeight: 900 }}>•</span>
+              <span style={{ color: '#0E6F7E', fontWeight: 900, flexShrink: 0 }}>•</span>
               <span>{renderInlineMarkdown(bullet[1] ?? '')}</span>
             </div>
           );
@@ -67,6 +78,7 @@ function TextBlock({ lines }: { lines: string[] }) {
               color: '#4A4A46',
               fontSize: '15px',
               lineHeight: 1.75,
+              textAlign: isAr ? 'right' : 'left',
             }}
           >
             {renderInlineMarkdown(trimmed)}
@@ -79,15 +91,18 @@ function TextBlock({ lines }: { lines: string[] }) {
 
 function NestedCapsule({
   subsection,
+  isAr,
   defaultOpen = false,
 }: {
   subsection: MarkdownSubsection;
+  isAr: boolean;
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
     <div
+      dir={isAr ? 'rtl' : 'ltr'}
       style={{
         border: '1px solid #E8E6E0',
         borderRadius: '12px',
@@ -103,22 +118,24 @@ function NestedCapsule({
           width: '100%',
           border: 0,
           background: 'transparent',
-          padding: '14px 16px',
-          display: 'grid',
-          gridTemplateColumns: '22px 1fr',
-          gap: '10px',
-          alignItems: 'center',
-          textAlign: 'left',
+          padding: isAr ? '14px 52px 14px 16px' : '14px 16px 14px 52px',
+          position: 'relative',
+          textAlign: isAr ? 'right' : 'left',
           cursor: 'pointer',
+          minHeight: '48px',
         }}
       >
         <span
           style={{
             color: '#0E6F7E',
             fontSize: '15px',
-            transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+            transform: open ? 'translateY(-50%) rotate(90deg)' : 'translateY(-50%) rotate(0deg)',
             transition: 'transform 160ms ease',
             display: 'inline-block',
+            position: 'absolute',
+            top: '50%',
+            right: isAr ? '16px' : 'auto',
+            left: isAr ? 'auto' : '16px',
           }}
         >
           ▶
@@ -129,19 +146,21 @@ function NestedCapsule({
       </button>
 
       {open && (
-        <div style={{ padding: '0 16px 16px 48px' }}>
-          <TextBlock lines={subsection.content} />
+        <div style={{ padding: isAr ? '0 52px 16px 16px' : '0 16px 16px 52px' }}>
+          <TextBlock lines={subsection.content} isAr={isAr} />
         </div>
       )}
     </div>
   );
 }
 
-export function CollapsibleCapsule({ section, sectionIndex }: Props) {
+export function CollapsibleCapsule({ section, sectionIndex, locale }: Props) {
   const [open, setOpen] = useState(sectionIndex === 0);
+  const isAr = locale === 'ar';
 
   return (
     <section
+      dir={isAr ? 'rtl' : 'ltr'}
       style={{
         border: '1px solid #E3E0DA',
         borderRadius: '14px',
@@ -158,22 +177,24 @@ export function CollapsibleCapsule({ section, sectionIndex }: Props) {
           width: '100%',
           border: 0,
           background: '#FFFFFF',
-          padding: '18px 20px',
-          display: 'grid',
-          gridTemplateColumns: '24px 1fr',
-          gap: '12px',
-          alignItems: 'center',
-          textAlign: 'left',
+          padding: isAr ? '18px 56px 18px 20px' : '18px 20px 18px 56px',
+          position: 'relative',
+          textAlign: isAr ? 'right' : 'left',
           cursor: 'pointer',
+          minHeight: '58px',
         }}
       >
         <span
           style={{
             color: '#7030A0',
             fontSize: '17px',
-            transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+            transform: open ? 'translateY(-50%) rotate(90deg)' : 'translateY(-50%) rotate(0deg)',
             transition: 'transform 160ms ease',
             display: 'inline-block',
+            position: 'absolute',
+            top: '50%',
+            right: isAr ? '20px' : 'auto',
+            left: isAr ? 'auto' : '20px',
           }}
         >
           ▶
@@ -187,7 +208,7 @@ export function CollapsibleCapsule({ section, sectionIndex }: Props) {
         <div style={{ borderTop: '1px solid #EEECE7', padding: '18px 20px 22px' }}>
           {section.content.length > 0 && (
             <div style={{ marginBottom: section.subsections.length > 0 ? '18px' : 0 }}>
-              <TextBlock lines={section.content} />
+              <TextBlock lines={section.content} isAr={isAr} />
             </div>
           )}
 
@@ -197,6 +218,7 @@ export function CollapsibleCapsule({ section, sectionIndex }: Props) {
                 <NestedCapsule
                   key={subsection.id}
                   subsection={subsection}
+                  isAr={isAr}
                   defaultOpen={false}
                 />
               ))}

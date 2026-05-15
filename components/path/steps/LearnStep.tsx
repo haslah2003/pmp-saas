@@ -20,6 +20,51 @@ const FALLBACK_THEME = {
   textOnPrimary: '#FFFFFF',
 };
 
+const AR_SECTION_TITLES: Record<string, string> = {
+  overview: 'نظرة عامة',
+  'advanced analysis': 'تحليل متقدم',
+  'additional frameworks & models': 'أطر ونماذج إضافية',
+  'additional frameworks and models': 'أطر ونماذج إضافية',
+};
+
+function normalizeTitleKey(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[*#:`"'’]/g, '')
+    .replace(/[^a-z0-9\u0600-\u06FF&\s]+/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function localizeSectionTitle(title: string, locale: Locale) {
+  if (locale !== 'ar') return title;
+
+  return AR_SECTION_TITLES[normalizeTitleKey(title)] ?? title;
+}
+
+function cleanVisibleMarkdownHeading(line: string) {
+  const trimmed = line.trim();
+
+  if (/^#{1,6}\s+/.test(trimmed)) {
+    return trimmed.replace(/^#{1,6}\s+/, '').trim();
+  }
+
+  return line;
+}
+
+function prepareLearnSections(sections: MarkdownSection[], locale: Locale): MarkdownSection[] {
+  return sections.map((section) => ({
+    ...section,
+    title: localizeSectionTitle(section.title, locale),
+    content: section.content.map(cleanVisibleMarkdownHeading),
+    subsections: section.subsections.map((subsection) => ({
+      ...subsection,
+      title: localizeSectionTitle(subsection.title, locale),
+      content: subsection.content.map(cleanVisibleMarkdownHeading),
+    })),
+  }));
+}
+
 export function LearnStep({ lesson, phaseId, locale }: Props) {
   const isAr = locale === 'ar';
   const theme = themeFor(phaseId) || FALLBACK_THEME;
@@ -65,7 +110,7 @@ export function LearnStep({ lesson, phaseId, locale }: Props) {
         fullContent += decoder.decode();
 
         const parsedSections = parseMarkdownSections(fullContent);
-        setSections(parsedSections);
+        setSections(prepareLearnSections(parsedSections, locale));
       } catch (err) {
         console.error('LearnStep error:', err);
         setError(err instanceof Error ? err.message : 'Failed to load');
@@ -95,7 +140,7 @@ export function LearnStep({ lesson, phaseId, locale }: Props) {
       {!loading && !error && sections.length > 0 && (
         <div>
           {sections.map((section, index) => (
-            <CollapsibleCapsule key={section.id} section={section} sectionIndex={index} />
+            <CollapsibleCapsule key={section.id} section={section} sectionIndex={index} locale={locale} />
           ))}
         </div>
       )}
