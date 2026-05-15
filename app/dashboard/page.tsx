@@ -173,10 +173,6 @@ function dashboardLessonSummary(mod: DashboardCurriculumModule, isArabic: boolea
     : `${mod.lessons} lessons · ${dashboardDuration(mod.hours, false)}`;
 }
 
-function dashboardModuleHref(mod: DashboardCurriculumModule) {
-  return mod.slug ? `/dashboard/course/${mod.slug}` : "/dashboard/course";
-}
-
 
 function StatusBadge({ progress, isArabic }: { progress: number; isArabic: boolean }) {
   if (progress === 100) return (
@@ -214,9 +210,8 @@ export default async function DashboardPage() {
     Math.max(curriculumModules.length, 1)
   );
 
-  const nextModule = curriculumModules.find((module) => module.progress < 100) ?? curriculumModules[0];
-  const nextModuleTitle = nextModule ? localized(nextModule.title, locale) : localized(curriculum.heroTitle, locale);
-  const nextModuleHref = nextModule ? dashboardModuleHref(nextModule) : "/dashboard/course";
+  const nextModuleTitle = isArabic ? "ماهية عقلية محترف إدارة المشاريع" : "What the PMP mindset is";
+  const nextModuleHref = "/dashboard/path/pmbok8-eco2026-F1/pmbok8-eco2026-F1.L1/preview";
 
   const missionTasks = [
     {
@@ -385,7 +380,7 @@ export default async function DashboardPage() {
             {isArabic ? "لمحة عن مساري في PMP" : "My PMP Path Snapshot"}
           </h2>
         </div>
-        <Link href="/dashboard/course" className="text-sm font-bold text-violet-600 hover:text-violet-700">
+        <Link href="/dashboard/path" className="text-sm font-bold text-violet-600 hover:text-violet-700">
           {isArabic ? "عرض المسار الكامل" : "View full path"}
         </Link>
       </div>
@@ -417,7 +412,7 @@ export default async function DashboardPage() {
               return (
                 <Link
                   key={`${section.id}-${mod.id}`}
-                  href={dashboardModuleHref(mod)}
+                  href="/dashboard/path"
                   className="bg-white rounded-2xl border-2 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
                   style={{ borderColor: mod.progress > 0 ? mod.color : '#e5e7eb' }}
                 >

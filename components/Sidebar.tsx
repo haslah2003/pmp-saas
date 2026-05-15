@@ -21,7 +21,7 @@ const NAV_SECTIONS = [
     sectionKey: 'nav.learning' as const,
     items: [
       { href: '/dashboard', icon: '🎯', key: 'nav.today' as const },
-      { href: '/dashboard/course', icon: '🧭', key: 'nav.pmp_path' as const },
+      { href: '/dashboard/path', icon: '🧭', key: 'nav.pmp_path' as const },
       { href: '/dashboard/practice', icon: '✏️', key: 'nav.practice_lab' as const },
       { href: '/dashboard/exam', icon: '⏱️', key: 'nav.exam_simulator' as const },
       { href: '/dashboard/tutor', icon: '🤖', key: 'nav.ai_coach' as const },

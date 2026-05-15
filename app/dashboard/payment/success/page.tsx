@@ -120,7 +120,7 @@ const receiptId = params.get('receiptId')
             {/* CTA buttons */}
             <div className="space-y-2 pt-2">
               <Link
-                href="/dashboard/course"
+                href="/dashboard/path"
                 className={`block w-full bg-gradient-to-r ${gradient} text-white text-sm font-bold py-3 rounded-xl text-center hover:opacity-90 transition-opacity`}
               >
                 {receiptId && (
