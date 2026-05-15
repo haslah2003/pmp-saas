@@ -53,10 +53,10 @@ export default async function LessonStepPage({ params }: PageProps) {
 
   for (const track of ALL_TRACKS) {
     for (const phase of track.phases) {
-      const module = phase.modules.find((m) => m.id === moduleId);
-      if (module) {
-        foundModule = module;
-        foundLesson = module.lessons.find((l) => l.id === lessonId) ?? null;
+      const trackModule = phase.modules.find((m) => m.id === moduleId);
+      if (trackModule) {
+        foundModule = trackModule;
+        foundLesson = trackModule.lessons.find((l) => l.id === lessonId) ?? null;
         break;
       }
     }

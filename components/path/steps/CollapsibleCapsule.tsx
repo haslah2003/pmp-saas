@@ -1,115 +1,209 @@
 'use client';
 
 import { useState } from 'react';
-import type { MarkdownSection } from '@/lib/pmp-path/parseMarkdown';
+import type { MarkdownSection, MarkdownSubsection } from '@/lib/pmp-path/parseMarkdown';
 
 interface Props {
   section: MarkdownSection;
   sectionIndex: number;
 }
 
-const SECTION_ARROW_COLORS = ['#7030A0', '#1B6B7B', '#BA7517'];
-const SUBSECTION_ARROW_COLOR = '#1B6B7B';
+function renderInlineMarkdown(text: string) {
+  const parts = text.split(/(\*\*.+?\*\*)/g);
 
-export function CollapsibleCapsule({ section, sectionIndex }: Props) {
-  const [expanded, setExpanded] = useState(true);
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={`${part}-${index}`} style={{ fontWeight: 800, color: '#1F1F1F' }}>
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
 
-  const arrowColor = SECTION_ARROW_COLORS[sectionIndex % SECTION_ARROW_COLORS.length];
+    return <span key={`${part}-${index}`}>{part}</span>;
+  });
+}
+
+function TextBlock({ lines }: { lines: string[] }) {
+  const cleaned = lines.filter((line, index, arr) => {
+    if (line.trim()) return true;
+    return arr[index - 1]?.trim() && arr[index + 1]?.trim();
+  });
 
   return (
-    <div style={{ marginBottom: '16px' }}>
+    <div style={{ display: 'grid', gap: '12px' }}>
+      {cleaned.map((line, index) => {
+        const trimmed = line.trim();
+
+        if (!trimmed) {
+          return <div key={`space-${index}`} style={{ height: '4px' }} />;
+        }
+
+        const bullet = trimmed.match(/^[\-•]\s+(.+)$/);
+        if (bullet) {
+          return (
+            <div
+              key={`${trimmed}-${index}`}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '18px 1fr',
+                gap: '8px',
+                color: '#4A4A46',
+                fontSize: '15px',
+                lineHeight: 1.7,
+              }}
+            >
+              <span style={{ color: '#0E6F7E', fontWeight: 900 }}>•</span>
+              <span>{renderInlineMarkdown(bullet[1] ?? '')}</span>
+            </div>
+          );
+        }
+
+        return (
+          <p
+            key={`${trimmed}-${index}`}
+            style={{
+              margin: 0,
+              color: '#4A4A46',
+              fontSize: '15px',
+              lineHeight: 1.75,
+            }}
+          >
+            {renderInlineMarkdown(trimmed)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+function NestedCapsule({
+  subsection,
+  defaultOpen = false,
+}: {
+  subsection: MarkdownSubsection;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div
+      style={{
+        border: '1px solid #E8E6E0',
+        borderRadius: '12px',
+        background: open ? '#FFFFFF' : '#FAFAF9',
+        overflow: 'hidden',
+      }}
+    >
       <button
-        onClick={() => setExpanded(!expanded)}
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
         style={{
           width: '100%',
-          display: 'flex',
+          border: 0,
+          background: 'transparent',
+          padding: '14px 16px',
+          display: 'grid',
+          gridTemplateColumns: '22px 1fr',
+          gap: '10px',
           alignItems: 'center',
-          gap: '12px',
-          padding: '16px',
-          background: '#FAFAF9',
-          border: '1px solid #E5E5E3',
-          borderRadius: '8px',
+          textAlign: 'left',
           cursor: 'pointer',
-          fontSize: '15px',
-          fontWeight: 600,
-          color: '#1a1a1a',
-          transition: 'all 0.2s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = '#F5F3F0';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = '#FAFAF9';
         }}
       >
         <span
           style={{
-            fontSize: '16px',
-            color: arrowColor,
-            transition: 'transform 0.2s',
-            transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+            color: '#0E6F7E',
+            fontSize: '15px',
+            transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+            transition: 'transform 160ms ease',
             display: 'inline-block',
-            minWidth: '16px',
           }}
         >
           ▶
         </span>
-        <span>{section.title}</span>
+        <span style={{ fontSize: '15px', fontWeight: 800, color: '#1F1F1F' }}>
+          {subsection.title}
+        </span>
       </button>
 
-      {expanded && (
-        <div style={{ paddingLeft: '16px', marginTop: '12px' }}>
-          {section.baseContent && (
-            <p style={{ fontSize: '13px', color: '#4A4A48', lineHeight: 1.6, marginBottom: '12px' }}>
-              {section.baseContent}
-            </p>
-          )}
-
-          {section.subsections.map((sub) => (
-            <div key={sub.id} style={{ marginBottom: '12px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '8px',
-                  marginBottom: '6px',
-                }}
-              >
-                <span
-                  style={{
-                    color: SUBSECTION_ARROW_COLOR,
-                    fontSize: '12px',
-                    marginTop: '3px',
-                    minWidth: '12px',
-                  }}
-                >
-                  ▶
-                </span>
-                <span
-                  style={{
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: '#1a1a1a',
-                  }}
-                >
-                  {sub.title}
-                </span>
-              </div>
-              <p
-                style={{
-                  fontSize: '13px',
-                  color: '#4A4A48',
-                  lineHeight: 1.6,
-                  marginLeft: '20px',
-                  margin: '0 0 8px 20px',
-                }}
-              >
-                {sub.content}
-              </p>
-            </div>
-          ))}
+      {open && (
+        <div style={{ padding: '0 16px 16px 48px' }}>
+          <TextBlock lines={subsection.content} />
         </div>
       )}
     </div>
+  );
+}
+
+export function CollapsibleCapsule({ section, sectionIndex }: Props) {
+  const [open, setOpen] = useState(sectionIndex === 0);
+
+  return (
+    <section
+      style={{
+        border: '1px solid #E3E0DA',
+        borderRadius: '14px',
+        background: '#FFFFFF',
+        marginBottom: '16px',
+        overflow: 'hidden',
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        style={{
+          width: '100%',
+          border: 0,
+          background: '#FFFFFF',
+          padding: '18px 20px',
+          display: 'grid',
+          gridTemplateColumns: '24px 1fr',
+          gap: '12px',
+          alignItems: 'center',
+          textAlign: 'left',
+          cursor: 'pointer',
+        }}
+      >
+        <span
+          style={{
+            color: '#7030A0',
+            fontSize: '17px',
+            transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+            transition: 'transform 160ms ease',
+            display: 'inline-block',
+          }}
+        >
+          ▶
+        </span>
+        <span style={{ fontSize: '17px', fontWeight: 900, color: '#1F1F1F' }}>
+          {section.title}
+        </span>
+      </button>
+
+      {open && (
+        <div style={{ borderTop: '1px solid #EEECE7', padding: '18px 20px 22px' }}>
+          {section.content.length > 0 && (
+            <div style={{ marginBottom: section.subsections.length > 0 ? '18px' : 0 }}>
+              <TextBlock lines={section.content} />
+            </div>
+          )}
+
+          {section.subsections.length > 0 && (
+            <div style={{ display: 'grid', gap: '10px' }}>
+              {section.subsections.map((subsection) => (
+                <NestedCapsule
+                  key={subsection.id}
+                  subsection={subsection}
+                  defaultOpen={false}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   );
 }

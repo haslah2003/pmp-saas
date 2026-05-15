@@ -94,7 +94,7 @@ export function VisualizeStep({ lesson, phaseId, locale }: Props) {
     setExpanded(newExpanded);
   };
 
-  const renderNode = (nodeId: string, level: number = 0): JSX.Element => {
+  const renderNode = (nodeId: string, level: number = 0) => {
     const node = MINDMAP_NODES[nodeId];
     const isExpanded = expanded.has(nodeId);
     const hasChildren = node.children.length > 0;

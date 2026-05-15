@@ -41,9 +41,9 @@ export function LearnStep({ lesson, phaseId, locale }: Props) {
           credentials: 'include',
           body: JSON.stringify({
             sectionType: 'deepdive',
-            content: objective,
+            content: { heading: 'Lesson objective', content: objective },
             lessonTitle: isAr ? lesson.title.ar : lesson.title.en,
-            domain: 'People',
+            domain: 'business-environment',
             framework: 'pmbok8',
             language: locale,
           }),
