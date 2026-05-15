@@ -68,6 +68,23 @@ export function LanguageProvider({
         console.error('Language update request failed:', error)
       }
 
+      const currentUrl = new URL(window.location.href)
+      const hasExplicitLocale =
+        currentUrl.searchParams.has('lang') || currentUrl.searchParams.has('locale')
+
+      if (hasExplicitLocale) {
+        currentUrl.searchParams.set('lang', safeLocale)
+        currentUrl.searchParams.delete('locale')
+
+        const nextHref = `${currentUrl.pathname}?${currentUrl.searchParams.toString()}${currentUrl.hash}`
+
+        startTransition(() => {
+          router.replace(nextHref, { scroll: false })
+        })
+
+        return
+      }
+
       startTransition(() => {
         router.refresh()
       })
