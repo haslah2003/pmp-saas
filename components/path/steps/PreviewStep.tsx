@@ -220,19 +220,19 @@ export function PreviewStep({ lesson, phaseId, locale }: Props) {
   const practiceHref = `/dashboard/path/${moduleId}/${lesson.id}/practice${localeQuery}`;
 
   const objectiveStatement = isAr
-    ? 'تمييز اختيارات عقلية محترف إدارة المشاريع عن الاستجابات الإدارية التقليدية في أسئلة السيناريوهات.'
-    : 'Distinguish PMP mindset choices from traditional management responses in scenario-based exam questions.';
+    ? `حوّل موضوع "${title}" إلى حكم عملي يمكنك تطبيقه بثقة في أسئلة PMP المبنية على السيناريوهات.`
+    : `Turn "${title}" into practical judgment you can apply with confidence in PMP scenario questions.`;
 
   const subOutcomes = isAr
     ? [
-        'التعرّف على العلامات العملية لعقلية PMP في القرار والسلوك.',
-        'ربط المفهوم بسيناريوهات القيادة والخدمة والتكييف.',
-        'اكتشاف الإجابات الجذابة ظاهريًا ولكن غير المتوافقة مع منطق PMI.',
+        `فهم الفكرة المركزية في "${title}" ولماذا يمكن أن يختبرها PMI.`,
+        'ربط هدف الدرس بقرارات عملية، ومفاضلات مهنية، واستبعاد إجابات غير مناسبة.',
+        'اكتشاف الإجابات الجذابة ظاهريًا ولكن غير المتوافقة مع هدف الدرس ومنطق الامتحان.',
       ]
     : [
-        'Recognize the practical signals of the PMP mindset in decisions and behavior.',
-        'Connect the concept to leadership, servant-leadership, and tailoring scenarios.',
-        'Spot attractive-but-wrong answers that do not match PMI-style judgment.',
+        `Understand the core idea behind "${title}" and why PMI may test it.`,
+        'Connect the lesson objective to practical decisions, professional trade-offs, and answer elimination.',
+        'Spot attractive-but-wrong answers that conflict with the lesson objective and exam logic.',
       ];
 
   const activities = isAr
