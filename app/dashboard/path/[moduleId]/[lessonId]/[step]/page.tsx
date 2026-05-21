@@ -10,6 +10,7 @@ import { frameworkFromModuleId, getLessonVideos } from '@/lib/pmp-path/videos.se
 import { getApplyActivity } from '@/lib/pmp-path/apply-activities';
 import getPracticeActivity from '@/lib/pmp-path/practice-activities';
 import getExplainActivity from '@/lib/pmp-path/explain-activities';
+import getReviewActivity from '@/lib/pmp-path/review-activities';
 
 import { PreviewStep } from '@/components/path/steps/PreviewStep';
 import { LearnStep } from '@/components/path/steps/LearnStep';
@@ -18,6 +19,7 @@ import { StepBodyPlaceholder } from '@/components/path/steps/StepBodyPlaceholder
 import { ApplyStep } from '@/components/path/steps/ApplyStep';
 import { PracticeStep } from '@/components/path/steps/PracticeStep';
 import { ExplainStep } from '@/components/path/steps/ExplainStep';
+import { ReviewStep } from '@/components/path/steps/ReviewStep';
 import { StepNavigation } from '@/components/path/StepNavigation';
 
 export const dynamic = 'force-dynamic';
@@ -104,6 +106,7 @@ export default async function LessonStepPage({ params, searchParams }: PageProps
   const applyActivity = currentStep === 'apply' ? getApplyActivity(foundLesson.id) : null;
   const practiceActivity = currentStep === 'practice' ? getPracticeActivity(foundLesson.id) : null;
   const explainActivity = currentStep === 'explain' ? getExplainActivity(foundLesson.id) : null;
+  const reviewActivity = currentStep === 'review' ? getReviewActivity(foundLesson.id) : null;
 
   return (
     <main style={{ minHeight: '100vh', background: '#FAFAF8', paddingTop: '40px', paddingBottom: '60px' }}>
@@ -159,6 +162,8 @@ export default async function LessonStepPage({ params, searchParams }: PageProps
             <PracticeStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} activity={practiceActivity} />
           ) : currentStep === 'explain' ? (
             <ExplainStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} activity={explainActivity} />
+          ) : currentStep === 'review' ? (
+            <ReviewStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} activity={reviewActivity} />
           ) : (
             <StepBodyPlaceholder step={currentStep} lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />
           )}
