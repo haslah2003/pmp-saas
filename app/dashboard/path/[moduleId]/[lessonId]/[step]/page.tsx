@@ -136,6 +136,7 @@ export default async function LessonStepPage({ params, searchParams }: PageProps
         <StepNavigation
           moduleId={foundModule.id}
           lessonId={foundLesson.id}
+          trackId={foundModule.trackId}
           currentStep={currentStep}
           locale={locale}
           variant="top"

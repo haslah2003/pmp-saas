@@ -1,10 +1,12 @@
 import Link from 'next/link';
-import type { LearningStep, Locale } from '@/lib/pmp-path/types';
+import type { LearningStep, Locale, TrackId } from '@/lib/pmp-path/types';
 import { LEARNING_STEPS } from '@/lib/pmp-path/types';
+import { FinishLessonButton } from './FinishLessonButton';
 
 interface Props {
   moduleId: string;
   lessonId: string;
+  trackId: TrackId;
   currentStep: LearningStep;
   locale: Locale;
   variant?: 'top' | 'bottom';
@@ -27,6 +29,7 @@ function stepHref(moduleId: string, lessonId: string, step: LearningStep, locale
 export function StepNavigation({
   moduleId,
   lessonId,
+  trackId,
   currentStep,
   locale,
   variant = 'top',
@@ -147,21 +150,7 @@ export function StepNavigation({
                 : `Next: ${STEP_LABELS[nextStep][locale]}`}
             </Link>
           ) : (
-            <Link
-              href={`/dashboard/path?lang=${locale}`}
-              style={{
-                border: '1px solid #0F6E56',
-                background: '#0F6E56',
-                color: '#FFFFFF',
-                borderRadius: '12px',
-                padding: '10px 16px',
-                fontSize: '13px',
-                fontWeight: 900,
-                textDecoration: 'none',
-              }}
-            >
-              {isAr ? 'إنهاء الدرس' : 'Finish lesson'}
-            </Link>
+            <FinishLessonButton trackId={trackId} lessonId={lessonId} locale={locale} />
           )}
         </div>
       </div>
