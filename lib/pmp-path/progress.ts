@@ -7,6 +7,7 @@
 import type {
   LearningStep,
   LessonProgress,
+  LessonProgressSummary,
   LessonStatus,
   ModuleProgress,
   NextBestAction,
@@ -91,6 +92,62 @@ function deriveModuleProgress(
 
   const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
 
+  const lessonStatuses: LessonProgressSummary[] = lessons.map((lesson) => {
+    const p = progressByLessonId.get(lesson.id);
+
+    if (!isModuleUnlocked) {
+      return {
+        lessonId: lesson.id,
+        status: 'locked',
+        currentStep: null,
+        completedSteps: [],
+      };
+    }
+
+    if (p?.status === 'completed') {
+      return {
+        lessonId: lesson.id,
+        status: 'completed',
+        currentStep: null,
+        completedSteps: p.completedSteps?.length ? p.completedSteps : [...LEARNING_STEPS],
+      };
+    }
+
+    if (p?.status === 'needs_review') {
+      return {
+        lessonId: lesson.id,
+        status: 'needs_review',
+        currentStep: 'review',
+        completedSteps: p.completedSteps ?? [],
+      };
+    }
+
+    if (p?.status === 'in_progress') {
+      return {
+        lessonId: lesson.id,
+        status: 'current',
+        currentStep: p.currentStep ?? 'preview',
+        completedSteps: p.completedSteps ?? [],
+      };
+    }
+
+    if (lesson.id === firstUnfinishedLessonId && status !== 'completed') {
+      return {
+        lessonId: lesson.id,
+        status: 'current',
+        currentStep: firstUnfinishedStep ?? 'preview',
+        completedSteps: firstUnfinishedCompletedSteps,
+      };
+    }
+
+    return {
+      lessonId: lesson.id,
+      status: 'not_started',
+      currentStep: null,
+      completedSteps: [],
+    };
+  });
+
   return {
     moduleId: '',
     status,
@@ -99,6 +156,7 @@ function deriveModuleProgress(
     percent,
     nextLessonId: firstUnfinishedLessonId,
     nextStep: firstUnfinishedStep,
+    lessonStatuses,
     completedSteps: status === 'completed' ? [...LEARNING_STEPS] : firstUnfinishedCompletedSteps,
   };
 }

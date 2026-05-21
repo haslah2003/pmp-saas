@@ -157,6 +157,20 @@ export interface LessonProgress {
   weakPointTags: string[];
 }
 
+export type LessonProgressVisibilityStatus =
+  | 'locked'
+  | 'not_started'
+  | 'current'
+  | 'needs_review'
+  | 'completed';
+
+export interface LessonProgressSummary {
+  lessonId: string;
+  status: LessonProgressVisibilityStatus;
+  currentStep: LearningStep | null;
+  completedSteps: LearningStep[];
+}
+
 export interface ModuleProgress {
   moduleId: string;
   status: LessonStatus;
@@ -165,6 +179,7 @@ export interface ModuleProgress {
   percent: number;
   nextLessonId: string | null;
   nextStep: LearningStep | null;
+  lessonStatuses: LessonProgressSummary[];
   completedSteps: LearningStep[];
 }
 

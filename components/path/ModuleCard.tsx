@@ -177,6 +177,65 @@ export function ModuleCard({ module: mod, progress, locale, isUpNext }: Props) {
     } as const;
   })();
 
+  const lessonStatusById = new Map(
+    progress.lessonStatuses.map((item) => [item.lessonId, item])
+  );
+
+  const showLessonProgress =
+    (isUpNext ||
+      status === 'in_progress' ||
+      status === 'needs_review' ||
+      status === 'completed') &&
+    progress.lessonStatuses.length > 0;
+
+  const lessonStatusLabel = (
+    value: ModuleProgress['lessonStatuses'][number]['status']
+  ) => {
+    if (value === 'completed') return isAr ? 'مكتمل' : 'Completed';
+    if (value === 'current') return isAr ? 'الحالي' : 'Current';
+    if (value === 'needs_review') return isAr ? 'تحتاج مراجعة' : 'Needs review';
+    if (value === 'locked') return isAr ? 'مقفل' : 'Locked';
+    return isAr ? 'لم يبدأ' : 'Not started';
+  };
+
+  const lessonStatusStyle = (
+    value: ModuleProgress['lessonStatuses'][number]['status']
+  ) => {
+    if (value === 'current') {
+      return {
+        background: theme.primary,
+        color: '#FFFFFF',
+        border: 'none',
+      } as const;
+    }
+    if (value === 'completed') {
+      return {
+        background: theme.pale,
+        color: theme.textOnPale,
+        border: 'none',
+      } as const;
+    }
+    if (value === 'needs_review') {
+      return {
+        background: '#FFF7E6',
+        color: '#854F0B',
+        border: 'none',
+      } as const;
+    }
+    if (value === 'locked') {
+      return {
+        background: 'transparent',
+        color: '#5E6078',
+        border: '0.5px solid rgba(26,20,48,0.15)',
+      } as const;
+    }
+    return {
+      background: '#F8F7FB',
+      color: '#5E6078',
+      border: '0.5px solid rgba(26,20,48,0.08)',
+    } as const;
+  };
+
   const buttonInner = (
     <span
       className="inline-flex items-center"
@@ -269,6 +328,68 @@ export function ModuleCard({ module: mod, progress, locale, isUpNext }: Props) {
           completedSteps={progress.completedSteps}
           locale={locale}
         />
+      )}
+
+      {/* Lesson-level progress — read-only, keeps one CTA per module */}
+      {showLessonProgress && (
+        <div
+          role="list"
+          aria-label={isAr ? 'حالة الدروس' : 'Lesson progress'}
+          style={{
+            marginTop: '10px',
+            border: '0.5px solid rgba(26,20,48,0.10)',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            background: '#FCFBFF',
+          }}
+        >
+          {mod.lessons.map((lesson, index) => {
+            const lessonProgress = lessonStatusById.get(lesson.id);
+            const lessonStatus = lessonProgress?.status ?? 'not_started';
+            const badgeStyle = lessonStatusStyle(lessonStatus);
+
+            return (
+              <div
+                key={lesson.id}
+                role="listitem"
+                className="flex items-center"
+                style={{
+                  justifyContent: 'space-between',
+                  gap: '10px',
+                  padding: '7px 9px',
+                  borderTop:
+                    index === 0 ? 'none' : '0.5px solid rgba(26,20,48,0.08)',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '12px',
+                    color: '#1A1430',
+                    lineHeight: 1.4,
+                    minWidth: 0,
+                  }}
+                >
+                  <b style={{ fontWeight: 600 }}>{lesson.code}</b>
+                  <span style={{ color: '#8B8DA3' }}> · </span>
+                  <span>{lesson.title[locale]}</span>
+                </span>
+
+                <span
+                  style={{
+                    flex: '0 0 auto',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    padding: '3px 8px',
+                    borderRadius: '999px',
+                    ...badgeStyle,
+                  }}
+                >
+                  {lessonStatusLabel(lessonStatus)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {/* Footer row: stats + single CTA */}
