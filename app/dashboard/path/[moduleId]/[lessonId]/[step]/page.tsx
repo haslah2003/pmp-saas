@@ -8,12 +8,14 @@ import { ALL_TRACKS } from '@/lib/pmp-path/tracks';
 import { themeFor } from '@/lib/pmp-path/colors';
 import { frameworkFromModuleId, getLessonVideos } from '@/lib/pmp-path/videos.server';
 import { getApplyActivity } from '@/lib/pmp-path/apply-activities';
+import getPracticeActivity from '@/lib/pmp-path/practice-activities';
 
 import { PreviewStep } from '@/components/path/steps/PreviewStep';
 import { LearnStep } from '@/components/path/steps/LearnStep';
 import { VisualizeStep } from '@/components/path/steps/VisualizeStep';
 import { StepBodyPlaceholder } from '@/components/path/steps/StepBodyPlaceholder';
 import { ApplyStep } from '@/components/path/steps/ApplyStep';
+import { PracticeStep } from '@/components/path/steps/PracticeStep';
 import { StepNavigation } from '@/components/path/StepNavigation';
 
 export const dynamic = 'force-dynamic';
@@ -98,6 +100,7 @@ export default async function LessonStepPage({ params, searchParams }: PageProps
       : [];
 
   const applyActivity = currentStep === 'apply' ? getApplyActivity(foundLesson.id) : null;
+  const practiceActivity = currentStep === 'practice' ? getPracticeActivity(foundLesson.id) : null;
 
   return (
     <main style={{ minHeight: '100vh', background: '#FAFAF8', paddingTop: '40px', paddingBottom: '60px' }}>
@@ -149,6 +152,8 @@ export default async function LessonStepPage({ params, searchParams }: PageProps
             <VisualizeStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />
           ) : currentStep === 'apply' ? (
             <ApplyStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} activity={applyActivity} />
+          ) : currentStep === 'practice' ? (
+            <PracticeStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} activity={practiceActivity} />
           ) : (
             <StepBodyPlaceholder step={currentStep} lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />
           )}
