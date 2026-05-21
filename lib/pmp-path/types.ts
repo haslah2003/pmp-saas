@@ -165,6 +165,7 @@ export interface ModuleProgress {
   percent: number;
   nextLessonId: string | null;
   nextStep: LearningStep | null;
+  completedSteps: LearningStep[];
 }
 
 export interface PhaseProgress {

@@ -40,7 +40,7 @@ function computeCta(mp: ModuleProgress, mod: Module, locale: Locale): Cta {
   if (mp.status === 'completed') {
     return {
       label: isAr ? 'إعادة المراجعة' : 'Review again',
-      href: `/dashboard/path/${mod.id}/${mod.lessons[0].id}/review`,
+      href: `/dashboard/path/${mod.id}/${mod.lessons[0].id}/review?lang=${locale}`,
       disabled: false,
       variant: 'done',
       icon: 'check',
@@ -50,8 +50,10 @@ function computeCta(mp: ModuleProgress, mod: Module, locale: Locale): Cta {
   // 3. In progress → resume CTA
   if (mp.status === 'in_progress' && mp.nextLessonId) {
     return {
-      label: isAr ? 'استكمل الدرس' : 'Resume lesson',
-      href: `/dashboard/path/${mod.id}/${mp.nextLessonId}/${mp.nextStep ?? 'preview'}`,
+      label: mp.lessonsCompleted > 0 && (mp.nextStep ?? 'preview') === 'preview'
+        ? isAr ? 'تابع الدرس التالي' : 'Continue next lesson'
+        : isAr ? 'استكمل الدرس' : 'Resume lesson',
+      href: `/dashboard/path/${mod.id}/${mp.nextLessonId}/${mp.nextStep ?? 'preview'}?lang=${locale}`,
       disabled: false,
       variant: 'primary',
       icon: 'arrow',
@@ -62,7 +64,7 @@ function computeCta(mp: ModuleProgress, mod: Module, locale: Locale): Cta {
   if (mp.status === 'needs_review' && mp.nextLessonId) {
     return {
       label: isAr ? 'راجع نقطة الضعف' : 'Review weak point',
-      href: `/dashboard/path/${mod.id}/${mp.nextLessonId}/review`,
+      href: `/dashboard/path/${mod.id}/${mp.nextLessonId}/review?lang=${locale}`,
       disabled: false,
       variant: 'primary',
       icon: 'refresh',
@@ -72,7 +74,7 @@ function computeCta(mp: ModuleProgress, mod: Module, locale: Locale): Cta {
   // 5. Not started → start CTA
   return {
     label: isAr ? 'ابدأ الوحدة' : 'Start module',
-    href: `/dashboard/path/${mod.id}/${mod.lessons[0].id}/preview`,
+    href: `/dashboard/path/${mod.id}/${mod.lessons[0].id}/preview?lang=${locale}`,
     disabled: false,
     variant: 'primary',
     icon: 'arrow',
@@ -259,12 +261,12 @@ export function ModuleCard({ module: mod, progress, locale, isUpNext }: Props) {
         </p>
       )}
 
-      {/* 7-step strip — only when active or up-next */}
-      {(isUpNext || status === 'in_progress' || status === 'needs_review') && (
+      {/* 7-step strip — visible when active, review-needed, or completed */}
+      {(isUpNext || status === 'in_progress' || status === 'needs_review' || status === 'completed') && (
         <SevenStepStrip
           phaseId={mod.phaseId}
-          currentStep={progress.nextStep}
-          completedSteps={[]}
+          currentStep={status === 'completed' ? null : progress.nextStep}
+          completedSteps={progress.completedSteps}
           locale={locale}
         />
       )}

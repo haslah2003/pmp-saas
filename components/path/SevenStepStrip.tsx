@@ -35,13 +35,16 @@ export function SevenStepStrip({
   const theme = themeFor(phaseId);
   const isAr = locale === 'ar';
   const loopLabel = isAr ? 'الحلقة' : 'LOOP';
-  const currentStepLabel = currentStep
-    ? STEP_LABELS[currentStep][locale]
-    : STEP_LABELS.preview[locale];
+  const isComplete = LEARNING_STEPS.every((step) => completedSteps.includes(step));
+  const currentStepLabel = isComplete
+    ? isAr ? 'مكتملة' : 'Complete'
+    : currentStep
+      ? STEP_LABELS[currentStep][locale]
+      : STEP_LABELS.preview[locale];
 
   const stepState = (step: LearningStep): 'done' | 'current' | 'upcoming' => {
     if (completedSteps.includes(step)) return 'done';
-    if (step === currentStep) return 'current';
+    if (!isComplete && step === currentStep) return 'current';
     return 'upcoming';
   };
 

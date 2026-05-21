@@ -43,6 +43,7 @@ function deriveModuleProgress(
   let completed = 0;
   let firstUnfinishedLessonId: string | null = null;
   let firstUnfinishedStep: LearningStep | null = null;
+  let firstUnfinishedCompletedSteps: LearningStep[] = [];
   let hasInProgress = false;
   let hasNeedsReview = false;
 
@@ -52,6 +53,7 @@ function deriveModuleProgress(
       if (firstUnfinishedLessonId === null) {
         firstUnfinishedLessonId = lesson.id;
         firstUnfinishedStep = 'preview';
+        firstUnfinishedCompletedSteps = [];
       }
     } else if (p.status === 'completed') {
       completed++;
@@ -60,12 +62,14 @@ function deriveModuleProgress(
       if (firstUnfinishedLessonId === null) {
         firstUnfinishedLessonId = lesson.id;
         firstUnfinishedStep = p.currentStep ?? 'preview';
+        firstUnfinishedCompletedSteps = p.completedSteps ?? [];
       }
     } else if (p.status === 'needs_review') {
       hasNeedsReview = true;
       if (firstUnfinishedLessonId === null) {
         firstUnfinishedLessonId = lesson.id;
         firstUnfinishedStep = 'review';
+        firstUnfinishedCompletedSteps = p.completedSteps ?? [];
       }
     }
   }
@@ -95,6 +99,7 @@ function deriveModuleProgress(
     percent,
     nextLessonId: firstUnfinishedLessonId,
     nextStep: firstUnfinishedStep,
+    completedSteps: status === 'completed' ? [...LEARNING_STEPS] : firstUnfinishedCompletedSteps,
   };
 }
 

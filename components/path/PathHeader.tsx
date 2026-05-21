@@ -59,12 +59,14 @@ export function PathHeader({
   const ctaHref = (() => {
     if (nextBestAction.kind === 'path_complete') return null;
     if (!nextBestAction.lessonId) return null;
-    return `/dashboard/path/${nextBestAction.moduleId}/${nextBestAction.lessonId}/${nextBestAction.step}`;
+    return `/dashboard/path/${nextBestAction.moduleId}/${nextBestAction.lessonId}/${nextBestAction.step}?lang=${locale}`;
   })();
 
   const ctaLabel = (() => {
     if (nextBestAction.kind === 'resume_lesson')
-      return isAr ? 'استكمل الدرس' : 'Resume lesson';
+      return nextBestAction.step === 'preview'
+        ? isAr ? 'تابع الدرس التالي' : 'Continue next lesson'
+        : isAr ? 'استكمل الدرس' : 'Resume lesson';
     if (nextBestAction.kind === 'review_lesson')
       return isAr ? 'راجع نقطة الضعف' : 'Review weak point';
     if (nextBestAction.kind === 'start_module')
