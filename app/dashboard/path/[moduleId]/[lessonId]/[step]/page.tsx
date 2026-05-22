@@ -7,6 +7,7 @@ import { LEARNING_STEPS } from '@/lib/pmp-path/types';
 import { ALL_TRACKS } from '@/lib/pmp-path/tracks';
 import { themeFor } from '@/lib/pmp-path/colors';
 import { frameworkFromModuleId, getLessonVideos } from '@/lib/pmp-path/videos.server';
+import { getApprovedLessonDeepDive } from '@/lib/pmp-path/deep-dives.server';
 import { getApplyActivity } from '@/lib/pmp-path/apply-activities';
 import getPracticeActivity from '@/lib/pmp-path/practice-activities';
 import getExplainActivity from '@/lib/pmp-path/explain-activities';
@@ -193,6 +194,18 @@ export default async function LessonStepPage({ params, searchParams }: PageProps
         })
       : [];
 
+  const canonicalLearnContent =
+    currentStep === 'learn'
+      ? await getApprovedLessonDeepDive({
+          trackId: foundModule.trackId,
+          framework,
+          moduleId: foundModule.id,
+          lessonId: foundLesson.id,
+          step: currentStep,
+          locale,
+        })
+      : null;
+
   const applyActivity = currentStep === 'apply' ? getApplyActivity(foundLesson.id) : null;
   const practiceActivity = currentStep === 'practice' ? getPracticeActivity(foundLesson.id) : null;
   const explainActivity = currentStep === 'explain' ? getExplainActivity(foundLesson.id) : null;
@@ -367,7 +380,13 @@ export default async function LessonStepPage({ params, searchParams }: PageProps
           {currentStep === 'preview' ? (
             <PreviewStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />
           ) : currentStep === 'learn' ? (
-            <LearnStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} videos={lessonVideos} />
+            <LearnStep
+              lesson={foundLesson}
+              phaseId={foundModule.phaseId}
+              locale={locale}
+              videos={lessonVideos}
+              canonicalContentMarkdown={canonicalLearnContent?.contentMarkdown ?? null}
+            />
           ) : currentStep === 'visualize' ? (
             <VisualizeStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />
           ) : currentStep === 'apply' ? (

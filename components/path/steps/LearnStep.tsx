@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Lesson, Locale, PhaseId } from '@/lib/pmp-path/types';
 import type { LessonVideo } from '@/lib/pmp-path/videos';
 import { themeFor } from '@/lib/pmp-path/colors';
@@ -12,6 +12,7 @@ interface Props {
   phaseId: PhaseId;
   locale: Locale;
   videos?: LessonVideo[];
+  canonicalContentMarkdown?: string | null;
 }
 
 const FALLBACK_THEME = {
@@ -77,11 +78,17 @@ function formatDuration(seconds: number | null, locale: Locale) {
   return locale === 'ar' ? `${value} دقيقة` : `${value} min`;
 }
 
-export function LearnStep({ lesson, phaseId, locale, videos = [] }: Props) {
+export function LearnStep({ lesson, phaseId, locale, videos = [], canonicalContentMarkdown = null }: Props) {
   const isAr = locale === 'ar';
   const theme = themeFor(phaseId) || FALLBACK_THEME;
-  const [sections, setSections] = useState<MarkdownSection[]>([]);
-  const [loading, setLoading] = useState(true);
+  const canonicalSections = useMemo(() => {
+    if (!canonicalContentMarkdown?.trim()) return [];
+
+    return prepareLearnSections(parseMarkdownSections(canonicalContentMarkdown), locale);
+  }, [canonicalContentMarkdown, locale]);
+
+  const [sections, setSections] = useState<MarkdownSection[]>(canonicalSections);
+  const [loading, setLoading] = useState(canonicalSections.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const objective = isAr ? lesson.objective.ar : lesson.objective.en;
@@ -119,6 +126,13 @@ export function LearnStep({ lesson, phaseId, locale, videos = [] }: Props) {
       ];
 
   useEffect(() => {
+    if (canonicalContentMarkdown?.trim()) {
+      setSections(canonicalSections);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     const fetchContent = async () => {
       try {
         setLoading(true);
@@ -164,7 +178,7 @@ export function LearnStep({ lesson, phaseId, locale, videos = [] }: Props) {
     };
 
     fetchContent();
-  }, [lesson, locale, objective, isAr]);
+  }, [lesson, locale, objective, isAr, canonicalContentMarkdown, canonicalSections]);
 
   return (
     <div dir={isAr ? 'rtl' : 'ltr'}>
