@@ -8,13 +8,11 @@ import {
   BookOpen,
   Calculator,
   CheckCircle2,
-  ClipboardList,
   FileText,
   Lightbulb,
   MessageCircle,
   PencilLine,
   PlayCircle,
-  ShieldCheck,
   Target,
 } from 'lucide-react';
 
@@ -45,61 +43,6 @@ const FAINT = '#9CA3AF';
 
 function getModuleIdFromLessonId(lessonId: string) {
   return lessonId.includes('.') ? lessonId.replace(/\.[^.]+$/, '') : lessonId;
-}
-
-function getPhaseLabel(phaseId: PhaseId, locale: Locale) {
-  const labels: Record<PhaseId, { en: string; ar: string }> = {
-    foundation: { en: 'Foundation', ar: 'التأسيس' },
-    mastery: { en: 'Mastery', ar: 'الإتقان' },
-    integration: { en: 'Integration', ar: 'الدمج' },
-    simulation: { en: 'Simulation', ar: 'المحاكاة' },
-  };
-
-  return labels[phaseId][locale];
-}
-
-function getMissionType(phaseId: PhaseId, locale: Locale) {
-  const labels: Record<PhaseId, { en: string; ar: string }> = {
-    foundation: { en: 'Concept lesson', ar: 'درس مفاهيمي' },
-    mastery: { en: 'Domain mastery', ar: 'إتقان المجال' },
-    integration: { en: 'Scenario application', ar: 'تطبيق سيناريوهات' },
-    simulation: { en: 'Exam rehearsal', ar: 'محاكاة الامتحان' },
-  };
-
-  return labels[phaseId][locale];
-}
-
-function MetaPill({
-  children,
-  tone = 'neutral',
-}: {
-  children: ReactNode;
-  tone?: 'teal' | 'purple' | 'amber' | 'neutral';
-}) {
-  const toneStyle = {
-    teal: { background: TEAL_SOFT, color: TEAL_DARK },
-    purple: { background: PURPLE_SOFT, color: PURPLE_DARK },
-    amber: { background: AMBER_SOFT, color: AMBER_DARK },
-    neutral: { background: SURFACE_SOFT, color: MUTED },
-  }[tone];
-
-  return (
-    <span
-      style={{
-        ...toneStyle,
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '6px',
-        borderRadius: '999px',
-        padding: '5px 11px',
-        fontSize: '12px',
-        fontWeight: 700,
-        lineHeight: 1,
-      }}
-    >
-      {children}
-    </span>
-  );
 }
 
 function SectionLabel({ children }: { children: ReactNode }) {
@@ -203,7 +146,7 @@ function ToolkitChip({
   );
 }
 
-export function PreviewStep({ lesson, phaseId, locale }: Props) {
+export function PreviewStep({ lesson, locale }: Props) {
   const isAr = locale === 'ar';
   const moduleId = getModuleIdFromLessonId(lesson.id);
   const title = lesson.title[locale];
@@ -252,39 +195,7 @@ export function PreviewStep({ lesson, phaseId, locale }: Props) {
   return (
     <div dir={isAr ? 'rtl' : 'ltr'} style={{ display: 'grid', gap: '26px' }}>
       <section style={{ borderBottom: `1px dashed ${BORDER}`, paddingBottom: '24px' }}>
-        <SectionLabel>{isAr ? '١ · هوية المهمة' : '1 · Mission identity'}</SectionLabel>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '18px' }}>
-          <MetaPill tone="teal">
-            <Target size={14} />
-            {getPhaseLabel(phaseId, locale)}
-          </MetaPill>
-          <MetaPill tone="purple">
-            <ClipboardList size={14} />
-            {isAr ? 'ECO 2026 · جاهزية الامتحان' : 'ECO 2026 · Exam readiness'}
-          </MetaPill>
-          <MetaPill tone="amber">
-            <ShieldCheck size={14} />
-            {getMissionType(phaseId, locale)}
-          </MetaPill>
-          <MetaPill>
-            <Brain size={14} />
-            {isAr ? 'مهارات القوة والحكم المهني' : 'Power skills & judgment'}
-          </MetaPill>
-        </div>
-
-        <h2 style={{ margin: '0 0 8px', color: TEXT, fontSize: '26px', fontWeight: 950, lineHeight: 1.15 }}>
-          {title}
-        </h2>
-        <p style={{ margin: 0, color: MUTED, fontSize: '14px', lineHeight: 1.7 }}>
-          {isAr
-            ? `مهمة ${lesson.code} · ${lesson.estimatedMinutes} دقيقة · ${lesson.practiceQuestionCount} أسئلة تمرين`
-            : `Mission ${lesson.code} · ${lesson.estimatedMinutes} min · ${lesson.practiceQuestionCount} practice questions`}
-        </p>
-      </section>
-
-      <section style={{ borderBottom: `1px dashed ${BORDER}`, paddingBottom: '24px' }}>
-        <SectionLabel>{isAr ? '٢ · عقد التعلم' : '2 · Learning contract'}</SectionLabel>
+        <SectionLabel>{isAr ? '١ · عقد التعلم' : '1 · Learning contract'}</SectionLabel>
 
         <p style={{ margin: '0 0 8px', color: FAINT, fontSize: '13px', fontWeight: 800 }}>
           {isAr ? 'بنهاية هذه المهمة، ستكون قادرًا على:' : 'By the end of this mission, you will be able to:'}
@@ -329,7 +240,7 @@ export function PreviewStep({ lesson, phaseId, locale }: Props) {
       </section>
 
       <section style={{ borderBottom: `1px dashed ${BORDER}`, paddingBottom: '24px' }}>
-        <SectionLabel>{isAr ? `٣ · خطة ${lesson.estimatedMinutes} دقيقة` : `3 · Your ${lesson.estimatedMinutes}-minute plan`}</SectionLabel>
+        <SectionLabel>{isAr ? `٢ · خطة ${lesson.estimatedMinutes} دقيقة` : `2 · Your ${lesson.estimatedMinutes}-minute plan`}</SectionLabel>
 
         <div
           style={{
@@ -378,7 +289,7 @@ export function PreviewStep({ lesson, phaseId, locale }: Props) {
       </section>
 
       <section>
-        <SectionLabel>{isAr ? '٤ · السياق والانطلاق' : '4 · Context & launch'}</SectionLabel>
+        <SectionLabel>{isAr ? '٣ · السياق والانطلاق' : '3 · Context & launch'}</SectionLabel>
 
         <div
           style={{
@@ -404,8 +315,8 @@ export function PreviewStep({ lesson, phaseId, locale }: Props) {
           </p>
           <p style={{ margin: 0, color: AMBER_DARK, fontSize: '14px', lineHeight: 1.7 }}>
             {isAr
-              ? 'هذه المهمة تبني نمط الحكم المهني الذي يظهر كثيرًا في أسئلة السيناريوهات: اختيار الاستجابة التي تحمي القيمة، وتخدم أصحاب المصلحة، وتوازن بين القيادة والحوكمة.'
-              : 'This mission builds the judgment pattern behind many situational PMP questions: choosing the response that protects value, serves stakeholders, and balances leadership with governance.'}
+              ? `هذه المهمة تساعدك على تحويل "${title}" من معلومة نظرية إلى حكم امتحاني عملي: فهم المطلوب، استبعاد الإجابات الضعيفة، واختيار التصرف الأكثر مهنية.`
+              : `This mission helps you turn "${title}" from theory into exam-ready judgment: understand what is being tested, eliminate weak answers, and choose the most professional action.`}
           </p>
         </div>
 
@@ -419,13 +330,13 @@ export function PreviewStep({ lesson, phaseId, locale }: Props) {
         >
           <div style={{ background: SURFACE_SOFT, borderRadius: '16px', padding: '14px 16px' }}>
             <p style={{ margin: '0 0 8px', color: FAINT, fontSize: '11px', fontWeight: 900, letterSpacing: '0.08em' }}>
-              {isAr ? 'التقدم' : 'Progress'}
+              {isAr ? 'موضعك الآن' : 'Where you are'}
             </p>
             <div style={{ height: '7px', borderRadius: '999px', background: BORDER, overflow: 'hidden', marginBottom: '8px' }}>
               <div style={{ height: '100%', width: '25%', background: TEAL }} />
             </div>
             <p style={{ margin: 0, color: MUTED, fontSize: '13px', fontWeight: 800 }}>
-              {isAr ? 'الخطوة 1 من 4 في وحدة التأسيس' : 'Step 1 of 4 in the foundation module'}
+              {isAr ? 'المعاينة: تهيئة الهدف قبل التعلّم' : 'Preview: orient the goal before learning'}
             </p>
           </div>
 
