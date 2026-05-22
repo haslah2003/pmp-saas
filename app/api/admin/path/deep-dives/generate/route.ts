@@ -11,7 +11,8 @@ import type { LearningStep, Locale } from '@/lib/pmp-path/types';
 export const maxDuration = 60;
 
 const MODEL = 'claude-sonnet-4-5';
-const PROMPT_VERSION = 'rpath-learn-deep-dive-generator-v1';
+const GENERATION_MAX_TOKENS = 2200;
+const PROMPT_VERSION = 'rpath-learn-deep-dive-generator-v2-fast-canonical';
 const SOURCE_VERSION = 'pmp-path-track-registry-v1';
 
 function readText(value: unknown, fallback = '') {
@@ -145,6 +146,9 @@ Your output will become canonical Learn-step content in a commercial PMP SaaS pl
 
 QUALITY REQUIREMENTS:
 - Produce complete, polished Markdown only.
+- Target 2,800 to 3,800 characters total.
+- Use exactly one substantial paragraph under each required ## heading.
+- Do not add extra headings or subheadings.
 - Do not output JSON.
 - Do not include admin notes.
 - Do not create empty headings.
@@ -202,6 +206,8 @@ function buildUserPrompt({
 ${headings}
 
 متطلبات المحتوى:
+- اجعل الطول الإجمالي بين 2800 و3800 حرف تقريباً.
+- اكتب فقرة واحدة قوية تحت كل عنوان مطلوب فقط.
 - اجعل المحتوى تعليمياً عميقاً وليس مجرد ملخص.
 - اربط الدرس بمنطق امتحان PMP وبقرارات مدير المشروع في سيناريوهات واقعية.
 - اشرح كيف يميّز المتعلم الإجابة الصحيحة من الإجابات الجذابة الخاطئة.
@@ -228,6 +234,8 @@ Use exactly these Markdown headings in exactly this order:
 ${headings}
 
 Content requirements:
+- Target 2,800 to 3,800 characters total.
+- Write exactly one substantial paragraph under each required heading.
 - Make the content instructional, deep, and exam-focused, not a shallow summary.
 - Connect the lesson to PMP exam reasoning and realistic project manager decisions.
 - Explain how learners separate the best PMI-aligned answer from attractive wrong answers.
@@ -407,7 +415,7 @@ export async function POST(req: NextRequest) {
 
   const response = await anthropic.messages.create({
     model: MODEL,
-    max_tokens: 6000,
+    max_tokens: GENERATION_MAX_TOKENS,
     temperature: 0.2,
     system: buildSystemPrompt(framework, language),
     messages: [
