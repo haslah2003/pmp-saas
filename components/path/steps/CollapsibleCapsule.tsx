@@ -99,6 +99,7 @@ function NestedCapsule({
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const disclosureIcon = open ? '▼' : isAr ? '◀' : '▶';
 
   return (
     <div
@@ -129,8 +130,8 @@ function NestedCapsule({
           style={{
             color: '#0E6F7E',
             fontSize: '15px',
-            transform: open ? 'translateY(-50%) rotate(90deg)' : 'translateY(-50%) rotate(0deg)',
-            transition: 'transform 160ms ease',
+            transform: 'translateY(-50%)',
+            transition: 'none',
             display: 'inline-block',
             position: 'absolute',
             top: '50%',
@@ -138,7 +139,7 @@ function NestedCapsule({
             left: isAr ? 'auto' : '16px',
           }}
         >
-          ▶
+          {disclosureIcon}
         </span>
         <span style={{ fontSize: '15px', fontWeight: 800, color: '#1F1F1F' }}>
           {subsection.title}
@@ -157,6 +158,7 @@ function NestedCapsule({
 export function CollapsibleCapsule({ section, sectionIndex, locale }: Props) {
   const [open, setOpen] = useState(sectionIndex === 0);
   const isAr = locale === 'ar';
+  const disclosureIcon = open ? '▼' : isAr ? '◀' : '▶';
 
   return (
     <section
@@ -188,8 +190,8 @@ export function CollapsibleCapsule({ section, sectionIndex, locale }: Props) {
           style={{
             color: '#7030A0',
             fontSize: '17px',
-            transform: open ? 'translateY(-50%) rotate(90deg)' : 'translateY(-50%) rotate(0deg)',
-            transition: 'transform 160ms ease',
+            transform: 'translateY(-50%)',
+            transition: 'none',
             display: 'inline-block',
             position: 'absolute',
             top: '50%',
@@ -197,7 +199,7 @@ export function CollapsibleCapsule({ section, sectionIndex, locale }: Props) {
             left: isAr ? 'auto' : '20px',
           }}
         >
-          ▶
+          {disclosureIcon}
         </span>
         <span style={{ fontSize: '17px', fontWeight: 900, color: '#1F1F1F' }}>
           {section.title}

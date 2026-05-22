@@ -69,6 +69,19 @@ function createSubsection(title: string, sectionIndex: number, subIndex: number)
   };
 }
 
+function cleanContentLines(lines: string[]) {
+  return lines
+    .filter((line) => line.trim() !== '[END_OF_DEEP_DIVE]')
+    .filter((line, index, arr) => {
+      if (line.trim()) return true;
+      return arr[index - 1]?.trim() && arr[index + 1]?.trim();
+    });
+}
+
+function hasMeaningfulContent(lines: string[]) {
+  return lines.some((line) => line.trim().length > 0);
+}
+
 export function parseMarkdownSections(markdown: string): MarkdownSection[] {
   const lines = markdown.split(/\r?\n/);
   const sections: MarkdownSection[] = [];
@@ -88,6 +101,8 @@ export function parseMarkdownSections(markdown: string): MarkdownSection[] {
   for (const rawLine of lines) {
     const line = rawLine.trimEnd();
     const trimmed = line.trim();
+
+    if (trimmed === '[END_OF_DEEP_DIVE]') continue;
 
     if (!trimmed) {
       if (currentSubsection) currentSubsection.content.push('');
@@ -130,19 +145,23 @@ export function parseMarkdownSections(markdown: string): MarkdownSection[] {
   }
 
   return sections
-    .map((section) => ({
-      ...section,
-      content: section.content.filter((line, index, arr) => {
-        if (line.trim()) return true;
-        return arr[index - 1]?.trim() && arr[index + 1]?.trim();
-      }),
-      subsections: section.subsections.map((subsection) => ({
-        ...subsection,
-        content: subsection.content.filter((line, index, arr) => {
-          if (line.trim()) return true;
-          return arr[index - 1]?.trim() && arr[index + 1]?.trim();
-        }),
-      })),
-    }))
-    .filter((section) => section.content.length > 0 || section.subsections.length > 0);
+    .map((section) => {
+      const content = cleanContentLines(section.content);
+      const subsections = section.subsections
+        .map((subsection) => ({
+          ...subsection,
+          content: cleanContentLines(subsection.content),
+        }))
+        .filter((subsection) => hasMeaningfulContent(subsection.content));
+
+      return {
+        ...section,
+        content,
+        subsections,
+      };
+    })
+    .filter(
+      (section) =>
+        hasMeaningfulContent(section.content) || section.subsections.length > 0
+    );
 }

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const DEEPER_CACHE_VERSION = 'v2'
 
 // ── Framework context injected into every prompt ──────────────────────────────
 
@@ -82,22 +83,33 @@ The learner wants to go DEEPER on this Deep Dive section:
 HEADING: ${c.heading}
 CONTENT: ${c.content}
 
-Generate an advanced analysis with ALL of the following sections:
+Generate a COMPLETE, compact advanced analysis.
+
+Strict output rules:
+- Do not create empty headings or empty subsections.
+- Do not use more than 2 concise paragraphs under any ## heading.
+- If you create bold mini-headings inside a section, each mini-heading must have at least one complete explanatory sentence after it.
+- Every sentence must be complete. Do not end mid-thought.
+- End the response with this exact final line: [END_OF_DEEP_DIVE]
+
+Use exactly these sections:
 
 ## 🔬 Advanced Analysis
-Go significantly deeper — what nuances, edge cases, and advanced considerations exist beyond what was covered? What do expert PMs understand that beginners miss?
+Explain the expert-level nuances, edge cases, and advanced considerations. Focus on what experienced project managers understand that beginners miss.
 
 ## 📚 Additional Frameworks & Models
-What additional frameworks, models, or theories from ${framework === 'pmbok8' ? 'PMBOK 8, ECO 2026' : 'PMBOK 7, ECO 2021'}, or Rita Mulcahy relate directly to this? Explain each briefly and how it connects.
+Connect this topic directly to ${framework === 'pmbok8' ? 'PMBOK 8, ECO 2026' : 'PMBOK 7, ECO 2021'} and Rita Mulcahy-style exam reasoning. Keep it practical and exam-focused.
 
 ## 📋 Case Study
-A detailed, realistic project case study (5-6 paragraphs) showing this concept in a complex scenario. Include the organizational context, the challenge, the PM's decision-making process, what tools or techniques were used, the outcome, and the lesson. Make it nuanced — not everything needs to go perfectly.
+Give one realistic project case study in 3 concise paragraphs: context, decision point, outcome/lesson learned.
 
 ## 🔗 Performance Domain Connections
-How does this topic connect to other ${framework === 'pmbok8' ? 'PMBOK 8' : 'PMBOK 7'} Performance Domains? What are the key interdependencies and how does a PM navigate them?
+Explain the most important cross-domain connections and how a PMP candidate should recognize them in scenarios.
 
 ## 🎯 Advanced Exam Patterns
-The trickiest, most situational exam question patterns on this topic. Explain the PMI mindset behind them and what separates the correct answer from the attractive wrong ones.${framework === 'pmbok8' ? '\n\n## 🆕 PMBOK 8 & ECO 2026 Updates\nWhat does PMBOK 8 or ECO 2026 specifically add, change, or emphasise in this area? How should the learner adjust their exam preparation approach?' : ''}`
+Explain the hardest trap patterns and how to separate the correct PMI-aligned answer from attractive wrong answers.${framework === 'pmbok8' ? '\n\n## 🆕 PMBOK 8 & ECO 2026 Updates\nExplain the specific PMBOK 8 / ECO 2026 emphasis for this topic in 2 concise paragraphs.' : ''}
+
+[END_OF_DEEP_DIVE]`
   }
 
   if (sectionType === 'tip') {
@@ -181,7 +193,7 @@ export async function POST(req: NextRequest) {
   // ── Cache Check: serve instantly if already generated ──
   const contentStr = typeof content === 'string' ? content : JSON.stringify(content)
   const langPrefix = language === 'ar' ? 'ar:' : ''
-  const cacheKey = `deeper:${langPrefix}${sectionType}:${lessonTitle}:${contentStr}`.toLowerCase().replace(/[^a-z0-9:]/g, '-').slice(0, 190)
+  const cacheKey = `deeper:${DEEPER_CACHE_VERSION}:${langPrefix}${sectionType}:${lessonTitle}:${contentStr}`.toLowerCase().replace(/[^a-z0-9:]/g, '-').slice(0, 190)
   
   const { data: cached } = await supabase
     .from('content_cache')
@@ -202,7 +214,7 @@ export async function POST(req: NextRequest) {
 
   const stream = await anthropic.messages.stream({
     model: 'claude-sonnet-4-5',
-    max_tokens: 2500,
+    max_tokens: 6000,
     system: `You are generating deep educational content for a PMP exam preparation platform. 
 Framework in use: ${FRAMEWORK_BADGE[framework] ?? FRAMEWORK_BADGE.pmbok7}.
 Always ground your analysis in the specified framework. Be precise, exam-focused, and genuinely educational.${language === 'ar' ? ' IMPORTANT: Write your ENTIRE response in Arabic (Modern Standard Arabic). Use Arabic for all explanations, examples, and analysis. Keep technical terms like PMBOK, PMP, ECO, PMI in English but write everything else in Arabic. Use right-to-left friendly formatting.' : ''}`,
@@ -225,7 +237,7 @@ Always ground your analysis in the specified framework. Be precise, exam-focused
       controller.close()
 
       // Cache the complete response for instant replay
-      if (fullText.length > 50) {
+      if (fullText.length > 50 && (sectionType !== 'deepdive' || fullText.includes('[END_OF_DEEP_DIVE]'))) {
         supabase
           .from('content_cache')
           .upsert({ cache_key: cacheKey, content: fullText, content_type: `deeper:${sectionType}` }, { onConflict: 'cache_key' })
