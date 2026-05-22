@@ -57,12 +57,18 @@ function cleanVisibleMarkdownHeading(line: string) {
 
 function isMetadataOnlyOverview(section: MarkdownSection) {
   const titleKey = normalizeTitleKey(section.title);
-  const contentText = section.content.join(' ').trim();
+  const contentText = section.content
+    .map(cleanVisibleMarkdownHeading)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
   return (
     titleKey === 'overview' &&
     section.subsections.length === 0 &&
-    /^F\d+\.L\d+\s+[—-]\s+/.test(contentText)
+    /^F\d+\.L\d+\s*[—–-]\s+/.test(contentText)
   );
 }
 
