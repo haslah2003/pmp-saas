@@ -1,36 +1,90 @@
-import { NextRequest, NextResponse } from 'next/server';
+import fs from 'node:fs';
+import path from 'node:path';
+
 import Anthropic from '@anthropic-ai/sdk';
 
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { auditLessonDeepDiveContent } from '@/lib/pmp-path/deep-dive-quality';
-import { ALL_TRACKS } from '@/lib/pmp-path/tracks';
-import { frameworkFromModuleId } from '@/lib/pmp-path/videos.server';
-import type { LearningStep, Locale } from '@/lib/pmp-path/types';
+import { createAdminClient } from '../lib/supabase/admin';
+import { auditLessonDeepDiveContent } from '../lib/pmp-path/deep-dive-quality';
+import { ALL_TRACKS } from '../lib/pmp-path/tracks';
+import type { LearningStep, Locale } from '../lib/pmp-path/types';
 
-export const maxDuration = 60;
-
-const MODEL = 'claude-sonnet-4-5';
-const GENERATION_MAX_TOKENS = 2200;
-const PROMPT_VERSION = 'rpath-learn-deep-dive-generator-v3-readable-canonical';
+const MODEL = process.env.RPATH_DEEP_DIVE_MODEL || 'claude-sonnet-4-5';
+const GENERATION_MAX_TOKENS = Number(process.env.RPATH_DEEP_DIVE_MAX_TOKENS || 3200);
+const PROMPT_VERSION = 'rpath-learn-deep-dive-local-generator-v2-readable';
 const SOURCE_VERSION = 'pmp-path-track-registry-v1';
 
-function readText(value: unknown, fallback = '') {
-  return typeof value === 'string' ? value.trim() : fallback;
+function loadEnvLocal() {
+  const envPath = path.resolve(process.cwd(), '.env.local');
+
+  if (!fs.existsSync(envPath)) {
+    console.warn('[R-PATH GEN] .env.local not found. Using existing process.env only.');
+    return;
+  }
+
+  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (!match) continue;
+
+    const key = match[1];
+    let value = match[2] ?? '';
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  }
 }
 
-function readBoolean(value: unknown) {
-  if (typeof value === 'boolean') return value;
-  if (typeof value === 'string') return value.toLowerCase() === 'true';
-  return false;
+function readCliArg(name: string, fallback = '') {
+  const prefix = `--${name}=`;
+  const direct = process.argv.find((arg) => arg.startsWith(prefix));
+
+  if (direct) {
+    return direct.slice(prefix.length).trim();
+  }
+
+  const index = process.argv.indexOf(`--${name}`);
+
+  if (index >= 0) {
+    return String(process.argv[index + 1] || '').trim();
+  }
+
+  return fallback;
 }
 
-function normalizeLanguage(value: unknown): Locale {
+function readBooleanArg(name: string, fallback = false) {
+  const value = readCliArg(name);
+
+  if (!value) return fallback;
+
+  return value === 'true' || value === '1' || value === 'yes';
+}
+
+function normalizeLanguage(value: string): Locale {
   return value === 'ar' ? 'ar' : 'en';
 }
 
-function normalizeStep(value: unknown): LearningStep {
+function normalizeStep(value: string): LearningStep {
   return value === 'learn' ? 'learn' : 'learn';
+}
+
+function frameworkFromModuleId(moduleId: string) {
+  if (moduleId.startsWith('pmbok8-')) return 'pmbok8';
+  if (moduleId.startsWith('pmbok7-')) return 'pmbok7';
+  if (moduleId.startsWith('bridge-')) return 'bridge';
+  return null;
 }
 
 function findLessonContext(moduleId: string, lessonId: string) {
@@ -146,7 +200,7 @@ Your output will become canonical Learn-step content in a commercial PMP SaaS pl
 
 QUALITY REQUIREMENTS:
 - Produce complete, polished Markdown only.
-- Target 2,800 to 3,800 characters total.
+- Target 3,800 to 5,200 characters total.
 - Use exactly two concise paragraphs under each required ## heading.
 - Do not add extra headings or subheadings.
 - Do not output JSON.
@@ -206,7 +260,7 @@ function buildUserPrompt({
 ${headings}
 
 متطلبات المحتوى:
-- اجعل الطول الإجمالي بين 2800 و3800 حرف تقريباً.
+- اجعل الطول الإجمالي بين 3800 و5200 حرف تقريباً.
 - اكتب فقرتين موجزتين تحت كل عنوان مطلوب فقط، واجعل كل فقرة أقل من 650 حرفاً.
 - اجعل المحتوى تعليمياً عميقاً وليس مجرد ملخص.
 - اربط الدرس بمنطق امتحان PMP وبقرارات مدير المشروع في سيناريوهات واقعية.
@@ -234,7 +288,7 @@ Use exactly these Markdown headings in exactly this order:
 ${headings}
 
 Content requirements:
-- Target 2,800 to 3,800 characters total.
+- Target 3,800 to 5,200 characters total.
 - Write exactly two concise paragraphs under each required heading. Keep each paragraph below 650 characters.
 - Make the content instructional, deep, and exam-focused, not a shallow summary.
 - Connect the lesson to PMP exam reasoning and realistic project manager decisions.
@@ -252,9 +306,7 @@ function extractTextFromAnthropicResponse(response: unknown) {
     content?: Array<{ type?: string; text?: string }>;
   }).content;
 
-  if (!Array.isArray(content)) {
-    return '';
-  }
+  if (!Array.isArray(content)) return '';
 
   return content
     .map((block) => (block.type === 'text' ? block.text ?? '' : ''))
@@ -314,95 +366,63 @@ function normalizeGeneratedMarkdown(markdown: string) {
     .trim();
 }
 
-export async function POST(req: NextRequest) {
-  const supabase = await createClient();
+async function main() {
+  loadEnvLocal();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const moduleId = readCliArg('moduleId', 'pmbok8-eco2026-F1');
+  const lessonId = readCliArg('lessonId', 'pmbok8-eco2026-F1.L3');
+  const language = normalizeLanguage(readCliArg('language', 'en'));
+  const step = normalizeStep(readCliArg('step', 'learn'));
+  const force = readBooleanArg('force', false);
 
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY is missing from .env.local or process.env.');
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError) {
-    return NextResponse.json(
-      { error: 'Unable to verify admin profile', details: profileError.message },
-      { status: 500 }
-    );
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL is missing from .env.local or process.env.');
   }
 
-  if (profile?.role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-
-  const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
-
-  if (!body) {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
-
-  const moduleId = readText(body.moduleId) || readText(body.module_id);
-  const lessonId = readText(body.lessonId) || readText(body.lesson_id);
-  const language = normalizeLanguage(body.language);
-  const step = normalizeStep(body.step);
-  const force = readBoolean(body.force);
-
-  if (!moduleId) {
-    return NextResponse.json({ error: 'moduleId is required' }, { status: 400 });
-  }
-
-  if (!lessonId) {
-    return NextResponse.json({ error: 'lessonId is required' }, { status: 400 });
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing from .env.local or process.env.');
   }
 
   if (step !== 'learn') {
-    return NextResponse.json(
-      { error: 'Only the learn step is supported by this generator endpoint.' },
-      { status: 400 }
-    );
+    throw new Error('Only step=learn is supported.');
   }
 
   const framework = frameworkFromModuleId(moduleId);
 
   if (!framework) {
-    return NextResponse.json(
-      { error: `Unable to detect framework from moduleId: ${moduleId}` },
-      { status: 400 }
-    );
+    throw new Error(`Unable to detect framework from moduleId: ${moduleId}`);
   }
 
   const context = findLessonContext(moduleId, lessonId);
 
   if (!context) {
-    return NextResponse.json(
-      { error: 'Lesson not found in ALL_TRACKS', moduleId, lessonId },
-      { status: 404 }
-    );
-  }
-
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: 'ANTHROPIC_API_KEY is not configured' },
-      { status: 500 }
-    );
+    throw new Error(`Lesson not found in ALL_TRACKS: ${moduleId} / ${lessonId}`);
   }
 
   const admin = createAdminClient();
   const trackId = context.track.meta.id;
   const title = context.lesson.title[language] || context.lesson.title.en;
 
-  const existingQuery = admin
+  console.log('[R-PATH GEN] Starting local generation...');
+  console.log({
+    trackId,
+    framework,
+    moduleId,
+    lessonId,
+    language,
+    step,
+    force,
+    model: MODEL,
+    maxTokens: GENERATION_MAX_TOKENS,
+  });
+
+  const { data: existingApproved, error: existingError } = await admin
     .from('lesson_deep_dives')
-    .select('id, title, content_version, quality_status, quality_score, is_active')
+    .select('id, title, content_version, quality_status, quality_score, is_active, created_at')
     .eq('track_id', trackId)
     .eq('framework', framework)
     .eq('module_id', moduleId)
@@ -415,22 +435,14 @@ export async function POST(req: NextRequest) {
     .limit(1)
     .maybeSingle();
 
-  const { data: existingApproved, error: existingError } = await existingQuery;
-
   if (existingError) {
-    return NextResponse.json(
-      { error: 'Unable to check existing approved content', details: existingError.message },
-      { status: 500 }
-    );
+    throw new Error(`Unable to check existing approved content: ${existingError.message}`);
   }
 
   if (existingApproved && !force) {
-    return NextResponse.json({
-      skipped: true,
-      reason: 'approved_content_exists',
-      message: 'Approved canonical Learn content already exists. Use force=true to regenerate.',
-      record: existingApproved,
-    });
+    console.log('[R-PATH GEN] Skipped: approved content already exists. Use --force=true to regenerate.');
+    console.log(existingApproved);
+    return;
   }
 
   const { data: latestVersion, error: versionError } = await admin
@@ -447,15 +459,10 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   if (versionError) {
-    return NextResponse.json(
-      { error: 'Unable to calculate next content version', details: versionError.message },
-      { status: 500 }
-    );
+    throw new Error(`Unable to calculate next content version: ${versionError.message}`);
   }
 
   const contentVersion = Number(latestVersion?.content_version ?? 0) + 1;
-
-  const anthropic = new Anthropic({ apiKey });
 
   const trackName = context.track.meta.fullName[language] || context.track.meta.fullName.en;
   const phaseTitle = context.phase.title[language] || context.phase.title.en;
@@ -463,6 +470,10 @@ export async function POST(req: NextRequest) {
   const moduleDescription = context.module.description[language] || context.module.description.en;
   const lessonTitle = context.lesson.title[language] || context.lesson.title.en;
   const lessonObjective = context.lesson.objective[language] || context.lesson.objective.en;
+
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+  console.time('[R-PATH GEN] Anthropic generation');
 
   const response = await anthropic.messages.create({
     model: MODEL,
@@ -489,16 +500,12 @@ export async function POST(req: NextRequest) {
     ],
   });
 
+  console.timeEnd('[R-PATH GEN] Anthropic generation');
+
   const contentMarkdown = normalizeGeneratedMarkdown(extractTextFromAnthropicResponse(response));
 
   if (contentMarkdown.length < 500) {
-    return NextResponse.json(
-      {
-        error: 'Generated content is unexpectedly short',
-        contentLength: contentMarkdown.length,
-      },
-      { status: 502 }
-    );
+    throw new Error(`Generated content is unexpectedly short: ${contentMarkdown.length} characters.`);
   }
 
   const audit = auditLessonDeepDiveContent({
@@ -513,6 +520,21 @@ export async function POST(req: NextRequest) {
   });
 
   const qualityStatus = audit.autoApprove ? 'approved' : 'needs_human_review';
+
+  console.log('[R-PATH GEN] Audit result:');
+  console.log({
+    autoApprove: audit.autoApprove,
+    qualityStatus,
+    qualityScore: audit.qualityScore,
+    routeAlignmentScore: audit.routeAlignmentScore,
+    completenessScore: audit.completenessScore,
+    languageQualityScore: audit.languageQualityScore,
+    hallucinationRiskScore: audit.hallucinationRiskScore,
+    clarityScore: audit.clarityScore,
+    errors: audit.errors,
+    warnings: audit.warnings,
+    sectionChecks: audit.sectionChecks,
+  });
 
   const { data: inserted, error: insertError } = await admin
     .from('lesson_deep_dives')
@@ -532,14 +554,11 @@ export async function POST(req: NextRequest) {
       quality_score: audit.qualityScore,
       is_active: false,
     })
-    .select('id, title, content_version, quality_status, quality_score, is_active')
+    .select('id, title, content_version, quality_status, quality_score, is_active, created_at')
     .single();
 
   if (insertError) {
-    return NextResponse.json(
-      { error: 'Unable to insert generated deep-dive content', details: insertError.message, audit },
-      { status: 500 }
-    );
+    throw new Error(`Unable to insert generated content: ${insertError.message}`);
   }
 
   let finalRecord = inserted;
@@ -558,43 +577,33 @@ export async function POST(req: NextRequest) {
       .eq('is_active', true);
 
     if (archiveError) {
-      return NextResponse.json(
-        {
-          error: 'Generated content passed audit but previous active records could not be archived',
-          details: archiveError.message,
-          inserted,
-          audit,
-        },
-        { status: 500 }
-      );
+      throw new Error(`Passed audit but failed to archive previous active records: ${archiveError.message}`);
     }
 
     const { data: activated, error: activateError } = await admin
       .from('lesson_deep_dives')
       .update({ is_active: true })
       .eq('id', inserted.id)
-      .select('id, title, content_version, quality_status, quality_score, is_active')
+      .select('id, title, content_version, quality_status, quality_score, is_active, created_at')
       .single();
 
     if (activateError) {
-      return NextResponse.json(
-        {
-          error: 'Generated content passed audit but could not be activated',
-          details: activateError.message,
-          inserted,
-          audit,
-        },
-        { status: 500 }
-      );
+      throw new Error(`Passed audit but failed to activate new record: ${activateError.message}`);
     }
 
     finalRecord = activated;
   }
 
-  return NextResponse.json({
-    generated: true,
-    autoApproved: audit.autoApprove,
-    record: finalRecord,
-    audit,
-  });
+  console.log('[R-PATH GEN] Final record:');
+  console.log(finalRecord);
+
+  if (!audit.autoApprove) {
+    console.log('[R-PATH GEN] Inserted as needs_human_review and inactive. Review audit warnings before activation.');
+  }
 }
+
+main().catch((error) => {
+  console.error('[R-PATH GEN] Failed.');
+  console.error(error);
+  process.exit(1);
+});
