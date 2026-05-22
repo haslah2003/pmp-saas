@@ -55,17 +55,53 @@ function cleanVisibleMarkdownHeading(line: string) {
   return line;
 }
 
-function prepareLearnSections(sections: MarkdownSection[], locale: Locale): MarkdownSection[] {
-  return sections.map((section) => ({
-    ...section,
-    title: localizeSectionTitle(section.title, locale),
-    content: section.content.map(cleanVisibleMarkdownHeading),
-    subsections: section.subsections.map((subsection) => ({
-      ...subsection,
-      title: localizeSectionTitle(subsection.title, locale),
-      content: subsection.content.map(cleanVisibleMarkdownHeading),
-    })),
-  }));
+function isMetadataOnlyOverview(section: MarkdownSection) {
+  const titleKey = normalizeTitleKey(section.title);
+  const contentText = section.content.join(' ').trim();
+
+  return (
+    titleKey === 'overview' &&
+    section.subsections.length === 0 &&
+    /^F\d+\.L\d+\s+[—-]\s+/.test(contentText)
+  );
+}
+
+function buildPedagogicalOverview(lesson: Lesson, locale: Locale) {
+  const lessonTitle = locale === 'ar' ? lesson.title.ar : lesson.title.en;
+  const objective = locale === 'ar' ? lesson.objective.ar : lesson.objective.en;
+
+  if (locale === 'ar') {
+    return [
+      `في هذا الدرس، ستتعامل مع "${lessonTitle}" كمهارة عملية في حكم مدير المشروع، وليس كمفهوم نظري فقط. الهدف هو تحويل فكرة الدرس إلى فهم واضح يساعدك على اتخاذ قرارات مهنية في سيناريوهات PMP.`,
+      `ركّز أثناء القراءة على ثلاثة أسئلة: ما السلوك القيادي المتوقع؟ متى يخدم مدير المشروع الفريق بدلاً من توجيهه مباشرة؟ وكيف تميّز الإجابة المتوافقة مع PMI من الإجابات الجذابة لكنها أقل مهنية؟`,
+      objective ? `هدف الدرس: ${objective}` : '',
+    ].filter(Boolean);
+  }
+
+  return [
+    `In this lesson, you will study "${lessonTitle}" as a practical PMP leadership capability, not just as a theory. The goal is to turn the lesson idea into clear project-management judgment for realistic PMP scenarios.`,
+    `As you read, focus on three signals: what leadership behavior is expected, when the project manager should serve and enable rather than command, and how to separate the PMI-aligned answer from attractive but weaker options.`,
+    objective ? `Lesson objective: ${objective}` : '',
+  ].filter(Boolean);
+}
+
+function prepareLearnSections(sections: MarkdownSection[], locale: Locale, lesson: Lesson): MarkdownSection[] {
+  return sections.map((section) => {
+    const sectionContent = isMetadataOnlyOverview(section)
+      ? buildPedagogicalOverview(lesson, locale)
+      : section.content.map(cleanVisibleMarkdownHeading);
+
+    return {
+      ...section,
+      title: localizeSectionTitle(section.title, locale),
+      content: sectionContent,
+      subsections: section.subsections.map((subsection) => ({
+        ...subsection,
+        title: localizeSectionTitle(subsection.title, locale),
+        content: subsection.content.map(cleanVisibleMarkdownHeading),
+      })),
+    };
+  });
 }
 
 function formatDuration(seconds: number | null, locale: Locale) {
@@ -84,8 +120,8 @@ export function LearnStep({ lesson, phaseId, locale, videos = [], canonicalConte
   const canonicalSections = useMemo(() => {
     if (!canonicalContentMarkdown?.trim()) return [];
 
-    return prepareLearnSections(parseMarkdownSections(canonicalContentMarkdown), locale);
-  }, [canonicalContentMarkdown, locale]);
+    return prepareLearnSections(parseMarkdownSections(canonicalContentMarkdown), locale, lesson);
+  }, [canonicalContentMarkdown, locale, lesson]);
 
   const [sections, setSections] = useState<MarkdownSection[]>(canonicalSections);
   const [loading, setLoading] = useState(canonicalSections.length === 0);
@@ -168,7 +204,7 @@ export function LearnStep({ lesson, phaseId, locale, videos = [], canonicalConte
         fullContent += decoder.decode();
 
         const parsedSections = parseMarkdownSections(fullContent);
-        setSections(prepareLearnSections(parsedSections, locale));
+        setSections(prepareLearnSections(parsedSections, locale, lesson));
       } catch (err) {
         console.error('LearnStep error:', err);
         setError(err instanceof Error ? err.message : 'Failed to load');
