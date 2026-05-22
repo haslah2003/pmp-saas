@@ -10,6 +10,32 @@ interface Props {
   locale: Locale;
 }
 
+const EN_SECTION_TITLES: Record<string, string> = {
+  overview: 'Overview',
+  'advanced analysis': 'Advanced Analysis',
+  'additional frameworks models': 'Additional Frameworks & Models',
+  'additional frameworks and models': 'Additional Frameworks & Models',
+  'case study': 'Case Study',
+  'performance domain connections': 'Performance Domain Connections',
+  'advanced exam patterns': 'Advanced Exam Patterns',
+  'pmbok 8 eco 2026 updates': 'PMBOK 8 & ECO 2026 Updates',
+};
+
+function normalizeTitleKey(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[*#:`"'’]/g, '')
+    .replace(/[^a-z0-9\u0600-\u06FF\s]+/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function formatSectionTitle(title: string, isAr: boolean) {
+  if (isAr) return title;
+
+  return EN_SECTION_TITLES[normalizeTitleKey(title)] ?? title;
+}
+
 function renderInlineMarkdown(text: string) {
   const parts = text.split(/(\*\*.+?\*\*)/g);
 
@@ -58,8 +84,8 @@ function TextBlock({ lines, isAr }: { lines: string[]; isAr: boolean }) {
                 flexDirection: 'row',
                 gap: '8px',
                 color: '#4A4A46',
-                fontSize: '15px',
-                lineHeight: 1.7,
+                fontSize: isAr ? '15px' : '16px',
+                lineHeight: isAr ? 1.75 : 1.8,
                 direction: isAr ? 'rtl' : 'ltr',
                 textAlign: isAr ? 'right' : 'left',
               }}
@@ -76,8 +102,8 @@ function TextBlock({ lines, isAr }: { lines: string[]; isAr: boolean }) {
             style={{
               margin: 0,
               color: '#4A4A46',
-              fontSize: '15px',
-              lineHeight: 1.75,
+              fontSize: isAr ? '15px' : '16px',
+              lineHeight: isAr ? 1.75 : 1.82,
               textAlign: isAr ? 'right' : 'left',
             }}
           >
@@ -202,7 +228,7 @@ export function CollapsibleCapsule({ section, sectionIndex, locale }: Props) {
           {disclosureIcon}
         </span>
         <span style={{ fontSize: '17px', fontWeight: 900, color: '#1F1F1F' }}>
-          {section.title}
+          {formatSectionTitle(section.title, isAr)}
         </span>
       </button>
 

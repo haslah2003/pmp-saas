@@ -406,7 +406,7 @@ export function LearnStep({ lesson, phaseId, locale, videos = [], canonicalConte
             >
               {isAr ? 'الشرح المنظم' : 'Structured deep dive'}
             </p>
-            <p style={{ margin: 0, color: '#6B6B68', fontSize: '13px', lineHeight: 1.65 }}>
+            <p style={{ margin: 0, color: '#4F4F4B', fontSize: '14px', lineHeight: 1.75 }}>
               {isAr
                 ? 'افتح الأقسام بالترتيب، ثم لخّص كل قسم بجملة واحدة قبل الانتقال إلى الخطوة التالية.'
                 : 'Open the sections in order, then summarize each section in one sentence before moving to the next step.'}
