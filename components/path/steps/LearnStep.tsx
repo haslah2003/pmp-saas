@@ -85,7 +85,38 @@ export function LearnStep({ lesson, phaseId, locale, videos = [] }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const objective = isAr ? lesson.objective.ar : lesson.objective.en;
+  const lessonTitle = isAr ? lesson.title.ar : lesson.title.en;
   const hasVideos = videos.length > 0;
+
+  const focusItems = isAr
+    ? [
+        {
+          label: 'الفكرة الأساسية',
+          detail: `افهم معنى "${lessonTitle}" بلغة واضحة قبل الدخول في التفاصيل.`,
+        },
+        {
+          label: 'حكم الامتحان',
+          detail: 'اربط المفهوم بسؤال: ما التصرف الأكثر مهنية في سيناريو PMP؟',
+        },
+        {
+          label: 'مرساة التذكّر',
+          detail: 'استخرج عبارة قصيرة تساعدك على تذكّر الفكرة أثناء حل الأسئلة.',
+        },
+      ]
+    : [
+        {
+          label: 'Core idea',
+          detail: `Understand "${lessonTitle}" in plain language before going deeper.`,
+        },
+        {
+          label: 'Exam judgment',
+          detail: 'Connect the concept to one question: what is the most professional action in a PMP scenario?',
+        },
+        {
+          label: 'Recall anchor',
+          detail: 'Create a short phrase that helps you remember the idea while answering questions.',
+        },
+      ];
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -137,6 +168,75 @@ export function LearnStep({ lesson, phaseId, locale, videos = [] }: Props) {
 
   return (
     <div dir={isAr ? 'rtl' : 'ltr'}>
+      <section
+        aria-label={isAr ? 'تركيز خطوة التعلم' : 'Learn step focus'}
+        style={{
+          background: `linear-gradient(135deg, ${theme.palest}, #FFFFFF)`,
+          border: `1px solid ${theme.pale}`,
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '24px',
+          textAlign: isAr ? 'right' : 'left',
+        }}
+      >
+        <div style={{ marginBottom: '16px' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: theme.pale,
+              color: theme.textOnPale,
+              borderRadius: '999px',
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontWeight: 800,
+              marginBottom: '10px',
+            }}
+          >
+            <span>📘</span>
+            <span>{isAr ? 'خطوة التعلّم' : 'Learn step'}</span>
+          </div>
+
+          <h2 style={{ margin: '0 0 8px', fontSize: '22px', color: '#1F1F1D', lineHeight: 1.25 }}>
+            {isAr ? 'ابنِ الفهم قبل الانتقال إلى التطبيق' : 'Build understanding before moving to application'}
+          </h2>
+
+          <p style={{ margin: 0, color: '#6B6B68', fontSize: '14px', lineHeight: 1.75 }}>
+            {isAr
+              ? `هذه الخطوة تحول هدف الدرس إلى شرح منظم، أمثلة عملية، ومعايير حكم تساعدك على التعامل مع أسئلة السيناريوهات بثقة.`
+              : `This step turns the lesson objective into structured explanation, practical examples, and decision criteria for scenario-based questions.`}
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '10px',
+          }}
+        >
+          {focusItems.map((item) => (
+            <div
+              key={item.label}
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid rgba(26,20,48,0.08)',
+                borderRadius: '14px',
+                padding: '14px',
+              }}
+            >
+              <p style={{ margin: '0 0 6px', color: theme.textOnPale, fontSize: '12px', fontWeight: 900 }}>
+                {item.label}
+              </p>
+              <p style={{ margin: 0, color: '#3F3F46', fontSize: '13px', lineHeight: 1.6 }}>
+                {item.detail}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {hasVideos && (
         <section
           style={{
@@ -167,13 +267,13 @@ export function LearnStep({ lesson, phaseId, locale, videos = [] }: Props) {
             </div>
 
             <h2 style={{ margin: '0 0 8px', fontSize: '20px', color: '#1F1F1D' }}>
-              {isAr ? 'شرح فيديو قصير قبل التعمق في الدرس' : 'Short video explanation before the deep dive'}
+              {isAr ? 'مرساة فيديو قبل القراءة' : 'Video anchor before reading'}
             </h2>
 
             <p style={{ margin: 0, color: '#6B6B68', fontSize: '14px', lineHeight: 1.7 }}>
               {isAr
-                ? 'ابدأ بمشاهدة الفكرة الأساسية، ثم انتقل إلى القراءة والتحليل المتقدم.'
-                : 'Start with the core idea, then continue into the structured explanation and advanced analysis.'}
+                ? 'شاهد الفكرة الأساسية أولًا، ثم استخدم الشرح المكتوب لتثبيت التفاصيل وتحويلها إلى حكم امتحاني.'
+                : 'Watch the core idea first, then use the written explanation to lock the details into exam-ready judgment.'}
             </p>
           </div>
 
@@ -232,30 +332,96 @@ export function LearnStep({ lesson, phaseId, locale, videos = [] }: Props) {
       )}
 
       {loading && (
-        <div style={{ background: '#FAFAF9', borderRadius: '8px', padding: '28px', textAlign: 'center' }}>
-          <div style={{ fontSize: '20px', marginBottom: '10px' }}>⏳</div>
-          <p style={{ margin: 0 }}>{isAr ? 'جاري التحميل...' : 'Loading...'}</p>
-        </div>
+        <section
+          style={{
+            background: '#FAFAF9',
+            borderRadius: '16px',
+            padding: '28px',
+            textAlign: 'center',
+            border: '1px solid #E8E6E0',
+          }}
+        >
+          <div style={{ fontSize: '22px', marginBottom: '10px' }}>⏳</div>
+          <p style={{ margin: '0 0 6px', color: '#1F1F1D', fontSize: '15px', fontWeight: 900 }}>
+            {isAr ? 'جاري بناء الشرح العميق...' : 'Building the deep explanation...'}
+          </p>
+          <p style={{ margin: 0, color: '#6B6B68', fontSize: '13px', lineHeight: 1.6 }}>
+            {isAr
+              ? 'يتم تنظيم المفهوم في أقسام قابلة للقراءة والمراجعة.'
+              : 'The concept is being organized into readable, reviewable sections.'}
+          </p>
+        </section>
       )}
 
       {error && (
-        <div style={{ background: '#FEE8E8', borderRadius: '8px', padding: '16px', color: '#C41E3A', fontSize: '13px' }}>
-          Error: {error}
-        </div>
+        <section
+          style={{
+            background: '#FEE8E8',
+            borderRadius: '16px',
+            padding: '18px',
+            color: '#C41E3A',
+            fontSize: '13px',
+            border: '1px solid #F8B4B4',
+            textAlign: isAr ? 'right' : 'left',
+          }}
+        >
+          <p style={{ margin: '0 0 6px', fontWeight: 900 }}>
+            {isAr ? 'تعذر تحميل شرح الدرس' : 'Could not load the lesson explanation'}
+          </p>
+          <p style={{ margin: 0, lineHeight: 1.6 }}>
+            {isAr
+              ? 'حاول تحديث الصفحة. إذا استمرت المشكلة، انتقل إلى التمرين أو عد لاحقًا.'
+              : 'Try refreshing the page. If the issue continues, move to practice or return later.'}
+          </p>
+          <p style={{ margin: '8px 0 0', opacity: 0.8 }}>Error: {error}</p>
+        </section>
       )}
 
       {!loading && !error && sections.length > 0 && (
-        <div>
-          {sections.map((section, index) => (
-            <CollapsibleCapsule key={section.id} section={section} sectionIndex={index} locale={locale} />
-          ))}
-        </div>
+        <section style={{ display: 'grid', gap: '14px' }}>
+          <div style={{ textAlign: isAr ? 'right' : 'left' }}>
+            <p
+              style={{
+                margin: '0 0 6px',
+                color: theme.textOnPale,
+                fontSize: '11px',
+                fontWeight: 900,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {isAr ? 'الشرح المنظم' : 'Structured deep dive'}
+            </p>
+            <p style={{ margin: 0, color: '#6B6B68', fontSize: '13px', lineHeight: 1.65 }}>
+              {isAr
+                ? 'افتح الأقسام بالترتيب، ثم لخّص كل قسم بجملة واحدة قبل الانتقال إلى الخطوة التالية.'
+                : 'Open the sections in order, then summarize each section in one sentence before moving to the next step.'}
+            </p>
+          </div>
+
+          <div>
+            {sections.map((section, index) => (
+              <CollapsibleCapsule key={section.id} section={section} sectionIndex={index} locale={locale} />
+            ))}
+          </div>
+        </section>
       )}
 
       {!loading && !error && sections.length === 0 && (
-        <div style={{ background: '#FAFAF9', padding: '16px', borderRadius: '8px', color: '#6B6B68' }}>
-          No content
-        </div>
+        <section
+          style={{
+            background: '#FAFAF9',
+            padding: '18px',
+            borderRadius: '16px',
+            color: '#6B6B68',
+            border: '1px solid #E8E6E0',
+            textAlign: isAr ? 'right' : 'left',
+          }}
+        >
+          {isAr
+            ? 'لا يوجد شرح متاح حالياً لهذا الدرس.'
+            : 'No structured explanation is available for this lesson yet.'}
+        </section>
       )}
     </div>
   );
