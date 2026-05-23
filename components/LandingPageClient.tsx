@@ -226,7 +226,9 @@ const planGradients = [`linear-gradient(135deg, ${C.teal}, ${C.tealDk})`,`linear
 const planBtnColors = [C.teal, C.purple, C.purpleDk];
 
 export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
-  const t = copy[lang]; const isAr = lang === "ar"; const dir = isAr ? "rtl" : "ltr";
+  const t = copy[lang];
+  const defaultSignupHref = "/signup?plan=standard&period=sprint90";
+  const pricingPlanIds = ["basic", "standard", "professional"] as const; const isAr = lang === "ar"; const dir = isAr ? "rtl" : "ltr";
   const bodyFont = isAr ? "'Cairo', sans-serif" : "'DM Sans', sans-serif";
   const displayFont = isAr ? "'Cairo', sans-serif" : "'DM Sans', sans-serif";
   const [scrolled, setScrolled] = useState(false);
@@ -291,7 +293,7 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
             <a href="#faq" style={{fontSize:14,color:C.muted,textDecoration:"none",fontWeight:500}}>FAQ</a>
             <LandingLanguageSelector />
             <Link href="/login" style={{fontSize:14,color:C.muted,textDecoration:"none",fontWeight:500}}>{t.nav.login}</Link>
-            <Link href="/signup" style={{fontSize:13,fontWeight:600,color:"#fff",background:`linear-gradient(135deg,${C.teal},${C.tealDk})`,padding:"8px 22px",borderRadius:8,textDecoration:"none"}}>{t.nav.cta}</Link>
+            <Link href={defaultSignupHref} style={{fontSize:13,fontWeight:600,color:"#fff",background:`linear-gradient(135deg,${C.teal},${C.tealDk})`,padding:"8px 22px",borderRadius:8,textDecoration:"none"}}>{t.nav.cta}</Link>
           </div>
           <div className="lp-nav-hamburger" onClick={()=>setMobileMenu(!mobileMenu)}>
             <div style={{width:22,display:"flex",flexDirection:"column",gap:5}}>
@@ -306,7 +308,7 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
             <a href="#faq" onClick={()=>setMobileMenu(false)}>FAQ</a>
             <div className="lp-mob-item"><LandingLanguageSelector /></div>
             <Link href="/login" onClick={()=>setMobileMenu(false)}>{t.nav.login}</Link>
-            <Link href="/signup" onClick={()=>setMobileMenu(false)} style={{color:C.teal,fontWeight:700}}>{t.nav.cta}</Link>
+            <Link href={defaultSignupHref} onClick={()=>setMobileMenu(false)} style={{color:C.teal,fontWeight:700}}>{t.nav.cta}</Link>
           </div>
         </div>
       </nav>
@@ -326,7 +328,7 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
             </h1>
             <p style={{fontSize:"clamp(15px,2vw,17px)",lineHeight:1.7,color:C.muted,marginBottom:28,maxWidth:440}}>{t.hero.sub}</p>
             <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
-              <Link href="/signup" style={{fontSize:15,fontWeight:600,color:"#fff",background:`linear-gradient(135deg,${C.teal},${C.tealDk})`,padding:"14px 28px",borderRadius:10,textDecoration:"none"}}>{t.hero.cta1}</Link>
+              <Link href={defaultSignupHref} style={{fontSize:15,fontWeight:600,color:"#fff",background:`linear-gradient(135deg,${C.teal},${C.tealDk})`,padding:"14px 28px",borderRadius:10,textDecoration:"none"}}>{t.hero.cta1}</Link>
               <a href="#how-it-works" style={{fontSize:14,fontWeight:500,color:C.muted,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>
                 <span style={{width:34,height:34,borderRadius:"50%",border:`1.5px solid ${C.purple}33`,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:11,color:C.purple}}>{"\u25b6"}</span>
                 {t.hero.cta2}
@@ -398,7 +400,7 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
                 <div style={{borderTop:"1px solid #F0F0EC",paddingTop:20,marginTop:4}}>
                   {p.features.map((f,j)=>(<div key={j} style={{fontSize:13,color:"#475569",padding:"5px 0",display:"flex",alignItems:"center",gap:8}}><span style={{color:C.teal,fontSize:14,flexShrink:0}}>{"\u2713"}</span> {f}</div>))}
                 </div>
-                <Link href="/signup" style={{display:"block",width:"100%",marginTop:24,padding:"13px 0",borderRadius:10,fontSize:14,fontWeight:700,textAlign:"center",textDecoration:"none",background:p.popular?`linear-gradient(135deg,${C.purple},${C.tealDk})`:planGradients[i],color:"#fff"}}>{p.cta}</Link>
+                <Link href={`/signup?plan=${pricingPlanIds[i]}&period=${annual ? "sprint90" : "monthly"}`} style={{display:"block",width:"100%",marginTop:24,padding:"13px 0",borderRadius:10,fontSize:14,fontWeight:700,textAlign:"center",textDecoration:"none",background:p.popular?`linear-gradient(135deg,${C.purple},${C.tealDk})`:planGradients[i],color:"#fff"}}>{p.cta}</Link>
               </div>
             </div></FadeIn>))}
           </div>
@@ -444,7 +446,7 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
         <FadeIn><div style={{maxWidth:560,margin:"0 auto",position:"relative"}}>
           <h2 style={{fontSize:"clamp(26px,4vw,34px)",fontWeight:800,color:"#fff",letterSpacing:"-0.02em",marginBottom:12,fontFamily:displayFont}}>{t.finalCta.title}</h2>
           <p style={{fontSize:"clamp(14px,2vw,16px)",color:"rgba(255,255,255,0.6)",lineHeight:1.7,marginBottom:28}}>{t.finalCta.sub}</p>
-          <Link href="/signup" style={{display:"inline-block",fontSize:15,fontWeight:700,color:C.dark,background:`linear-gradient(135deg,${C.tealLt},#fff)`,padding:"14px 36px",borderRadius:10,textDecoration:"none"}}>{t.finalCta.btn}</Link>
+          <Link href={defaultSignupHref} style={{display:"inline-block",fontSize:15,fontWeight:700,color:C.dark,background:`linear-gradient(135deg,${C.tealLt},#fff)`,padding:"14px 36px",borderRadius:10,textDecoration:"none"}}>{t.finalCta.btn}</Link>
         </div></FadeIn>
       </section>
 

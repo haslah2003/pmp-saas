@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
+import { PLANS } from '@/lib/plans'
 
 const PLAN_ICONS: Record<string, string> = {
   basic: '🌱',
@@ -15,6 +16,10 @@ const PLAN_GRADIENTS: Record<string, string> = {
   basic: 'from-blue-500 to-blue-700',
   standard: 'from-violet-500 to-violet-700',
   professional: 'from-violet-500 to-purple-700',
+}
+
+function formatPeriodLabel(period: string): string {
+  return period === 'annual' || period === 'sprint90' ? '90-Day Sprint' : 'Monthly'
 }
 
 function SuccessContent() {
@@ -34,6 +39,13 @@ const receiptId = params.get('receiptId')
   const planName = plan.charAt(0).toUpperCase() + plan.slice(1)
   const icon = PLAN_ICONS[plan] ?? '⭐'
   const gradient = PLAN_GRADIENTS[plan] ?? 'from-violet-500 to-violet-700'
+  const selectedPlan = PLANS.find((p) => p.id === plan)
+  const includedFeatures = selectedPlan?.features || [
+    '📖 Course Library',
+    '🤖 AiTuTorZ AI Tutor',
+    '🎯 Practice Engine',
+    '📊 Progress Dashboard',
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
@@ -82,7 +94,7 @@ const receiptId = params.get('receiptId')
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-500">Billing</span>
-                <span className="font-semibold text-gray-900 capitalize">{period}</span>
+                <span className="font-semibold text-gray-900">{formatPeriodLabel(period)}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-500">Amount paid</span>
@@ -101,17 +113,9 @@ const receiptId = params.get('receiptId')
             <div>
               <p className="text-sm font-bold text-gray-900 mb-3">🎉 Your access is now active</p>
               <div className="grid grid-cols-2 gap-2">
-                {[
-                  { icon: '📖', label: 'Course Library' },
-                  { icon: '🤖', label: 'AiTuTorZ' },
-                  { icon: '🎯', label: 'Practice Engine' },
-                  { icon: '📊', label: 'Progress Dashboard' },
-                  { icon: '🧙', label: 'Guru Report' },
-                  { icon: '✨', label: 'Go Deeper AI' },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-2 text-xs text-gray-700">
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
+                {includedFeatures.map((feature) => (
+                  <div key={feature} className="flex items-center gap-2 text-xs text-gray-700">
+                    <span>{feature}</span>
                   </div>
                 ))}
               </div>
@@ -119,11 +123,7 @@ const receiptId = params.get('receiptId')
 
             {/* CTA buttons */}
             <div className="space-y-2 pt-2">
-              <Link
-                href="/dashboard/path"
-                className={`block w-full bg-gradient-to-r ${gradient} text-white text-sm font-bold py-3 rounded-xl text-center hover:opacity-90 transition-opacity`}
-              >
-                {receiptId && (
+              {receiptId && (
                 <Link
                   href={"/dashboard/receipt/" + receiptId}
                   className="block w-full bg-white border border-violet-200 text-violet-700 text-sm font-semibold py-3 rounded-xl text-center hover:bg-violet-50 transition-colors"
@@ -131,6 +131,10 @@ const receiptId = params.get('receiptId')
                   🧾 Download Payment Receipt
                 </Link>
               )}
+              <Link
+                href="/dashboard/path"
+                className={`block w-full bg-gradient-to-r ${gradient} text-white text-sm font-bold py-3 rounded-xl text-center hover:opacity-90 transition-opacity`}
+              >
                 🚀 Start Learning Now
               </Link>
               <Link

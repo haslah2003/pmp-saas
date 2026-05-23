@@ -1,13 +1,34 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PLANS } from '@/lib/plans'
-import type { Period } from '@/lib/plans'
+import type { Period, PlanId } from '@/lib/plans'
 import PayPalButton from '@/components/PayPalButton'
+
+const PLAN_IDS: PlanId[] = ['basic', 'standard', 'professional']
+const PERIODS: Period[] = ['monthly', 'annual']
+
 
 export default function PricingPage() {
   const [period, setPeriod] = useState<Period>('monthly')
   const [expandedPlan, setExpandedPlan] = useState<string | null>('standard')
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const requestedPlan = params.get('plan') as PlanId | null
+    const requestedPeriodParam = params.get('period')
+    const requestedPeriod = requestedPeriodParam === 'sprint90'
+      ? 'annual'
+      : requestedPeriodParam as Period | null
+
+    if (requestedPlan && PLAN_IDS.includes(requestedPlan)) {
+      setExpandedPlan(requestedPlan)
+    }
+
+    if (requestedPeriod && PERIODS.includes(requestedPeriod)) {
+      setPeriod(requestedPeriod)
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50">

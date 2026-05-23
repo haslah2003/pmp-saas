@@ -1,8 +1,26 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { capturePayPalOrder } from '@/lib/paypal'
-import { getPlanDays } from '@/lib/plans'
-import type { Period } from '@/lib/plans'
+import { getPlanById, getPlanDays, getPlanPrice } from '@/lib/plans'
+import type { Period, PlanId } from '@/lib/plans'
+
+const VALID_PLAN_IDS: PlanId[] = ['basic', 'standard', 'professional']
+
+function normalisePlanId(value: unknown): PlanId | null {
+  return typeof value === 'string' && VALID_PLAN_IDS.includes(value as PlanId)
+    ? (value as PlanId)
+    : null
+}
+
+function normalisePeriod(value: unknown): Period | null {
+  if (value === 'sprint90') return 'annual'
+  if (value === 'annual' || value === 'monthly') return value
+  return null
+}
+
+function publicPeriod(period: Period): 'monthly' | 'sprint90' {
+  return period === 'annual' ? 'sprint90' : 'monthly'
+}
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -12,14 +30,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { orderId } = await req.json()
+  const body = await req.json() as {
+    orderId?: string
+    planId?: string
+    period?: string
+  }
+
+  const { orderId } = body
 
   if (!orderId) {
     return NextResponse.json({ error: 'Missing orderId' }, { status: 400 })
   }
 
   try {
-    // ── 1. Capture the PayPal payment ───────────────────────────────────────
     const capture = await capturePayPalOrder(orderId)
 
     if (capture.status !== 'COMPLETED') {
@@ -29,71 +52,104 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // ── 2. Extract plan details from custom_id ──────────────────────────────
-    const customId = capture.purchase_units?.[0]?.custom_id
-    let planId = 'basic'
-    let period: Period = 'monthly'
+    let planId = normalisePlanId(body.planId)
+    let period = normalisePeriod(body.period)
 
-    if (customId) {
+    const customId = capture.purchase_units?.[0]?.custom_id
+    if ((!planId || !period) && customId) {
       try {
         const parsed = JSON.parse(customId)
-        planId = parsed.planId ?? 'basic'
-        period = parsed.period ?? 'monthly'
+        planId = planId ?? normalisePlanId(parsed.planId)
+        period = period ?? normalisePeriod(parsed.period)
       } catch {
-        // fallback to defaults
+        // Do not silently default to Basic. We validate below.
       }
     }
 
-    const captureId = capture.purchase_units?.[0]?.payments?.captures?.[0]?.id
-    const amount = capture.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value
+    if (!planId || !period || !getPlanById(planId)) {
+      console.error('Missing or invalid PayPal plan attribution', {
+        orderId,
+        bodyPlanId: body.planId,
+        bodyPeriod: body.period,
+        customId,
+      })
 
-    // ── 3. Calculate plan expiry ────────────────────────────────────────────
+      return NextResponse.json(
+        { error: 'Payment captured but plan attribution was invalid. Contact support.' },
+        { status: 400 }
+      )
+    }
+
+    const captureId = capture.purchase_units?.[0]?.payments?.captures?.[0]?.id
+    const amountText = capture.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value
+    const capturedAmount = Number(amountText)
+    const expectedAmount = getPlanPrice(planId, period)
+
+    if (!Number.isFinite(capturedAmount) || Math.abs(capturedAmount - expectedAmount) > 0.01) {
+      console.error('PayPal amount/plan mismatch', {
+        orderId,
+        captureId,
+        planId,
+        period,
+        capturedAmount,
+        expectedAmount,
+      })
+
+      return NextResponse.json(
+        { error: 'Payment amount does not match the selected plan. Contact support.' },
+        { status: 400 }
+      )
+    }
+
     const days = getPlanDays(period)
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + days)
 
-    // ── 4. Update Supabase profile ──────────────────────────────────────────
     const { createClient: createAdminClient } = await import('@supabase/supabase-js')
-const adminSupabase = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-const { error: updateError } = await adminSupabase
-  .from('profiles')
-  .update({
-    plan: planId,
-    plan_period: period,
-    plan_expires_at: expiresAt.toISOString(),
-    paypal_order_id: orderId,
-    paypal_capture_id: captureId,
-    updated_at: new Date().toISOString(),
-  })
-  .eq('id', user.id)
+    const adminSupabase = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { error: updateError } = await adminSupabase
+      .from('profiles')
+      .update({
+        plan: planId,
+        plan_period: period,
+        plan_expires_at: expiresAt.toISOString(),
+        paypal_order_id: orderId,
+        paypal_capture_id: captureId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id)
 
     if (updateError) {
       console.error('Supabase update error:', JSON.stringify(updateError))
-console.error('User ID:', user.id)
+      console.error('User ID:', user.id)
       return NextResponse.json(
         { error: 'Payment captured but failed to activate plan. Contact support.' },
         { status: 500 }
       )
     }
-// ── 5. Save payment receipt ─────────────────────────────────────────────
-    const { data: seqResult } = await adminSupabase.rpc('nextval', { seq_name: 'receipt_number_seq' }).single()
+
+    const { data: seqResult } = await adminSupabase
+      .rpc('nextval', { seq_name: 'receipt_number_seq' })
+      .single()
+
     const receiptNum = 'RCP-' + String(seqResult || Date.now()).padStart(6, '0')
 
-    const { data: savedReceipt } = await adminSupabase
+    const { data: savedReceipt, error: receiptError } = await adminSupabase
       .from('payment_receipts')
       .insert({
         user_id: user.id,
         receipt_number: receiptNum,
         plan: planId,
         plan_period: period,
-        amount: parseFloat(amount || '0'),
+        amount: capturedAmount,
         currency: 'USD',
         paypal_order_id: orderId,
         paypal_capture_id: captureId,
-       payer_email: (capture as any).payer?.email_address || '',
+        payer_email: (capture as any).payer?.email_address || '',
         payer_name: (capture as any).payer?.name?.given_name
           ? (capture as any).payer.name.given_name + ' ' + ((capture as any).payer.name.surname || '')
           : '',
@@ -101,13 +157,18 @@ console.error('User ID:', user.id)
       })
       .select('id')
       .single()
-    // ── 6. Return success data ──────────────────────────────────────────────
+
+    if (receiptError) {
+      console.error('Receipt insert error:', JSON.stringify(receiptError))
+    }
+
     return NextResponse.json({
       success: true,
       plan: planId,
-      period,
+      period: publicPeriod(period),
+      internalPeriod: period,
       expiresAt: expiresAt.toISOString(),
-      amount,
+      amount: capturedAmount.toFixed(2),
       captureId,
       receiptId: savedReceipt?.id || null,
     })

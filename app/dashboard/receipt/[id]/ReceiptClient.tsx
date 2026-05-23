@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { PLANS } from '@/lib/plans'
 
 interface ReceiptData {
   id: string
@@ -48,7 +49,15 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
 
   const planName = PLAN_NAMES[receipt.plan] || receipt.plan
   const planIcon = PLAN_ICONS[receipt.plan] || '⭐'
-  const periodLabel = receipt.plan_period === 'yearly' ? 'Annual' : 'Monthly'
+  const selectedPlan = PLANS.find((p) => p.id === receipt.plan)
+  const planTagline = selectedPlan?.tagline || 'PMP final sprint preparation access'
+  const includedFeatures = selectedPlan?.features || [
+    '📖 Course Library',
+    '🤖 AiTuTorZ AI Tutor',
+    '🎯 Practice Engine',
+    '📊 Progress Dashboard',
+  ]
+  const periodLabel = receipt.plan_period === 'annual' || receipt.plan_period === 'sprint90' ? '90-Day Sprint' : 'Monthly'
 
   const handlePrint = () => window.print()
 
@@ -93,7 +102,7 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {logoUrl ? (
-                    <img src={logoUrl} alt={siteName} className="h-8 object-contain brightness-0 invert" />
+                    <img src={logoUrl} alt={siteName} className="h-8 object-contain" style={{ filter: "brightness(0) invert(1) grayscale(1) contrast(1.4)", opacity: 0.98 }} />
                   ) : (
                     <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-white font-black text-sm">P</div>
                   )}
@@ -151,7 +160,7 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
                   <span className="text-xl">{planIcon}</span>
                   <div>
                     <p className="text-sm font-bold text-gray-900">{planName}</p>
-                    <p className="text-[10px] text-gray-400">Full access to all platform features</p>
+                    <p className="text-[10px] text-gray-400">{planTagline}</p>
                   </div>
                 </div>
                 <div className="col-span-2 text-center">
@@ -199,16 +208,7 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
             <div className="px-6 py-3 border-b border-gray-100">
               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Your Plan Includes</p>
               <div className="grid grid-cols-2 gap-1">
-                {[
-                  '📚 Course Library (24 lessons)',
-                  '🤖 AiTuTorZ AI Tutor',
-                  '🎯 Adaptive Practice Engine',
-                  '📊 Progress Dashboard',
-                  '🧙‍♂️ Guru Progress Reports',
-                  '✨ Go Deeper AI Analysis',
-                  '📐 PMP Formulas Reference',
-                  '💬 PMP Companion Chat',
-                ].map(item => (
+                {includedFeatures.map(item => (
                   <div key={item} className="flex items-center gap-1 text-[10px] text-gray-600 py-0.5">{item}</div>
                 ))}
               </div>

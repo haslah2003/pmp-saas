@@ -1,22 +1,27 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { getPlanById } from "@/lib/plans";
+import type { Period, PlanId } from "@/lib/plans";
 
-const FRAMEWORK_LABELS: Record<string, { title: string; subtitle: string; color: string }> = {
-  pmbok7: { title: "PMP Prep — Full Access", subtitle: "PMBOK 7 + Bridge + PMBOK 8 / ECO 2026", color: "#1e40af" },
-  pmbok8: { title: "PMP Prep — Full Access", subtitle: "PMBOK 7 + Bridge + PMBOK 8 / ECO 2026", color: "#0f766e" },
-};
+const VALID_PLAN_IDS: PlanId[] = ["basic", "standard", "professional"];
+const VALID_PERIODS: Period[] = ["monthly", "annual"];
 
-const PLAN_LABELS: Record<string, { label: string; price: number; period: string }> = {
-  monthly_7: { label: "Monthly", price: 29, period: "mo" },
-  quarterly_7: { label: "Quarterly", price: 69, period: "3 mo" },
-  yearly_7: { label: "Annual", price: 199, period: "yr" },
-  monthly_8: { label: "Monthly", price: 29, period: "mo" },
-  quarterly_8: { label: "Quarterly", price: 69, period: "3 mo" },
-  yearly_8: { label: "Annual", price: 199, period: "yr" },
-};
+function normalisePlanId(value: string | null): PlanId {
+  return VALID_PLAN_IDS.includes(value as PlanId) ? (value as PlanId) : "standard";
+}
+
+function normalisePeriod(value: string | null): Period {
+  if (value === "sprint90") return "annual";
+  return VALID_PERIODS.includes(value as Period) ? (value as Period) : "annual";
+}
+
+function toPublicPeriod(value: Period): "monthly" | "sprint90" {
+  return value === "annual" ? "sprint90" : "monthly";
+}
 
 function SignupForm() {
   const [name, setName] = useState("");
@@ -25,14 +30,18 @@ function SignupForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
 
-  const framework = searchParams.get("framework") || "pmbok7";
-  const plan = searchParams.get("plan") || "monthly_7";
-  const fw = FRAMEWORK_LABELS[framework] || FRAMEWORK_LABELS.pmbok7;
-  const pl = PLAN_LABELS[plan] || PLAN_LABELS.monthly_7;
+  const planId = normalisePlanId(searchParams.get("plan"));
+  const period = normalisePeriod(searchParams.get("period"));
+  const selectedPlan = getPlanById(planId) || getPlanById("standard")!;
+  const selectedPrice = period === "annual" ? selectedPlan.annual : selectedPlan.monthly;
+  const periodLabel = period === "annual" ? "90-Day Sprint" : "Monthly";
+  const periodSuffix = period === "annual" ? "90 days" : "month";
+  const checkoutPath = `/dashboard/pricing?plan=${planId}&period=${toPublicPeriod(period)}`;
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +51,13 @@ function SignupForm() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name } },
+      options: {
+        data: {
+          full_name: name,
+          selected_plan: planId,
+          selected_period: period,
+        },
+      },
     });
 
     if (error) {
@@ -52,20 +67,17 @@ function SignupForm() {
     }
 
     if (data.user) {
-      // Save framework to profile
       await supabase
         .from("profiles")
-        .update({ active_framework: framework })
+        .update({
+          active_framework: "pmbok7",
+          selected_plan: planId,
+          selected_period: period,
+        })
         .eq("id", data.user.id);
 
-      // Save subscription with framework
-      await supabase
-        .from("subscriptions")
-        .update({ framework })
-        .eq("user_id", data.user.id);
-
       setSuccess(true);
-      setTimeout(() => router.push("/dashboard"), 2000);
+      setTimeout(() => router.push(checkoutPath), 1200);
     }
 
     setLoading(false);
@@ -74,33 +86,33 @@ function SignupForm() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-
-        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl mx-auto flex items-center justify-center text-white font-bold text-lg mb-3" style={{ backgroundColor: fw.color }}>P</div>
+          <div className="w-12 h-12 rounded-xl mx-auto flex items-center justify-center text-white font-bold text-lg mb-3 bg-blue-800">
+            P
+          </div>
           <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
           <p className="text-sm text-gray-500 mt-1">Start your PMP preparation today</p>
         </div>
 
-        {/* Selected product summary */}
-        <div className="rounded-xl border-2 px-4 py-3 mb-6 flex items-center justify-between" style={{ borderColor: fw.color, backgroundColor: fw.color + "08" }}>
+        <div className="rounded-xl border-2 border-blue-800 bg-blue-50/50 px-4 py-3 mb-6 flex items-center justify-between">
           <div>
-            <p className="text-sm font-bold text-gray-900">{fw.title}</p>
-            <p className="text-xs text-gray-500">{fw.subtitle}</p>
+            <p className="text-sm font-bold text-gray-900">{selectedPlan.name} Plan</p>
+            <p className="text-xs text-gray-500">PMBOK 7 + ECO 2021 final sprint preparation</p>
           </div>
           <div className="text-right">
-            <p className="text-sm font-bold" style={{ color: fw.color }}>${pl.price}/{pl.period}</p>
-            <p className="text-xs text-gray-400">{pl.label}</p>
+            <p className="text-sm font-bold text-blue-800">
+              {selectedPrice.label}/{periodSuffix}
+            </p>
+            <p className="text-xs text-gray-400">{periodLabel}</p>
           </div>
         </div>
 
-        {/* Form */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           {success ? (
             <div className="text-center py-4">
               <div className="text-4xl mb-3">✅</div>
               <p className="font-bold text-gray-900">Account created!</p>
-              <p className="text-sm text-gray-500 mt-1">Redirecting to your dashboard...</p>
+              <p className="text-sm text-gray-500 mt-1">Opening your selected checkout...</p>
             </div>
           ) : (
             <form onSubmit={handleSignup} className="space-y-4">
@@ -115,6 +127,7 @@ function SignupForm() {
                   className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-blue-400"
                 />
               </div>
+
               <div>
                 <label className="text-xs font-semibold text-gray-700 block mb-1.5">Email Address</label>
                 <input
@@ -126,6 +139,7 @@ function SignupForm() {
                   className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-blue-400"
                 />
               </div>
+
               <div>
                 <label className="text-xs font-semibold text-gray-700 block mb-1.5">Password</label>
                 <input
@@ -148,14 +162,13 @@ function SignupForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
-                style={{ backgroundColor: loading ? "#9ca3af" : fw.color }}
+                className="w-full py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-90 bg-blue-800 disabled:bg-gray-400"
               >
-                {loading ? "Creating account..." : `Create Account & Start Learning`}
+                {loading ? "Creating account..." : "Create Account & Continue to Checkout"}
               </button>
 
               <p className="text-xs text-gray-400 text-center">
-                By signing up you agree to our Terms of Service. Payment will be processed via PayPal after account creation.
+                By signing up you agree to our Terms of Service. Payment will be processed securely through PayPal after account creation.
               </p>
             </form>
           )}
@@ -163,11 +176,11 @@ function SignupForm() {
 
         <p className="text-center text-sm text-gray-500 mt-4">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold" style={{ color: fw.color }}>Sign in</Link>
+          <Link href="/login" className="font-semibold text-blue-800">Sign in</Link>
         </p>
 
         <p className="text-center text-sm text-gray-500 mt-2">
-          <Link href="/pricing" className="text-gray-400 hover:text-gray-600">← Back to pricing</Link>
+          <Link href="/#pricing" className="text-gray-400 hover:text-gray-600">← Back to pricing</Link>
         </p>
       </div>
     </div>

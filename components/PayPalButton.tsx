@@ -14,9 +14,33 @@ interface PayPalButtonProps {
 declare global {
   interface Window {
     paypal?: {
-      Buttons: (config: unknown) => { render: (selector: string) => void }
+      Buttons: (config: unknown) => {
+        render: (selector: string) => Promise<void> | void
+      }
     }
   }
+}
+
+function waitForPayPal(timeoutMs = 8000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const startedAt = Date.now()
+
+    const tick = () => {
+      if (window.paypal) {
+        resolve()
+        return
+      }
+
+      if (Date.now() - startedAt > timeoutMs) {
+        reject(new Error('PayPal SDK loaded slowly or was blocked by the browser.'))
+        return
+      }
+
+      window.setTimeout(tick, 150)
+    }
+
+    tick()
+  })
 }
 
 export default function PayPalButton({
@@ -27,42 +51,77 @@ export default function PayPalButton({
 }: PayPalButtonProps) {
   const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
+
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState('')
   const [processing, setProcessing] = useState(false)
-  const buttonRendered = useRef(false)
+
+  const containerId = `paypal-container-${planId}-${period}`
 
   useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
-    if (!clientId) {
-      setError('PayPal is not configured.')
-      return
+    let cancelled = false
+
+    async function loadSdk() {
+      const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+
+      if (!clientId) {
+        setError('PayPal is not configured.')
+        return
+      }
+
+      if (window.paypal) {
+        setLoaded(true)
+        return
+      }
+
+      const existingScript = document.getElementById('paypal-sdk')
+
+      if (existingScript) {
+        try {
+          await waitForPayPal()
+          if (!cancelled) setLoaded(true)
+        } catch (err) {
+          if (!cancelled) {
+            setError(err instanceof Error ? err.message : 'PayPal could not load.')
+          }
+        }
+        return
+      }
+
+      const script = document.createElement('script')
+      script.id = 'paypal-sdk'
+      script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(
+        clientId
+      )}&currency=USD&intent=capture&components=buttons`
+      script.async = true
+
+      script.onload = () => {
+        if (!cancelled) setLoaded(true)
+      }
+
+      script.onerror = () => {
+        if (!cancelled) setError('Failed to load PayPal SDK.')
+      }
+
+      document.body.appendChild(script)
     }
 
-    const existingScript = document.getElementById('paypal-sdk')
-    if (existingScript) {
-      setLoaded(true)
-      return
-    }
+    loadSdk()
 
-    const script = document.createElement('script')
-    script.id = 'paypal-sdk'
-    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture`
-    script.async = true
-    script.onload = () => setLoaded(true)
-    script.onerror = () => setError('Failed to load PayPal SDK.')
-    document.body.appendChild(script)
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
-    if (!loaded || !window.paypal || !containerRef.current || buttonRendered.current) return
-    buttonRendered.current = true
+    if (!loaded || !window.paypal || !containerRef.current) return
 
-    // Clear any previous buttons
-    if (containerRef.current) containerRef.current.innerHTML = ''
+    let cancelled = false
+    setError('')
+    containerRef.current.innerHTML = ''
 
-    window.paypal
-      .Buttons({
+    try {
+      const buttons = window.paypal.Buttons({
         style: {
           layout: 'vertical',
           color: 'blue',
@@ -74,14 +133,17 @@ export default function PayPalButton({
         createOrder: async () => {
           setProcessing(true)
           setError('')
+
           try {
             const res = await fetch('/api/paypal/create-order', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ planId, period }),
             })
+
             const data = await res.json()
             if (!data.orderId) throw new Error(data.error || 'Failed to create order')
+
             return data.orderId
           } catch (err) {
             const msg = err instanceof Error ? err.message : 'Something went wrong'
@@ -93,22 +155,24 @@ export default function PayPalButton({
 
         onApprove: async (data: { orderID: string }) => {
           setProcessing(true)
+
           try {
             const res = await fetch('/api/paypal/capture-order', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ orderId: data.orderID }),
+              body: JSON.stringify({ orderId: data.orderID, planId, period }),
             })
+
             const result = await res.json()
             if (!result.success) throw new Error(result.error || 'Capture failed')
 
-            // Redirect to success page with details
             const params = new URLSearchParams({
               plan: result.plan,
               period: result.period,
               amount: result.amount,
               ...(result.receiptId ? { receiptId: result.receiptId } : {}),
             })
+
             router.push(`/dashboard/payment/success?${params.toString()}`)
           } catch (err) {
             const msg = err instanceof Error ? err.message : 'Payment failed'
@@ -128,11 +192,33 @@ export default function PayPalButton({
           setProcessing(false)
         },
       })
-      .render(`#paypal-container-${planId}-${period}`)
-  }, [loaded, planId, period, router])
+
+      const renderResult = buttons.render(`#${containerId}`)
+
+      if (renderResult && typeof renderResult.then === 'function') {
+        renderResult.catch((err) => {
+          if (!cancelled) {
+            console.error('PayPal render error:', err)
+            setError('PayPal button could not render. Refresh the page and try again.')
+          }
+        })
+      }
+    } catch (err) {
+      console.error('PayPal button setup error:', err)
+      setError('PayPal button could not start. Refresh the page and try again.')
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [loaded, planId, period, router, containerId])
 
   return (
     <div className="w-full">
+      <div className="text-[11px] text-gray-400 mb-2 text-center">
+        Pay securely with PayPal — {planName} · ${amount}
+      </div>
+
       {processing && (
         <div className="flex items-center justify-center gap-2 py-3 mb-2">
           <div className="w-4 h-4 border-2 border-violet-300 border-t-violet-600 rounded-full animate-spin" />
@@ -147,13 +233,13 @@ export default function PayPalButton({
       )}
 
       {!loaded && !error && (
-        <div className="h-12 bg-gray-100 rounded-full animate-pulse flex items-center justify-center">
-          <span className="text-xs text-gray-400">Loading PayPal...</span>
+        <div className="h-12 bg-gray-100 rounded-full animate-pulse flex items-center justify-center mb-2">
+          <span className="text-xs text-gray-400">Loading PayPal checkout...</span>
         </div>
       )}
 
       <div
-        id={`paypal-container-${planId}-${period}`}
+        id={containerId}
         ref={containerRef}
         className={!loaded ? 'hidden' : ''}
       />

@@ -53,7 +53,7 @@ export default async function BillingPage() {
                   <p className={`text-3xl font-bold ${isFreePlan ? 'text-gray-900' : 'text-white'}`}>
                     ${profile?.plan_period === 'annual' ? currentPlan?.annual.price : currentPlan?.monthly.price}
                   </p>
-                  <p className={`text-xs ${isFreePlan ? 'text-gray-400' : 'text-white/60'}`}>per {profile?.plan_period === 'annual' ? 'year' : 'month'}</p>
+                  <p className={`text-xs ${isFreePlan ? 'text-gray-400' : 'text-white/60'}`}>per {profile?.plan_period === 'annual' ? '90 days' : 'month'}</p>
                 </>
               )}
               {isFreePlan && <p className="text-3xl font-bold text-gray-900">$0</p>}
@@ -79,7 +79,7 @@ export default async function BillingPage() {
           {!isFreePlan && (
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">{dt("Billing Period", isArabic)}</span>
-              <span className="text-sm font-semibold text-gray-900 capitalize">{profile?.plan_period || 'monthly'}</span>
+              <span className="text-sm font-semibold text-gray-900 capitalize">{profile?.plan_period === 'annual' ? '90-Day Sprint' : (profile?.plan_period || 'monthly')}</span>
             </div>
           )}
           <div className="pt-2">
