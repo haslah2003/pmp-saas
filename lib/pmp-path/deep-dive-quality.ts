@@ -118,8 +118,20 @@ function routeAlignment(input: DeepDiveQualityInput, normalized: string) {
       score -= 8;
     }
 
-    const wrongPmbok8Principles =
-      /pmbok\s*8[^.\n]{0,120}(12\s+principles|twelve\s+principles|١٢\s+مبدأ|12\s+مبدأ)/i.test(input.contentMarkdown);
+    const pmbok8TwelvePrincipleMatch = input.contentMarkdown.match(
+      /pmbok\s*8[^.\n]{0,180}(12\s+principles|twelve\s+principles|١٢\s+مبدأ|12\s+مبدأ)/i
+    );
+
+    const pmbok8TwelvePrincipleContext = pmbok8TwelvePrincipleMatch?.[0] ?? '';
+
+    const legitimatePrincipleComparison =
+      /pmbok\s*7|six\s+principles|6\s+principles|٦\s+مبادئ|6\s+مبادئ|from\s+12\s+principles\s+to\s+6|consolidat|streamlin|shift|transition|evolv|reduc|compare|comparison|rather\s+than|instead\s+of|من\s+12|من\s+١٢|إلى\s+6|إلى\s+٦|تحول|انتقال|مقارنة/.test(
+        pmbok8TwelvePrincipleContext.toLowerCase()
+      );
+
+    const wrongPmbok8Principles = Boolean(
+      pmbok8TwelvePrincipleMatch && !legitimatePrincipleComparison
+    );
 
     const wrongPmbok8Domains =
       /pmbok\s*8[^.\n]{0,140}(8\s+performance\s+domains|eight\s+performance\s+domains|ثمانية\s+مجالات)/i.test(input.contentMarkdown);

@@ -12,7 +12,7 @@ export const maxDuration = 60;
 
 const MODEL = 'claude-sonnet-4-5';
 const GENERATION_MAX_TOKENS = 2200;
-const PROMPT_VERSION = 'rpath-learn-deep-dive-generator-v3-readable-canonical';
+const PROMPT_VERSION = 'rpath-learn-deep-dive-generator-v4-route-explicit';
 const SOURCE_VERSION = 'pmp-path-track-registry-v1';
 
 function readText(value: unknown, fallback = '') {
@@ -70,6 +70,7 @@ SOURCE-OF-TRUTH RULES:
 
 STRICT GUARDRAILS:
 - Do NOT use PMBOK 7's 12 principles as PMBOK 8 principles.
+- For comparison lessons about 12 principles to 6 principles, phrase the comparison as: "PMBOK 7's 12 principles were consolidated into PMBOK 8's six principles." 
 - Do NOT use PMBOK 7's eight performance domains as PMBOK 8 performance domains.
 - Do NOT describe People, Process, and Business Environment as PMBOK 8 Performance Domains. They are ECO exam domains.
 - Do NOT invent page numbers, section numbers, task numbers, or exact PMI/Rita quotes.
@@ -153,6 +154,8 @@ QUALITY REQUIREMENTS:
 - Do not include admin notes.
 - Do not create empty headings.
 - Every heading must contain substantial instructional content.
+- Use the exact token "ECO 2026" at least twice in the content, including Arabic outputs.
+- When comparing PMBOK 7 and PMBOK 8 principles, state clearly that PMBOK 7 has 12 principles and PMBOK 8 has 6 principles; never write "PMBOK 8's 12 principles".
 - Use practical PMP exam reasoning, realistic project situations, and decision logic.
 - Keep paragraphs readable and learner-focused.
 - End the response with this exact final line:
