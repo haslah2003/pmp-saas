@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { PLANS } from '@/lib/plans'
 import type { Period } from '@/lib/plans'
 import PayPalButton from '@/components/PayPalButton'
@@ -10,19 +9,17 @@ export default function PricingPage() {
   const [period, setPeriod] = useState<Period>('monthly')
   const [expandedPlan, setExpandedPlan] = useState<string | null>('standard')
 
-  const annualDiscount = period === 'annual'
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ── Header ── */}
       <div className="bg-white border-b border-gray-100 px-6 py-10">
         <div className="max-w-5xl mx-auto text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-3">
-            Invest in Your PMP Success
+            Choose Your PMP Final Sprint Plan
           </h1>
           <p className="text-gray-500 max-w-xl mx-auto text-sm leading-relaxed">
-            Join thousands of professionals who passed their PMP exam with our
-            AI-powered preparation platform. Cancel anytime.
+            Focused PMBOK 7 + ECO 2021 preparation for candidates targeting the
+            current PMP exam before the July change.
           </p>
 
           {/* Period toggle */}
@@ -42,16 +39,16 @@ export default function PricingPage() {
             </button>
             <div className="flex items-center gap-2">
               <span className={`text-sm font-medium ${period === 'annual' ? 'text-gray-900' : 'text-gray-400'}`}>
-                Annual
+                90-Day Sprint
               </span>
               {period === 'annual' && (
                 <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
-                  Best Value
+                  Best Sprint Value
                 </span>
               )}
               {period === 'monthly' && (
                 <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-2 py-0.5 rounded-full">
-                  Save up to 43% annually
+                  Save up to 16% with 90-day access
                 </span>
               )}
             </div>
@@ -96,22 +93,22 @@ export default function PricingPage() {
                   <div className="mt-4 flex items-end gap-1">
                     <span className="text-4xl font-bold">${price}</span>
                     <span className="text-white/70 text-sm mb-1">
-                      {period === 'annual' ? '/year' : '/month'}
+                      {period === 'annual' ? '/90 days' : '/month'}
                     </span>
                   </div>
 
-                  {/* Annual saving */}
+                  {/* Sprint saving */}
                   {period === 'annual' && (
                     <div className="mt-1 bg-white/20 rounded-lg px-2 py-0.5 w-fit">
                       <span className="text-xs font-semibold text-white">
-                        🎉 {plan.annualSaving} vs monthly
+                        🎉 {plan.annualSaving} with 90-day sprint access
                       </span>
                     </div>
                   )}
 
                   {period === 'monthly' && (
                     <p className="text-white/60 text-xs mt-1">
-                      or {plan.annual.label}/year — {plan.annualSaving}
+                      or {plan.annual.label}/90 days — {plan.annualSaving}
                     </p>
                   )}
                 </div>
@@ -132,7 +129,9 @@ export default function PricingPage() {
                     <div>
                       <div className={`text-xs font-semibold ${plan.textColor} mb-3 flex items-center gap-1`}>
                         <span>Secure checkout</span>
-                        <span className="text-gray-400 font-normal">— {plan.name} · {period === 'annual' ? 'Annual' : 'Monthly'} · ${price}</span>
+                        <span className="text-gray-400 font-normal">
+                          — {plan.name} · {period === 'annual' ? '90-Day Sprint' : 'Monthly'} · ${price}
+                        </span>
                       </div>
                       <PayPalButton
                         planId={plan.id}
@@ -165,7 +164,7 @@ export default function PricingPage() {
         <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { icon: '🔒', label: 'Secure Payment', sub: 'PayPal protected' },
-            { icon: '✅', label: 'Cancel Anytime', sub: 'No lock-in contracts' },
+            { icon: '✅', label: 'Upgrade Anytime', sub: 'Move up when ready' },
             { icon: '🏆', label: 'Exam Focused', sub: 'PMI-aligned content' },
             { icon: '⚡', label: 'Instant Access', sub: 'Start immediately' },
           ].map((item) => (
@@ -188,7 +187,7 @@ export default function PricingPage() {
               },
               {
                 q: 'Is there a free trial?',
-                a: 'Our Basic plan gives you full access to the Course Library and AiTuTorZ to get started.',
+                a: 'The Basic plan gives you a focused current-exam preparation route with AI tutor access, lessons, mind maps, and focused practice sets.',
               },
               {
                 q: 'What happens when my plan expires?',

@@ -54,7 +54,7 @@ const copy = {
     pricing: {
       label: "Pricing",
       title: "Choose your PMP final sprint plan",
-      sub: "Focused preparation for candidates targeting the current PMP exam before the July change. Cancel anytime.",
+      sub: "Focused preparation for candidates targeting the current PMP exam before the July change. Upgrade anytime as your preparation needs grow.",
       monthly: "Monthly",
       annual: "90-Day Sprint",
       saveBadge: "Best sprint value",
@@ -63,7 +63,7 @@ const copy = {
       yearSuffix: "/90 days",
       secured: "Secured by PayPal",
       cards: "Debit or credit card",
-      cancel: "Cancel anytime",
+      cancel: "Upgrade anytime",
       plans: [
         { name: "Basic", emoji: "🚀", tagline: "Start your current-exam preparation", monthly: 29, annual: 79, annualSave: "Save 9%", features: ["Full Course Library (24 lessons)", "AI Tutor — unlimited sessions", "Practice Engine — focused question sets", "Progress Dashboard", "Interactive Mind Maps", "PMBOK 7 + ECO 2021 framework"], cta: "Get Basic", popular: false },
         { name: "Standard", emoji: "⚡", tagline: "Complete current-exam preparation toolkit", monthly: 49, annual: 129, annualSave: "Save 12%", features: ["Everything in Basic ✅", "679 bilingual practice questions", "Mock Exam (180 questions)", "Guru Report & weak area analysis", "Go Deeper AI expansions", "PMBOK 7 + ECO 2021 framework", "Priority content updates"], cta: "Get Standard", popular: true },
@@ -158,7 +158,7 @@ const copy = {
     pricing: {
       label: "الأسعار",
       title: "اختر خطة سباقك الأخير نحو PMP",
-      sub: "تحضير مركز للمرشحين الذين يستهدفون اختبار PMP الحالي قبل تغيير يوليو. إلغاء في أي وقت.",
+      sub: "تحضير مركز للمرشحين الذين يستهدفون اختبار PMP الحالي قبل تغيير يوليو. يمكنك الترقية في أي وقت حسب احتياجك التحضيري.",
       monthly: "شهري",
       annual: "سباق 90 يومًا",
       saveBadge: "أفضل قيمة للسباق",
@@ -167,7 +167,7 @@ const copy = {
       yearSuffix: "/90 يومًا",
       secured: "محمي بواسطة PayPal",
       cards: "بطاقة خصم أو ائتمان",
-      cancel: "إلغاء في أي وقت",
+      cancel: "الترقية في أي وقت",
       plans: [
         { name: "أساسي", emoji: "🚀", tagline: "ابدأ تحضيرك للاختبار الحالي", monthly: 29, annual: 79, annualSave: "وفّر 9%", features: ["مكتبة الدورة الكاملة (24 درسًا)", "المعلم الذكي — جلسات غير محدودة", "محرك التمارين — مجموعات أسئلة مركزة", "لوحة تتبع التقدم", "خرائط ذهنية تفاعلية", "إطار PMBOK 7 + ECO 2021"], cta: "احصل على الأساسي", popular: false },
         { name: "قياسي", emoji: "⚡", tagline: "مجموعة أدوات كاملة للتحضير للاختبار الحالي", monthly: 49, annual: 129, annualSave: "وفّر 12%", features: ["كل شيء في الأساسي ✅", "679 سؤال ممارسة ثنائي اللغة", "اختبار محاكاة (180 سؤالًا)", "تقرير خبير وتحليل نقاط الضعف", "توسعات تعمّق بالذكاء الاصطناعي", "إطار PMBOK 7 + ECO 2021", "تحديثات محتوى ذات أولوية"], cta: "احصل على القياسي", popular: true },

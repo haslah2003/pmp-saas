@@ -159,7 +159,7 @@ export default function PayPalButton({
       />
 
       <p className="text-[10px] text-gray-400 text-center mt-2">
-        🔒 Secured by PayPal · Cancel anytime
+        🔒 Secured by PayPal · Instant access after payment
       </p>
     </div>
   )
