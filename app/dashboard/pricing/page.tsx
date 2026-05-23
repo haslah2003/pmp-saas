@@ -164,12 +164,16 @@ export default function PricingPage() {
         <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { icon: '🔒', label: 'Secure Payment', sub: 'PayPal protected' },
-            { icon: '✅', label: 'Upgrade Anytime', sub: 'Move up when ready' },
+            { icon: '/icons/upgrade-anytime.svg', label: 'Upgrade Anytime', sub: 'Move up when ready' },
             { icon: '🏆', label: 'Exam Focused', sub: 'PMI-aligned content' },
             { icon: '⚡', label: 'Instant Access', sub: 'Start immediately' },
           ].map((item) => (
             <div key={item.label} className="bg-white rounded-2xl border border-gray-100 p-4 text-center shadow-sm">
-              <span className="text-2xl">{item.icon}</span>
+              {item.icon.endsWith('.svg') ? (
+                <img src={item.icon} alt="" aria-hidden="true" className="mx-auto h-7 w-7 opacity-90" />
+              ) : (
+                <span className="text-2xl">{item.icon}</span>
+              )}
               <p className="text-xs font-bold text-gray-900 mt-1">{item.label}</p>
               <p className="text-[10px] text-gray-400 mt-0.5">{item.sub}</p>
             </div>

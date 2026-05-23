@@ -403,7 +403,7 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
             </div></FadeIn>))}
           </div>
           <FadeIn delay={0.3}><div className="lp-trust-row" style={{textAlign:"center",marginTop:28,color:C.muted}}>
-            <span>{"\ud83d\udd12"} {t.pricing.secured}</span><span>{"\ud83d\udcb3"} {t.pricing.cards}</span><span>{"\ud83d\udeab"} {t.pricing.cancel}</span>
+            <span>{"\ud83d\udd12"} {t.pricing.secured}</span><span>{"\ud83d\udcb3"} {t.pricing.cards}</span><span style={{display:"inline-flex",alignItems:"center",gap:5}}><img src="/icons/upgrade-anytime.svg" alt="" aria-hidden="true" style={{width:16,height:16}} /> {t.pricing.cancel}</span>
           </div></FadeIn>
         </div>
       </section>
