@@ -22,6 +22,7 @@ interface Props {
   receipt: ReceiptData
   learnerName: string
   learnerEmail: string
+  logoUrl: string | null
   siteName: string
 }
 
@@ -37,7 +38,7 @@ const PLAN_ICONS: Record<string, string> = {
   professional: '💎',
 }
 
-export default function ReceiptClient({ receipt, learnerName, learnerEmail, siteName }: Props) {
+export default function ReceiptClient({ receipt, learnerName, learnerEmail, logoUrl, siteName }: Props) {
   const date = new Date(receipt.created_at)
   const formattedDate = date.toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric',
@@ -100,15 +101,11 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, site
             <div className="bg-gradient-to-r from-violet-500 to-purple-600 px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/15 border border-white/25" aria-label={siteName}>
-                    <div className="relative w-5 h-5">
-                      <span className="absolute left-2 top-0 w-1.5 h-1.5 rounded-sm bg-white" />
-                      <span className="absolute left-2 bottom-0 w-1.5 h-1.5 rounded-sm bg-white" />
-                      <span className="absolute left-0 top-2 w-1.5 h-1.5 rounded-sm bg-white" />
-                      <span className="absolute right-0 top-2 w-1.5 h-1.5 rounded-sm bg-white" />
-                      <span className="absolute left-2 top-2 w-1.5 h-1.5 rounded-sm bg-white" />
-                    </div>
-                  </div>
+                  {logoUrl ? (
+                    <img src={logoUrl} alt={siteName} className="h-8 object-contain" style={{ filter: "brightness(0) invert(1) grayscale(1) contrast(1.4)", opacity: 0.98 }} />
+                  ) : (
+                    <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-white font-black text-sm">P</div>
+                  )}
                   <div>
                     <p className="text-white font-bold text-sm">{siteName}</p>
                     <p className="text-violet-200 text-[10px]">AiTuTorZ Learning Platform</p>

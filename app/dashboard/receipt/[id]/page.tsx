@@ -34,7 +34,7 @@ export default async function ReceiptPage({ params }: Props) {
   // Get branding logo
   const { data: branding } = await adminSupabase
     .from('branding_config')
-    .select('site_name')
+    .select('logo_url, site_name')
     .eq('id', 1)
     .single()
 
@@ -43,6 +43,7 @@ export default async function ReceiptPage({ params }: Props) {
       receipt={receipt}
       learnerName={profile?.full_name || profile?.email || 'Learner'}
       learnerEmail={profile?.email || ''}
+      logoUrl={branding?.logo_url || null}
       siteName={branding?.site_name || 'PMP Expert Tutor'}
     />
   )
