@@ -235,9 +235,16 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [annual, setAnnual] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
-  const [heroImg, setHeroImg] = useState<string | null>("/hero.png");
-  const heroFileRef = useRef<HTMLInputElement>(null);
+  const [heroImg, setHeroImg] = useState<string>("/hero.png");
   useEffect(() => { const h = () => setScrolled(window.scrollY > 40); window.addEventListener("scroll", h); return () => window.removeEventListener("scroll", h); }, []);
+  useEffect(() => {
+    fetch("/api/branding", { cache: "no-store" })
+      .then(r => r.json())
+      .then(data => {
+        if (data?.landing_hero_image_url) setHeroImg(data.landing_hero_image_url);
+      })
+      .catch(() => {});
+  }, []);
 
   return (<>
     <style>{`
@@ -341,10 +348,21 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
             </div>
           </FadeIn>
           <FadeIn delay={0.2} className="lp-hero-image">
-            <div onClick={()=>heroFileRef.current?.click()} style={{width:"100%",aspectRatio:"4/3",borderRadius:18,background:heroImg?`url(${heroImg}) center/cover no-repeat`:`linear-gradient(135deg,${C.tealLt},${C.purpleLt})`,border:heroImg?"none":`2px dashed ${C.teal}44`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden"}}>
-              {!heroImg&&(<div style={{textAlign:"center"}}><div style={{fontSize:40,marginBottom:10}}>{"\ud83d\udcf7"}</div><div style={{fontSize:14,fontWeight:600,color:C.purple}}>{t.hero.upload}</div><div style={{fontSize:12,color:C.muted,marginTop:4}}>{t.hero.uploadHint}</div></div>)}
-            </div>
-            <input ref={heroFileRef} type="file" accept="image/png" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(f){const r=new FileReader();r.onload=()=>setHeroImg(r.result as string);r.readAsDataURL(f);}}} />
+            <div
+              aria-label="PMP final sprint hero image"
+              style={{
+                width:"100%",
+                aspectRatio:"4/3",
+                borderRadius:18,
+                background:`#fff url(${heroImg || "/hero.png"}) center/contain no-repeat`,
+                border:`1px solid ${C.teal}10`,
+                display:"flex",
+                alignItems:"center",
+                justifyContent:"center",
+                overflow:"hidden",
+                boxShadow:"0 24px 60px rgba(15,23,42,0.04)"
+              }}
+            />
           </FadeIn>
         </div>
       </section>

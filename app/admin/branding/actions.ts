@@ -12,6 +12,7 @@ export async function saveBranding(data: {
   dark_mode_primary?: string;
   font_heading?: string;
   font_body?: string;
+  landing_hero_image_url?: string;
 }) {
   const supabase = await createClient();
   const { error } = await supabase

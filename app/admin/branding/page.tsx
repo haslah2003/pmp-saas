@@ -15,12 +15,14 @@ interface BrandingConfig {
   dark_mode_primary: string;
   font_heading: string;
   font_body: string;
+  landing_hero_image_url: string;
 }
 
 const DEFAULT: BrandingConfig = {
   site_name: 'PMP Expert Tutor', logo_url: '', favicon_url: '',
   primary_color: '#0F172A', secondary_color: '#1E40AF', accent_color: '#F59E0B',
   dark_mode_primary: '#0F172A', font_heading: 'Plus Jakarta Sans', font_body: 'DM Sans',
+  landing_hero_image_url: '/hero.png',
 };
 
 function ColorPicker({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
@@ -44,7 +46,7 @@ export default function BrandingPage() {
 
   useEffect(() => {
     fetch('/api/branding').then(r => r.json()).then(data => {
-      if (data && data.site_name) setConfig(data);
+      if (data && data.site_name) setConfig({ ...DEFAULT, ...data });
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -111,6 +113,44 @@ export default function BrandingPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </Card>
+          <Card padding="lg">
+            <h3 className="font-bold mb-4">Landing Page Hero</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Hero Image URL</label>
+                <input
+                  type="text"
+                  value={config.landing_hero_image_url}
+                  onChange={e => update('landing_hero_image_url', e.target.value)}
+                  placeholder="/hero.png or https://..."
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-blue-500/30"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Use /hero.png for the default image, or paste a public image URL.
+                </p>
+              </div>
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <div className="text-xs font-semibold text-gray-500 mb-3">Current Hero Preview</div>
+                <div className="aspect-[4/3] rounded-xl bg-white border border-gray-100 overflow-hidden flex items-center justify-center">
+                  {config.landing_hero_image_url ? (
+                    <img
+                      src={config.landing_hero_image_url}
+                      alt="Landing hero preview"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <span className="text-sm text-gray-400">No hero image selected</span>
+                  )}
+                </div>
+              </div>
+              <Button
+                variant="secondary"
+                onClick={() => update('landing_hero_image_url', '/hero.png')}
+              >
+                Restore Default Hero
+              </Button>
             </div>
           </Card>
           <Card padding="lg">
