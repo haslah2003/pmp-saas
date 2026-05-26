@@ -9,7 +9,7 @@ const C = { teal: "#1AB0A2", tealDk: "#148F84", tealLt: "#E6F8F6", purple: "#5B2
 
 const copy = {
   en: {
-    nav: { pricing: "Pricing", login: "Sign In", cta: "Start Final Sprint" },
+    nav: { pricing: "Pricing", login: "Sign In", cta: "Start Free Demo" },
     hero: {
       badge1: "PMBOK 7 + ECO 2021",
       badge2: "Current PMP Exam Sprint",
@@ -18,8 +18,8 @@ const copy = {
       h1c: "it changes",
       h1d: "",
       sub: "A focused PMBOK 7 + ECO 2021 preparation sprint for candidates targeting the current PMP exam before the July 2026 change. Practice with 679 bilingual questions, AI explanations, and readiness tracking — without restarting your preparation.",
-      cta1: "Start Your Final Sprint",
-      cta2: "Why act now?",
+      cta1: "Start Free Demo",
+      cta2: "Watch 90-sec Demo", cta3: "View Plans",
       s1v: "679",
       s1l: "bilingual questions",
       s2v: "PMBOK 7",
@@ -99,7 +99,7 @@ const copy = {
     finalCta: {
       title: "Ready for your PMP Final Sprint?",
       sub: "Stay focused on the current exam. Practice, diagnose, and prepare before the July change.",
-      btn: "Start Your Final Sprint",
+      btn: "Start Free Demo",
     },
     footer: {
       by: "by",
@@ -113,7 +113,7 @@ const copy = {
     },
   },
   ar: {
-    nav: { pricing: "الأسعار", login: "تسجيل الدخول", cta: "ابدأ السباق الأخير" },
+    nav: { pricing: "الأسعار", login: "تسجيل الدخول", cta: "ابدأ العرض التجريبي المجاني" },
     hero: {
       badge1: "PMBOK 7 + ECO 2021",
       badge2: "سباق اختبار PMP الحالي",
@@ -227,7 +227,7 @@ const planBtnColors = [C.teal, C.purple, C.purpleDk];
 
 export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
   const t = copy[lang];
-  const defaultSignupHref = "/signup?plan=standard&period=sprint90";
+  const defaultSignupHref = "/signup?mode=demo";
   const pricingPlanIds = ["basic", "standard", "professional"] as const; const isAr = lang === "ar"; const dir = isAr ? "rtl" : "ltr";
   const bodyFont = isAr ? "'Cairo', sans-serif" : "'DM Sans', sans-serif";
   const displayFont = isAr ? "'Cairo', sans-serif" : "'DM Sans', sans-serif";

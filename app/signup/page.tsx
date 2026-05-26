@@ -33,6 +33,8 @@ function SignupForm() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const mode = searchParams.get("mode");
+  const isDemoMode = mode === "demo";
   const supabase = createClient();
 
   const planId = normalisePlanId(searchParams.get("plan"));
@@ -77,7 +79,7 @@ function SignupForm() {
         .eq("id", data.user.id);
 
       setSuccess(true);
-      setTimeout(() => router.push(checkoutPath), 1200);
+      setTimeout(() => router.push(isDemoMode ? "/dashboard/demo" : checkoutPath), 1200);
     }
 
     setLoading(false);
@@ -101,9 +103,9 @@ function SignupForm() {
           </div>
           <div className="text-right">
             <p className="text-sm font-bold text-blue-800">
-              {selectedPrice.label}/{periodSuffix}
+              {isDemoMode ? "No payment required" : `${selectedPrice.label}/${periodSuffix}`}
             </p>
-            <p className="text-xs text-gray-400">{periodLabel}</p>
+            <p className="text-xs text-gray-400">{isDemoMode ? "Free PMP Demo" : periodLabel}</p>
           </div>
         </div>
 
@@ -112,9 +114,20 @@ function SignupForm() {
             <div className="text-center py-4">
               <div className="text-4xl mb-3">✅</div>
               <p className="font-bold text-gray-900">Account created!</p>
-              <p className="text-sm text-gray-500 mt-1">Opening your selected checkout...</p>
+              <p className="text-sm text-gray-500 mt-1">{isDemoMode ? "Opening your free demo..." : "Opening your selected checkout..."}</p>
             </div>
           ) : (
+            <>
+              {isDemoMode && (
+                <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-slate-800">
+                  <p className="font-semibold text-slate-950">Free PMP Demo</p>
+                  <p className="mt-1 text-slate-600">
+                    No payment required. Create your demo account to try 3 PMP
+                    scenario questions and preview one lesson before choosing a plan.
+                  </p>
+                </div>
+              )}
+
             <form onSubmit={handleSignup} className="space-y-4">
               <div>
                 <label className="text-xs font-semibold text-gray-700 block mb-1.5">Full Name</label>
@@ -164,13 +177,14 @@ function SignupForm() {
                 disabled={loading}
                 className="w-full py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-90 bg-blue-800 disabled:bg-gray-400"
               >
-                {loading ? "Creating account..." : "Create Account & Continue to Checkout"}
+                {loading ? "Creating account..." : isDemoMode ? "Create Free Demo Account" : "Create Account & Continue to Checkout"}
               </button>
 
               <p className="text-xs text-gray-400 text-center">
                 By signing up you agree to our Terms of Service. Payment will be processed securely through PayPal after account creation.
               </p>
             </form>
+            </>
           )}
         </div>
 

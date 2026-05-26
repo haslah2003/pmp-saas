@@ -71,7 +71,14 @@ export default function Sidebar({
       {/* Logo */}
       <div className="px-5 py-4 border-b border-gray-100">
         {logoUrl ? (
-          <img src={logoUrl} alt={siteName} className="h-10 object-contain" />
+          <img
+            src={logoUrl}
+            alt={siteName}
+            width={160}
+            height={40}
+            className="block h-10 max-h-10 w-auto max-w-[160px] object-contain"
+            style={{ width: "auto", height: 40, maxWidth: 160, objectFit: "contain" }}
+          />
         ) : (
           <div className={`flex items-center gap-2 ${isArabic ? 'flex-row-reverse' : ''}`}>
             <div
@@ -169,9 +176,7 @@ export default function Sidebar({
             href="/dashboard/pricing"
             className="mt-2 flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-semibold text-white transition"
             style={{ backgroundColor: primaryColor }}
-          >
-            {t('nav.upgrade')}
-          </Link>
+          >Unlock Full PMP Sprint</Link>
         )}
         <form action="/api/auth/signout" method="post" className="mt-1">
           <button className="w-full text-xs text-gray-400 hover:text-gray-600 py-1.5 transition text-center">
