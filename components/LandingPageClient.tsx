@@ -353,16 +353,28 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
               style={{
                 width:"100%",
                 aspectRatio:"4/3",
-                borderRadius:18,
-                background:`#fff url(${heroImg || "/hero.png"}) center/contain no-repeat`,
-                border:`1px solid ${C.teal}10`,
+                borderRadius:0,
+                background:"transparent",
+                border:"none",
                 display:"flex",
                 alignItems:"center",
                 justifyContent:"center",
-                overflow:"hidden",
-                boxShadow:"0 24px 60px rgba(15,23,42,0.04)"
+                overflow:"visible",
+                boxShadow:"none"
               }}
-            />
+            >
+              <img
+                src={heroImg || "/hero.png"}
+                alt="AiTutorZ PMP final sprint hero"
+                style={{
+                  width:"100%",
+                  height:"100%",
+                  objectFit:"contain",
+                  display:"block",
+                  background:"transparent"
+                }}
+              />
+            </div>
           </FadeIn>
         </div>
       </section>
