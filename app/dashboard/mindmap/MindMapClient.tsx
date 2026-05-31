@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { PMBOK7_DOMAINS, ECO_MINDMAP } from '@/lib/pmp-data';
 import type { MindMapMode, MindMapNode } from '@/types';
 import { getDomainColor } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 type LocalizedValue = string | { en?: string; ar?: string } | null | undefined;
 
@@ -99,6 +100,26 @@ const AR: Record<string, string> = {
   'Team charter discipline': 'انضباط ميثاق الفريق',
   'Knowledge sharing': 'مشاركة المعرفة',
   'Retrospectives': 'الاستعراضات التحسينية',
+  'Stakeholder Performance Domain': 'مجال أداء أصحاب المصلحة',
+  'Team Performance Domain': 'مجال أداء الفريق',
+  'Development Approach & Life Cycle': 'نهج التطوير ودورة الحياة',
+  'Planning Performance Domain': 'مجال أداء التخطيط',
+  'Project Work Performance Domain': 'مجال أداء عمل المشروع',
+  'Delivery Performance Domain': 'مجال أداء التسليم',
+  'Measurement Performance Domain': 'مجال أداء القياس',
+  'Uncertainty Performance Domain': 'مجال أداء عدم اليقين',
+  'Stakeholder Engagement': 'إشراك أصحاب المصلحة',
+  'Communication': 'التواصل',
+  'Relationships': 'العلاقات',
+  'Project Team Management': 'إدارة فريق المشروع',
+  'Leadership Skills': 'مهارات القيادة',
+  'Team Development': 'تطوير الفريق',
+  'Estimating': 'التقدير',
+  'Scheduling': 'الجدولة',
+  'Budget': 'الميزانية',
+  'Scope Planning': 'تخطيط النطاق',
+  'What this concept includes and what it does not include': 'ما الذي يتضمنه هذا المفهوم وما الذي لا يتضمنه',
+  'Attractive but weak interpretations to avoid in scenario questions.': 'تفسيرات تبدو جذابة لكنها ضعيفة ويجب تجنبها في الأسئلة الموقفية.',
 };
 
 const KNOWN_EXPANSIONS: Record<string, RichMindMapNode[]> = {
@@ -525,7 +546,7 @@ function ExplanationPanel({
   if (!selectedNode) {
     return (
       <aside className="rounded-[2rem] border border-[#eadff0] bg-white p-6 shadow-sm">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#4b164c]">{translate('AiTutorZ Explanation', isArabic)}</p>
+        <p className={`text-xs font-bold uppercase text-[#4b164c] ${isArabic ? 'tracking-normal' : 'tracking-[0.2em]'}`}>{translate('AiTutorZ Explanation', isArabic)}</p>
         <h2 className="mt-3 text-xl font-black text-[#2b2b2f]">{translate('Select a concept', isArabic)}</h2>
         <p className="mt-3 text-sm leading-7 text-[#5f6472]">{translate('Choose any node in the map to see the intro, advanced analysis, and related frameworks.', isArabic)}</p>
       </aside>
@@ -538,7 +559,7 @@ function ExplanationPanel({
   return (
     <aside className="rounded-[2rem] border border-[#eadff0] bg-white p-5 shadow-sm lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto" dir={isArabic ? 'rtl' : 'ltr'}>
       <div className={isArabic ? 'text-right' : 'text-left'}>
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#4b164c]">{translate('AiTutorZ Explanation', isArabic)}</p>
+        <p className={`text-xs font-bold uppercase text-[#4b164c] ${isArabic ? 'tracking-normal' : 'tracking-[0.2em]'}`}>{translate('AiTutorZ Explanation', isArabic)}</p>
         <h2 className="mt-2 text-xl font-black text-[#2b2b2f]">{title}</h2>
         {description && <p className="mt-2 text-sm leading-6 text-[#5f6472]">{description}</p>}
       </div>
@@ -801,7 +822,9 @@ function FocusMapBubble({
             color: item.isSelected ? '#ffffff' : BRAND.plum,
           }}
         >
-          ›
+          <span dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+            {isArabic ? '←' : '→'}
+          </span>
         </span>
       )}
     </button>
@@ -824,6 +847,7 @@ function FocusMapCanvas({
   const selectedPath = selectedNode ? findNodePathById(root, selectedNode.id) || [root] : [root];
   const pathIds = new Set(selectedPath.map((node) => node.id));
   const selectedId = selectedNode?.id || root.id;
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const columns: { parent: RichMindMapNode | null; nodes: RichMindMapNode[] }[] = [
     { parent: null, nodes: [root] },
@@ -899,8 +923,24 @@ function FocusMapCanvas({
 
   const canvasWidth = Math.max(1180, x + 60);
 
+  if (isArabic) {
+    items.forEach((item) => {
+      item.x = canvasWidth - item.x - item.width;
+    });
+  }
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    requestAnimationFrame(() => {
+      el.scrollLeft = isArabic ? el.scrollWidth : 0;
+    });
+  }, [isArabic, selectedId, zoom]);
+
   return (
     <div
+      ref={scrollRef}
       className="h-[calc(100vh-13rem)] min-h-[620px] overflow-auto bg-[radial-gradient(circle_at_1px_1px,rgba(75,22,76,0.08)_1px,transparent_0)] [background-size:28px_28px]"
       dir="ltr"
     >
@@ -916,12 +956,14 @@ function FocusMapCanvas({
         >
           <svg className="absolute inset-0 z-0" width={canvasWidth} height={canvasHeight} aria-hidden="true">
             {connections.map((connection) => {
-              const fromX = connection.from.x + connection.from.width;
+              const fromX = isArabic ? connection.from.x : connection.from.x + connection.from.width;
               const fromY = connection.from.y + connection.from.height / 2;
-              const toX = connection.to.x;
+              const toX = isArabic ? connection.to.x + connection.to.width : connection.to.x;
               const toY = connection.to.y + connection.to.height / 2;
-              const curve = Math.max(50, (toX - fromX) * 0.48);
-              const d = `M ${fromX} ${fromY} C ${fromX + curve} ${fromY}, ${toX - curve} ${toY}, ${toX} ${toY}`;
+              const curve = Math.max(50, Math.abs(toX - fromX) * 0.48);
+              const d = isArabic
+                ? `M ${fromX} ${fromY} C ${fromX - curve} ${fromY}, ${toX + curve} ${toY}, ${toX} ${toY}`
+                : `M ${fromX} ${fromY} C ${fromX + curve} ${fromY}, ${toX - curve} ${toY}, ${toX} ${toY}`;
 
               return (
                 <path
@@ -953,25 +995,9 @@ function FocusMapCanvas({
 
 export default function MindMapClient() {
   const [mode, setMode] = useState<MindMapMode>('pmbok7');
-  const [isArabic, setIsArabic] = useState(false);
+  const { isArabic } = useLanguage();
   const [selectedNode, setSelectedNode] = useState<RichMindMapNode | null>(null);
   const [zoom, setZoom] = useState(1);
-
-  useEffect(() => {
-    const detectLanguage = () => {
-      const stored =
-        window.localStorage.getItem('language') ||
-        window.localStorage.getItem('locale') ||
-        document.documentElement.lang ||
-        '';
-
-      setIsArabic(stored.toLowerCase().startsWith('ar') || document.documentElement.dir === 'rtl');
-    };
-
-    detectLanguage();
-    window.addEventListener('storage', detectLanguage);
-    return () => window.removeEventListener('storage', detectLanguage);
-  }, []);
 
   const rawData = mode === 'pmbok7' ? PMBOK7_DOMAINS : ECO_MINDMAP;
 
