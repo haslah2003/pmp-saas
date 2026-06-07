@@ -9,7 +9,7 @@ const C = { teal: "#1AB0A2", tealDk: "#148F84", tealLt: "#E6F8F6", purple: "#5B2
 
 const copy = {
   en: {
-    nav: { pricing: "Pricing", login: "Sign In", cta: "Start Free Demo" },
+    nav: { pricing: "Pricing", login: "Sign In", cta: "Try a Free Lesson" },
     hero: {
       badge1: "PMBOK 7 + ECO 2021",
       badge2: "Current PMP Exam Sprint",
@@ -18,8 +18,8 @@ const copy = {
       h1c: "it changes",
       h1d: "",
       sub: "A focused PMBOK 7 + ECO 2021 preparation sprint for candidates targeting the current PMP exam before the July 2026 change. Practice with 679 bilingual questions, AI explanations, and readiness tracking — without restarting your preparation.",
-      cta1: "Start Free Demo",
-      cta2: "Watch 90-sec Demo", cta3: "View Plans",
+      cta1: "Try a Free Lesson",
+      cta2: "Watch Demo", cta3: "View Plans",
       s1v: "679",
       s1l: "bilingual questions",
       s2v: "PMBOK 7",
@@ -36,7 +36,7 @@ const copy = {
         { icon: "🤖", title: "AI tutor", desc: "Ask in English or Arabic and get exam-focused explanations aligned with PMBOK 7 + ECO 2021." },
         { icon: "🧠", title: "MindMap explorer", desc: "Review PMP concepts visually so you can connect principles, domains, processes, and exam reasoning faster." },
         { icon: "📝", title: "Practice engine", desc: "Train with 679 bilingual current-exam questions and rationales that explain why the best answer is best." },
-        { icon: "🎧", title: "Audio lessons", desc: "Revise on the move with short explanations for busy professionals preparing under time pressure." },
+        { icon: "🌐", title: "Arabic + English Learning Mode", desc: "Study PMP concepts and practice questions in bilingual mode, supporting both English and Arabic-speaking candidates." },
         { icon: "📊", title: "Progress dashboard", desc: "Track weak areas, readiness signals, and domain performance before you commit to your exam date." },
         { icon: "🔄", title: "Dual framework", desc: "Use PMBOK 7 + ECO 2021 for the current exam, with PMBOK 8 + ECO 2026 early access for the next exam cycle." },
       ],
@@ -99,7 +99,7 @@ const copy = {
     finalCta: {
       title: "Ready for your PMP Final Sprint?",
       sub: "Stay focused on the current exam. Practice, diagnose, and prepare before the July change.",
-      btn: "Start Free Demo",
+      btn: "Try a Free Lesson",
     },
     footer: {
       by: "by",
@@ -113,7 +113,7 @@ const copy = {
     },
   },
   ar: {
-    nav: { pricing: "الأسعار", login: "تسجيل الدخول", cta: "ابدأ العرض التجريبي المجاني" },
+    nav: { pricing: "الأسعار", login: "تسجيل الدخول", cta: "جرّب درسًا مجانيًا" },
     hero: {
       badge1: "PMBOK 7 + ECO 2021",
       badge2: "سباق اختبار PMP الحالي",
@@ -122,8 +122,8 @@ const copy = {
       h1c: "تغيّر الاختبار",
       h1d: "",
       sub: "سباق تحضيري مركز وفق PMBOK 7 + ECO 2021 للمرشحين الذين يستهدفون اختبار PMP الحالي قبل تغيير يوليو 2026. تدرّب على 679 سؤالًا ثنائي اللغة مع شروحات ذكية وتتبع للجاهزية — دون إعادة بدء التحضير من الصفر.",
-      cta1: "ابدأ سباقك الأخير",
-      cta2: "لماذا الآن؟",
+      cta1: "جرّب درسًا مجانيًا",
+      cta2: "شاهد العرض",
       s1v: "679",
       s1l: "سؤال ثنائي اللغة",
       s2v: "PMBOK 7",
@@ -140,7 +140,7 @@ const copy = {
         { icon: "🤖", title: "المعلم الذكي", desc: "اسأل بالعربية أو الإنجليزية واحصل على شروحات مركزة للاختبار ومتوافقة مع PMBOK 7 + ECO 2021." },
         { icon: "🧠", title: "مستكشف الخرائط الذهنية", desc: "راجع مفاهيم PMP بصريًا حتى تربط المبادئ والمجالات والعمليات ومنطق الاختبار بسرعة أكبر." },
         { icon: "📝", title: "محرك التمارين", desc: "تدرّب على 679 سؤالًا ثنائي اللغة للاختبار الحالي مع تفسيرات توضّح لماذا تكون الإجابة الأفضل هي الأفضل." },
-        { icon: "🎧", title: "دروس صوتية", desc: "راجع أثناء التنقل من خلال شروحات قصيرة تناسب المهنيين المنشغلين الذين يستعدون تحت ضغط الوقت." },
+        { icon: "🌐", title: "وضع التعلّم بالعربية والإنجليزية", desc: "ادرس مفاهيم PMP وتدرّب على الأسئلة باللغتين العربية والإنجليزية لدعم المرشحين العرب والدوليين." },
         { icon: "📊", title: "لوحة تتبع التقدم", desc: "تابع نقاط الضعف ومؤشرات الجاهزية وأداء المجالات قبل تثبيت موعد الاختبار." },
         { icon: "🔄", title: "إطار مزدوج", desc: "استخدم PMBOK 7 + ECO 2021 للاختبار الحالي، مع وصول مبكر إلى PMBOK 8 + ECO 2026 لدورة الاختبار القادمة." },
       ],
@@ -203,7 +203,7 @@ const copy = {
     finalCta: {
       title: "هل أنت جاهز لسباق PMP الأخير؟",
       sub: "حافظ على تركيزك على الاختبار الحالي. تدرّب، شخّص، واستعد قبل تغيير يوليو.",
-      btn: "ابدأ سباقك الأخير",
+      btn: "جرّب درسًا مجانيًا",
     },
     footer: {
       by: "بواسطة",
@@ -224,6 +224,7 @@ function FadeIn({ children, delay = 0, className = "" }: { children: ReactNode; 
 const featureColors = [{ bg: C.tealLt, accent: C.teal },{ bg: C.purpleLt, accent: C.purple },{ bg: C.amberLt, accent: C.amber },{ bg: C.purpleLt, accent: C.purple },{ bg: C.tealLt, accent: C.teal },{ bg: C.amberLt, accent: C.amber }];
 const planGradients = [`linear-gradient(135deg, ${C.teal}, ${C.tealDk})`,`linear-gradient(135deg, ${C.purple}, ${C.tealDk})`,`linear-gradient(135deg, ${C.purpleDk}, ${C.purple})`];
 const planBtnColors = [C.teal, C.purple, C.purpleDk];
+
 
 export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
   const t = copy[lang];
@@ -336,8 +337,8 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
             <p style={{fontSize:"clamp(15px,2vw,17px)",lineHeight:1.7,color:C.muted,marginBottom:28,maxWidth:440}}>{t.hero.sub}</p>
             <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
               <Link href={defaultSignupHref} style={{fontSize:15,fontWeight:600,color:"#fff",background:`linear-gradient(135deg,${C.teal},${C.tealDk})`,padding:"14px 28px",borderRadius:10,textDecoration:"none"}}>{t.hero.cta1}</Link>
-              <a href="#how-it-works" style={{fontSize:14,fontWeight:500,color:C.muted,textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>
-                <span style={{width:34,height:34,borderRadius:"50%",border:`1.5px solid ${C.purple}33`,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:11,color:C.purple}}>{"\u25b6"}</span>
+              <a href="#promo-demo" style={{fontSize:14,fontWeight:600,color:C.muted,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>
+                <span style={{width:36,height:36,borderRadius:"50%",border:`1.5px solid ${C.purple}33`,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:12,color:C.purple}}>▶</span>
                 {t.hero.cta2}
               </a>
             </div>
@@ -378,6 +379,76 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
           </FadeIn>
         </div>
       </section>
+      {/* PROMO DEMO VIDEO PLACEHOLDER */}
+      <section id="promo-demo" className="scroll-mt-24 px-6 py-14 sm:py-16">
+        <div className="mx-auto max-w-6xl">
+          <div
+            className="grid overflow-hidden rounded-[2rem] border bg-white shadow-[0_24px_80px_rgba(26,20,48,0.10)] md:grid-cols-[1.08fr_0.92fr]"
+            style={{ borderColor: C.tealLt }}
+          >
+            <div className="p-6 sm:p-8 lg:p-10">
+              <h2 className="text-3xl font-black tracking-tight sm:text-4xl" style={{ color: C.dark }}>
+                {isAr ? "شاهد PMP AiTutorZ أثناء العمل" : "See PMP AiTutorZ in Action"}
+              </h2>
+
+              <p className="mt-4 max-w-2xl text-base leading-7 sm:text-lg" style={{ color: C.muted }}>
+                {isAr ? "شاهد عرضًا مركزًا يوضح رحلة المتعلم داخل المنصة: معاينة درس، استكشاف الشروحات ثنائية اللغة، فهم كيف تدعم التمارين منطق الاختبار، ومقارنة الخطط قبل اختيار سباقك التحضيري." : "Watch a focused walkthrough of the PMP AiTutorZ learner journey: preview a lesson, explore bilingual explanations, understand how practice supports exam reasoning, and compare plans before choosing your preparation sprint."}
+              </p>
+
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                <a
+                  href="#demo-video-card"
+                  className="inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:-translate-y-0.5"
+                  style={{ backgroundColor: C.teal }}
+                >
+                  {isAr ? "شاهد العرض" : "Watch Demo"}
+                </a>
+
+                <a
+                  href="#pricing"
+                  className="inline-flex items-center justify-center rounded-2xl border px-6 py-3 text-sm font-bold transition hover:-translate-y-0.5"
+                  style={{ borderColor: C.purpleLt, color: C.purple }}
+                >
+                  {isAr ? "استعرض الخطط" : "View Plans"}
+                </a>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-6 lg:p-8">
+              <div
+                id="demo-video-card"
+                className="relative aspect-video overflow-hidden rounded-[1.5rem] border bg-gradient-to-br from-white to-[#E6F8F6] shadow-inner"
+                style={{ borderColor: C.tealLt }}
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(245,166,35,0.20),transparent_34%),radial-gradient(circle_at_75%_70%,rgba(91,45,145,0.16),transparent_32%)]" />
+
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <div
+                    className="flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-[0_18px_45px_rgba(26,20,48,0.16)]"
+                    style={{ border: `1px solid ${C.tealLt}` }}
+                    aria-hidden="true"
+                  >
+                    <span
+                      className="ml-1 block h-0 w-0 border-y-[13px] border-l-[20px] border-y-transparent"
+                      style={{ borderLeftColor: C.teal }}
+                    />
+                  </div>
+
+                  <p className="mt-5 text-sm font-bold uppercase tracking-[0.25em]" style={{ color: C.purple }}>
+                    {isAr ? "عرض PMP AiTutorZ" : "PMP AiTutorZ Demo"}
+                  </p>
+
+                  <p className="mt-2 max-w-sm px-6 text-sm leading-6" style={{ color: C.muted }}>
+                    {isAr ? "استكشف رحلة المتعلم، وضع الدراسة ثنائي اللغة، مسار التمارين، وخيارات الخطط قبل أن تبدأ." : "Explore the learner journey, bilingual study mode, practice flow, and plan options before you start."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
 
       {/* FEATURES */}
       <section id="features" style={{padding:"clamp(3rem,6vw,5rem) clamp(1rem,4vw,3rem)",background:"#fff"}}>
