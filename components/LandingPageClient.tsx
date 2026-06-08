@@ -228,8 +228,11 @@ const planBtnColors = [C.teal, C.purple, C.purpleDk];
 
 export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
   const t = copy[lang];
-  const defaultSignupHref = "/signup?mode=demo";
-  const pricingPlanIds = ["basic", "standard", "professional"] as const; const isAr = lang === "ar"; const dir = isAr ? "rtl" : "ltr";
+  const pricingPlanIds = ["basic", "standard", "professional"] as const;
+  const isAr = lang === "ar";
+  const signupLang = isAr ? "ar" : "en";
+  const defaultSignupHref = `/signup?mode=demo&lang=${signupLang}`;
+  const dir = isAr ? "rtl" : "ltr";
   const bodyFont = isAr ? "'Cairo', sans-serif" : "'DM Sans', sans-serif";
   const displayFont = isAr ? "'Cairo', sans-serif" : "'DM Sans', sans-serif";
   const [scrolled, setScrolled] = useState(false);
@@ -501,7 +504,7 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
                 <div style={{borderTop:"1px solid #F0F0EC",paddingTop:20,marginTop:4}}>
                   {p.features.map((f,j)=>(<div key={j} style={{fontSize:13,color:"#475569",padding:"5px 0",display:"flex",alignItems:"center",gap:8}}><span style={{color:C.teal,fontSize:14,flexShrink:0}}>{"\u2713"}</span> {f}</div>))}
                 </div>
-                <Link href={`/signup?plan=${pricingPlanIds[i]}&period=${annual ? "sprint90" : "monthly"}`} style={{display:"block",width:"100%",marginTop:24,padding:"13px 0",borderRadius:10,fontSize:14,fontWeight:700,textAlign:"center",textDecoration:"none",background:p.popular?`linear-gradient(135deg,${C.purple},${C.tealDk})`:planGradients[i],color:"#fff"}}>{p.cta}</Link>
+                <Link href={`/signup?plan=${pricingPlanIds[i]}&period=${annual ? "sprint90" : "monthly"}&lang=${signupLang}`} style={{display:"block",width:"100%",marginTop:24,padding:"13px 0",borderRadius:10,fontSize:14,fontWeight:700,textAlign:"center",textDecoration:"none",background:p.popular?`linear-gradient(135deg,${C.purple},${C.tealDk})`:planGradients[i],color:"#fff"}}>{p.cta}</Link>
               </div>
             </div></FadeIn>))}
           </div>
