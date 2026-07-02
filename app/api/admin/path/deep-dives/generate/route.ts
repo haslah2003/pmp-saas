@@ -10,7 +10,7 @@ import type { LearningStep, Locale } from '@/lib/pmp-path/types';
 
 export const maxDuration = 60;
 
-const MODEL = 'claude-sonnet-4-5';
+const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
 const GENERATION_MAX_TOKENS = 2200;
 const PROMPT_VERSION = 'rpath-learn-deep-dive-generator-v4-route-explicit';
 const SOURCE_VERSION = 'pmp-path-track-registry-v1';

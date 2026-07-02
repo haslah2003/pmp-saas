@@ -347,7 +347,7 @@ export async function POST(req: NextRequest) {
           }
 
           const s = await anthropic.messages.stream({
-            model: 'claude-sonnet-4-20250514',
+            model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-5',
             max_tokens: 1800,
             system,
             messages,

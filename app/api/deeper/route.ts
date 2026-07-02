@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
   const prompt = buildPrompt(sectionType, content, lessonTitle, domain, framework)
 
   const stream = await anthropic.messages.stream({
-    model: 'claude-sonnet-4-5',
+    model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-5',
     max_tokens: 6000,
     system: `You are generating deep educational content for a PMP exam preparation platform. 
 Framework in use: ${FRAMEWORK_BADGE[framework] ?? FRAMEWORK_BADGE.pmbok7}.
