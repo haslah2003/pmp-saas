@@ -391,20 +391,53 @@ Use the mandatory domain-angle plan so each generated variant behaves like a bal
 ${domainGuidance(framework, domain)}
 
 Each question must be a JSON object with these exact keys:
+
 {
   "domain": "${domain}",
   "subdomain": "specific subtopic within ${domainLabel(domain)}",
   "difficulty": "${difficulty}",
-  "question_text": "the full scenario-based question and stem",
-  "option_a": "first answer choice",
-  "option_b": "second answer choice",
-  "option_c": "third answer choice",
-  "option_d": "fourth answer choice",
-  "correct_answer": "a, b, c, or d",
-  "explanation": "why the correct answer is best and why the other three options are weak",
-  "rita_tip": "a concise exam-strategy tip aligned with Rita Mulcahy-style exam thinking but not quoted",
-  "pmbok_reference": "careful PMBOK reference without fake page or section numbers",
-  "eco_reference": "careful ECO reference without fake task numbers"
+  "question_text": "the full scenario-based question",
+  "option_a": "...",
+  "option_b": "...",
+  "option_c": "...",
+  "option_d": "...",
+  "correct_answer": "a",
+  "explanation": "...",
+  "rita_tip": "...",
+  "pmbok_reference": "...",
+  "eco_reference": "...",
+
+  "asf_profile": {
+      "version":"1.0.0",
+      "blueprintId":"auto-generate",
+
+      "primaryCompetency":"Select ONE value from PrimaryCompetencies.",
+      "secondaryCompetency":"Select ONE value from PrimaryCompetencies.",
+
+      "decisionArchitecture":"Select ONE value from DecisionArchitectures.",
+
+      "ambiguityLevel":1,
+
+      "distractorStrength":"basic|moderate|advanced|expert",
+
+      "decisionHorizon":"immediate|short_term|medium_term|long_term|enterprise",
+
+      "principleAlignment":"Select ONE PMBOK 8 Principle.",
+
+      "leadershipDimension":"Select ONE Leadership Dimension.",
+
+      "systemsThinkingDimension":"Low|Medium|High",
+
+      "cognitiveLoad":8.5,
+
+      "estimatedPMIDifficulty":9.0,
+
+      "qualityScore":90,
+
+      "generationVersion":"2.0.0",
+
+      "promptVersion":"ASF-1.0"
+  }
 }
 
 Quality requirements:
@@ -444,23 +477,27 @@ function cleanGeneratedQuestions({
     .filter((q): q is Record<string, unknown> => q !== null && typeof q === 'object')
     .map((q) => {
       const correct = String(q.correct_answer || 'a').trim().toLowerCase().charAt(0)
-      return {
-        framework,
-        domain,
-        subdomain: String(q.subdomain || '').trim(),
-        difficulty,
-        question_text: String(q.question_text || '').trim(),
-        option_a: String(q.option_a || '').trim(),
-        option_b: String(q.option_b || '').trim(),
-        option_c: String(q.option_c || '').trim(),
-        option_d: String(q.option_d || '').trim(),
-        correct_answer: ['a', 'b', 'c', 'd'].includes(correct) ? correct : 'a',
-        explanation: String(q.explanation || '').trim(),
-        rita_tip: String(q.rita_tip || '').trim(),
-        pmbok_reference: String(q.pmbok_reference || '').trim(),
-        eco_reference: String(q.eco_reference || '').trim(),
-        is_active: true,
-      }
+     return {
+  framework,
+  domain,
+  subdomain: String(q.subdomain || '').trim(),
+  difficulty,
+  question_text: String(q.question_text || '').trim(),
+  option_a: String(q.option_a || '').trim(),
+  option_b: String(q.option_b || '').trim(),
+  option_c: String(q.option_c || '').trim(),
+  option_d: String(q.option_d || '').trim(),
+  correct_answer: ['a', 'b', 'c', 'd'].includes(correct) ? correct : 'a',
+  explanation: String(q.explanation || '').trim(),
+  rita_tip: String(q.rita_tip || '').trim(),
+  pmbok_reference: String(q.pmbok_reference || '').trim(),
+  eco_reference: String(q.eco_reference || '').trim(),
+  asf_profile:
+    q.asf_profile && typeof q.asf_profile === "object"
+      ? q.asf_profile
+      : undefined,
+  is_active: true,
+}
     })
     .filter(
       (q) =>
@@ -809,7 +846,7 @@ const anthropicModel = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5'
             'anthropic-version': '2023-06-01',
           },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
+           model: anthropicModel,
             max_tokens: 10000,
             system: SYSTEM_PROMPT,
             messages: [{ role: 'user', content: prompt }],
@@ -902,7 +939,31 @@ const anthropicModel = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5'
             knownQuestionTexts: attemptKnownQuestionTexts,
           })
 
-          const toInsert = duplicateAudit.questions
+          const toInsert = duplicateAudit.questions.map((q: any) => {
+            const rawAsf = q.asf_profile && typeof q.asf_profile === "object" ? q.asf_profile : {}
+
+            return {
+              ...q,
+              asf_profile: {
+                version: "1.0.0",
+                blueprintId: String(rawAsf.blueprintId || "AUTO"),
+                primaryCompetency: String(rawAsf.primaryCompetency || "Leadership"),
+                secondaryCompetency: String(rawAsf.secondaryCompetency || "Stakeholder Influence"),
+                decisionArchitecture: String(rawAsf.decisionArchitecture || "Best Action"),
+                ambiguityLevel: Number(rawAsf.ambiguityLevel || 2),
+                distractorStrength: String(rawAsf.distractorStrength || "advanced"),
+                decisionHorizon: String(rawAsf.decisionHorizon || "short_term"),
+                principleAlignment: String(rawAsf.principleAlignment || "Be an Accountable Leader"),
+                leadershipDimension: String(rawAsf.leadershipDimension || "Accountability"),
+                systemsThinkingDimension: String(rawAsf.systemsThinkingDimension || "Medium"),
+                cognitiveLoad: Number(rawAsf.cognitiveLoad || 8),
+                estimatedPMIDifficulty: Number(rawAsf.estimatedPMIDifficulty || 8),
+                qualityScore: Number(rawAsf.qualityScore || 85),
+                generationVersion: "2.0.0",
+                promptVersion: "ASF-1.0",
+              },
+            }
+          })
 
           if (toInsert.length === 0) {
             retryReason = 'Duplicate/quality filters removed all generated questions'
