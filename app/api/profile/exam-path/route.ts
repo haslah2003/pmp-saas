@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { isExamPathId, normalizeExamPath } from '@/lib/pmp/exam-paths'
+import { isExamPathId, normalizeExamPath, type ExamPathId } from '@/lib/pmp/exam-paths'
+import type { TrackId } from '@/lib/pmp-path/types'
+
+function examPathToTrackId(path: ExamPathId): TrackId {
+  if (path === 'pmbok8') return 'pmbok8-eco2026'
+  if (path === 'bridge') return 'bridge-7-to-8'
+  return 'pmbok7-eco2021'
+}
 
 export async function GET() {
   try {
@@ -57,9 +64,27 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    const activeTrack = examPathToTrackId(requestedPath)
+
+    const { error: prefError } = await supabase
+      .from('user_path_pref')
+      .upsert(
+        {
+          user_id: user.id,
+          active_track: activeTrack,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id' }
+      )
+
+    if (prefError) {
+      return NextResponse.json({ error: prefError.message }, { status: 500 })
+    }
+
     return NextResponse.json({
       success: true,
       active_framework: requestedPath,
+      active_track: activeTrack,
     })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

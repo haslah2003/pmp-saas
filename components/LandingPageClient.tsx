@@ -38,7 +38,7 @@ const copy = {
         { icon: "📝", title: "Practice engine", desc: "Train with 679 bilingual current-exam questions and rationales that explain why the best answer is best." },
         { icon: "🌐", title: "Arabic + English Learning Mode", desc: "Study PMP concepts and practice questions in bilingual mode, supporting both English and Arabic-speaking candidates." },
         { icon: "📊", title: "Progress dashboard", desc: "Track weak areas, readiness signals, and domain performance before you commit to your exam date." },
-        { icon: "🔄", title: "Dual framework", desc: "Use PMBOK 7 + ECO 2021 for the current exam, with PMBOK 8 + ECO 2026 early access for the next exam cycle." },
+        { icon: "🎯", title: "Current-exam focus", desc: "Stay focused on PMBOK 7 + ECO 2021 and practice for the PMP exam version candidates are taking now." },
       ],
     },
     how: {
@@ -67,7 +67,7 @@ const copy = {
       plans: [
         { name: "Basic", emoji: "🚀", tagline: "Start your current-exam preparation", monthly: 29, annual: 79, annualSave: "Save 9%", features: ["Full Course Library (24 lessons)", "AI Tutor — unlimited sessions", "Practice Engine — focused question sets", "Progress Dashboard", "Interactive Mind Maps", "PMBOK 7 + ECO 2021 framework"], cta: "Get Basic", popular: false },
         { name: "Standard", emoji: "⚡", tagline: "Complete current-exam preparation toolkit", monthly: 49, annual: 129, annualSave: "Save 12%", features: ["Everything in Basic ✅", "679 bilingual practice questions", "Mock Exam (180 questions)", "Guru Report & weak area analysis", "Go Deeper AI expansions", "PMBOK 7 + ECO 2021 framework", "Priority content updates"], cta: "Get Standard", popular: true },
-        { name: "Professional", emoji: "💎", tagline: "Maximum support for urgent PMP candidates", monthly: 79, annual: 199, annualSave: "Save 16%", features: ["Everything in Standard ✅", "PMBOK 8 + ECO 2026 early access", "679 bilingual practice questions", "Personalised study plan", "Priority support", "Lifetime content updates", "Exam-readiness toolkit"], cta: "Get Professional", popular: false },
+        { name: "Professional", emoji: "💎", tagline: "Maximum support for urgent PMP candidates", monthly: 79, annual: 199, annualSave: "Save 16%", features: ["Everything in Standard ✅", "Priority current-exam support", "679 bilingual practice questions", "Personalised study plan", "Priority support", "Lifetime content updates", "Exam-readiness toolkit"], cta: "Get Professional", popular: false },
       ],
     },
     compare: {
@@ -80,7 +80,7 @@ const copy = {
         ["AI-powered tutoring", "✓", "✗", "✗"],
         ["Adaptive learning", "✓", "✗", "✗"],
         ["Visual MindMaps", "✓", "✗", "Some"],
-        ["PMBOK 8 early access", "✓", "Varies", "Rare"],
+        ["Current-exam focus", "✓", "Varies", "Varies"],
         ["24/7 availability", "✓", "✗", "✓"],
       ],
     },
@@ -89,11 +89,11 @@ const copy = {
       title: "Frequently asked questions",
       items: [
         { q: "Is this aligned with the current PMP exam?", a: "Yes. This launch sprint is focused on PMBOK 7 + ECO 2021 for candidates targeting the current PMP exam before the July 2026 change." },
-        { q: "Should I switch to PMBOK 8 now?", a: "If your exam is before the change, do not restart. Stay focused on PMBOK 7 + ECO 2021. PMBOK 8 + ECO 2026 is included as early access for the next exam cycle." },
+        { q: "Should I wait for the new exam version?", a: "No if you are preparing for the current PMP exam. Stay focused on PMBOK 7 + ECO 2021 and avoid restarting your preparation unnecessarily." },
         { q: "How many questions are included?", a: "The current PMBOK 7 + ECO 2021 bank includes 679 bilingual practice questions with rationales and AI-supported explanations." },
         { q: "Is Arabic fully supported?", a: "Yes. The PMBOK 7 + ECO 2021 practice bank is available in Arabic and English, with bilingual explanations designed for exam preparation." },
         { q: "Do you guarantee that I will pass?", a: "No ethical PMP preparation platform should guarantee a pass. AiTutorZ helps you practice, diagnose weak areas, and improve readiness, but final performance depends on your preparation and exam-day execution." },
-        { q: "What if I take the exam after 9 July 2026?", a: "Use the PMBOK 8 + ECO 2026 early-access path and bridge materials so your preparation matches the updated exam direction." },
+        { q: "What if my exam is after the change?", a: "The current launch is focused on the existing PMP exam route. Updated-exam preparation will be opened separately after this launch cycle." },
       ],
     },
     finalCta: {
@@ -142,7 +142,7 @@ const copy = {
         { icon: "📝", title: "محرك التمارين", desc: "تدرّب على 679 سؤالًا ثنائي اللغة للاختبار الحالي مع تفسيرات توضّح لماذا تكون الإجابة الأفضل هي الأفضل." },
         { icon: "🌐", title: "وضع التعلّم بالعربية والإنجليزية", desc: "ادرس مفاهيم PMP وتدرّب على الأسئلة باللغتين العربية والإنجليزية لدعم المرشحين العرب والدوليين." },
         { icon: "📊", title: "لوحة تتبع التقدم", desc: "تابع نقاط الضعف ومؤشرات الجاهزية وأداء المجالات قبل تثبيت موعد الاختبار." },
-        { icon: "🔄", title: "إطار مزدوج", desc: "استخدم PMBOK 7 + ECO 2021 للاختبار الحالي، مع وصول مبكر إلى PMBOK 8 + ECO 2026 لدورة الاختبار القادمة." },
+        { icon: "🎯", title: "تركيز على الاختبار الحالي", desc: "حافظ على تركيزك على PMBOK 7 + ECO 2021 وتدرّب على إصدار اختبار PMP الذي يستهدفه المرشحون الآن." },
       ],
     },
     how: {
@@ -171,7 +171,7 @@ const copy = {
       plans: [
         { name: "أساسي", emoji: "🚀", tagline: "ابدأ تحضيرك للاختبار الحالي", monthly: 29, annual: 79, annualSave: "وفّر 9%", features: ["مكتبة الدورة الكاملة (24 درسًا)", "المعلم الذكي — جلسات غير محدودة", "محرك التمارين — مجموعات أسئلة مركزة", "لوحة تتبع التقدم", "خرائط ذهنية تفاعلية", "إطار PMBOK 7 + ECO 2021"], cta: "احصل على الأساسي", popular: false },
         { name: "قياسي", emoji: "⚡", tagline: "مجموعة أدوات كاملة للتحضير للاختبار الحالي", monthly: 49, annual: 129, annualSave: "وفّر 12%", features: ["كل شيء في الأساسي ✅", "679 سؤال ممارسة ثنائي اللغة", "اختبار محاكاة (180 سؤالًا)", "تقرير خبير وتحليل نقاط الضعف", "توسعات تعمّق بالذكاء الاصطناعي", "إطار PMBOK 7 + ECO 2021", "تحديثات محتوى ذات أولوية"], cta: "احصل على القياسي", popular: true },
-        { name: "احترافي", emoji: "💎", tagline: "دعم أقصى للمرشحين المستعجلين", monthly: 79, annual: 199, annualSave: "وفّر 16%", features: ["كل شيء في القياسي ✅", "وصول مبكر إلى PMBOK 8 + ECO 2026", "679 سؤال ممارسة ثنائي اللغة", "خطة دراسة مخصّصة", "دعم ذو أولوية", "تحديثات محتوى مدى الحياة", "مجموعة أدوات جاهزية الاختبار"], cta: "احصل على الاحترافي", popular: false },
+        { name: "احترافي", emoji: "💎", tagline: "دعم أقصى للمرشحين المستعجلين", monthly: 79, annual: 199, annualSave: "وفّر 16%", features: ["كل شيء في القياسي ✅", "دعم ذو أولوية للاختبار الحالي", "679 سؤال ممارسة ثنائي اللغة", "خطة دراسة مخصّصة", "دعم ذو أولوية", "تحديثات محتوى مدى الحياة", "مجموعة أدوات جاهزية الاختبار"], cta: "احصل على الاحترافي", popular: false },
       ],
     },
     compare: {
@@ -184,7 +184,7 @@ const copy = {
         ["تعليم بالذكاء الاصطناعي", "✓", "✗", "✗"],
         ["تعلم تكيفي", "✓", "✗", "✗"],
         ["خرائط ذهنية مرئية", "✓", "✗", "بعض"],
-        ["وصول مبكر إلى PMBOK 8", "✓", "يختلف", "نادر"],
+        ["تركيز على الاختبار الحالي", "✓", "يختلف", "يختلف"],
         ["متاح 24/7", "✓", "✗", "✓"],
       ],
     },
@@ -193,11 +193,11 @@ const copy = {
       title: "الأسئلة الأكثر شيوعًا",
       items: [
         { q: "هل المنصة متوافقة مع اختبار PMP الحالي؟", a: "نعم. يركز سباق الإطلاق على PMBOK 7 + ECO 2021 للمرشحين الذين يستهدفون اختبار PMP الحالي قبل تغيير يوليو 2026." },
-        { q: "هل يجب أن أنتقل الآن إلى PMBOK 8؟", a: "إذا كان اختبارك قبل التغيير، فلا تبدأ من جديد. حافظ على تركيزك على PMBOK 7 + ECO 2021. أما PMBOK 8 + ECO 2026 فهو متاح مبكرًا لدورة الاختبار القادمة." },
+        { q: "هل يجب أن أنتظر إصدار الاختبار الجديد؟", a: "إذا كنت تستعد لاختبار PMP الحالي، فلا تنتظر ولا تبدأ من جديد. حافظ على تركيزك على PMBOK 7 + ECO 2021 حتى لا تضيع وقتك التحضيري." },
         { q: "كم عدد الأسئلة المتاحة؟", a: "يتضمن بنك PMBOK 7 + ECO 2021 الحالي 679 سؤال ممارسة ثنائي اللغة مع تفسيرات وشروحات مدعومة بالذكاء الاصطناعي." },
         { q: "هل اللغة العربية مدعومة بالكامل؟", a: "نعم. بنك تمارين PMBOK 7 + ECO 2021 متاح بالعربية والإنجليزية مع شروحات ثنائية اللغة موجهة للتحضير للاختبار." },
         { q: "هل تضمنون اجتياز الاختبار؟", a: "لا. لا ينبغي لأي منصة تحضير أخلاقية أن تضمن النجاح. يساعدك AiTutorZ على التدريب وتشخيص نقاط الضعف ورفع الجاهزية، لكن الأداء النهائي يعتمد على تحضيرك وتنفيذك يوم الاختبار." },
-        { q: "ماذا لو كان اختباري بعد 9 يوليو 2026؟", a: "استخدم مسار الوصول المبكر إلى PMBOK 8 + ECO 2026 ومواد الجسر حتى يكون تحضيرك متوافقًا مع اتجاه الاختبار المحدث." },
+        { q: "ماذا لو كان اختباري بعد تغيير الإصدار؟", a: "إطلاق المنصة الحالي مخصص لمسار اختبار PMP الحالي. سيتم فتح مسار الإصدار المحدّث بشكل منفصل بعد دورة الإطلاق الحالية." },
       ],
     },
     finalCta: {
@@ -303,7 +303,7 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
             <a href="#pricing" style={{fontSize:14,color:C.muted,textDecoration:"none",fontWeight:500}}>{t.nav.pricing}</a>
             <a href="#faq" style={{fontSize:14,color:C.muted,textDecoration:"none",fontWeight:500}}>FAQ</a>
             <LandingLanguageSelector />
-            <Link href="/login" style={{fontSize:14,color:C.muted,textDecoration:"none",fontWeight:500}}>{t.nav.login}</Link>
+            <Link href={`/login?lang=${signupLang}`} style={{fontSize:14,color:C.muted,textDecoration:"none",fontWeight:500}}>{t.nav.login}</Link>
             <Link href={defaultSignupHref} style={{fontSize:13,fontWeight:600,color:"#fff",background:`linear-gradient(135deg,${C.teal},${C.tealDk})`,padding:"8px 22px",borderRadius:8,textDecoration:"none"}}>{t.nav.cta}</Link>
           </div>
           <div className="lp-nav-hamburger" onClick={()=>setMobileMenu(!mobileMenu)}>
@@ -318,7 +318,7 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
             <a href="#pricing" onClick={()=>setMobileMenu(false)}>{t.nav.pricing}</a>
             <a href="#faq" onClick={()=>setMobileMenu(false)}>FAQ</a>
             <div className="lp-mob-item"><LandingLanguageSelector /></div>
-            <Link href="/login" onClick={()=>setMobileMenu(false)}>{t.nav.login}</Link>
+            <Link href={`/login?lang=${signupLang}`} onClick={()=>setMobileMenu(false)}>{t.nav.login}</Link>
             <Link href={defaultSignupHref} onClick={()=>setMobileMenu(false)} style={{color:C.teal,fontWeight:700}}>{t.nav.cta}</Link>
           </div>
         </div>

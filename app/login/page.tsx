@@ -1,20 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import LanguageSelector from "@/components/LanguageSelector";
 import { type Locale, t } from "@/lib/i18n/translations";
 
-export default function LoginPage() {
+function normaliseLocale(value: string | null): Locale | null {
+  return value === 'ar' || value === 'en' ? value : null;
+}
+
+function getCookieLocale(): Locale | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/(?:^|; )pmp_locale=([^;]+)/);
+  return normaliseLocale(match ? decodeURIComponent(match[1]) : null);
+}
+
+async function persistLocale(locale: Locale) {
+  if (typeof document !== 'undefined') {
+    document.cookie = `pmp_locale=${locale}; path=/; max-age=31536000; SameSite=Lax`;
+    document.documentElement.lang = locale;
+    document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
+  }
+
+  try {
+    await fetch('/api/language', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language: locale }),
+    });
+  } catch {
+    // Non-blocking: cookie/local redirect still preserve language.
+  }
+}
+
+function LoginPageContent() {
+  const searchParams = useSearchParams();
+  const requestedLocale = normaliseLocale(searchParams.get('lang'));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [locale, setLocale] = useState<Locale>('en');
+  const [locale, setLocale] = useState<Locale>(requestedLocale ?? 'en');
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    const nextLocale = requestedLocale ?? getCookieLocale() ?? 'en';
+    setLocale(nextLocale);
+    void persistLocale(nextLocale);
+  }, [requestedLocale]);
+
+  const handleLocaleChange = (nextLocale: Locale) => {
+    setLocale(nextLocale);
+    void persistLocale(nextLocale);
+    router.replace(`/login?lang=${nextLocale}`);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,15 +69,8 @@ export default function LoginPage() {
       setError(authError.message);
       setLoading(false);
     } else {
-      // Save language preference
-      try {
-        await fetch('/api/language', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ language: locale }),
-        });
-      } catch {}
-      router.push("/dashboard");
+      await persistLocale(locale);
+      router.push(`/dashboard?lang=${locale}`);
       router.refresh();
     }
   };
@@ -43,7 +78,9 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/api/auth/callback` },
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(`/dashboard?lang=${locale}`)}&lang=${locale}`,
+      },
     });
   };
 
@@ -54,11 +91,11 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Language Selector — top */}
         <div className="flex justify-center mb-6">
-          <LanguageSelector value={locale} onChange={setLocale} variant="login" />
+          <LanguageSelector value={locale} onChange={handleLocaleChange} variant="login" />
         </div>
 
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
+          <Link href={`/?lang=${locale}`} className="inline-flex items-center gap-2 mb-4">
             <span className="text-3xl">🎯</span>
             <span className="text-2xl font-bold text-gray-800">PMP Expert Tutor</span>
           </Link>
@@ -99,7 +136,7 @@ export default function LoginPage() {
               />
             </div>
             <div className={locale === 'ar' ? 'text-left' : 'text-right'}>
-              <Link href="/forgot-password" className="text-xs text-violet-600 hover:underline">
+              <Link href={`/forgot-password?lang=${locale}`} className="text-xs text-violet-600 hover:underline">
                 {t(locale, 'auth.forgot_password')}
               </Link>
             </div>
@@ -115,11 +152,25 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-gray-500 mt-6">
           {t(locale, 'auth.no_account')}{" "}
-          <Link href="/signup" className="text-violet-600 font-semibold hover:underline">
+          <Link href={`/signup?mode=demo&lang=${locale}`} className="text-violet-600 font-semibold hover:underline">
             {t(locale, 'auth.sign_up_free')}
           </Link>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 text-sm text-gray-500">
+          Loading...
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
   );
 }

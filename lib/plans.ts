@@ -85,7 +85,7 @@ export const PLANS: Plan[] = [
     annualSaving: 'Save 16%',
     features: [
       '✅ Everything in Standard',
-      '🆕 PMBOK 8 + ECO 2026 early access',
+      '🆕 Priority current-exam support',
       '🎯 679 bilingual practice questions',
       '🎓 Personalised study plan',
       '📞 Priority support',

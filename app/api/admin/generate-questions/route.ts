@@ -946,7 +946,14 @@ const anthropicModel = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5'
               ...q,
               asf_profile: {
                 version: "1.0.0",
-                blueprintId: String(rawAsf.blueprintId || "AUTO"),
+                blueprintId: [
+                  framework.toUpperCase(),
+                  domain.replace("business-environment", "business").toUpperCase(),
+                  difficulty.toUpperCase(),
+                  String(rawAsf.primaryCompetency || "Leadership").replace(/[^a-zA-Z0-9]+/g, "-").toUpperCase(),
+                  String(rawAsf.decisionArchitecture || "Best Action").replace(/[^a-zA-Z0-9]+/g, "-").toUpperCase(),
+                  "ASF10",
+                ].join("-"),
                 primaryCompetency: String(rawAsf.primaryCompetency || "Leadership"),
                 secondaryCompetency: String(rawAsf.secondaryCompetency || "Stakeholder Influence"),
                 decisionArchitecture: String(rawAsf.decisionArchitecture || "Best Action"),

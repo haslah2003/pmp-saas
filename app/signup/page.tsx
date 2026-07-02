@@ -81,7 +81,7 @@ function SignupForm() {
         .eq("id", data.user.id);
 
       setSuccess(true);
-      setTimeout(() => router.push(isDemoMode ? "/dashboard/demo" : checkoutPath), 1200);
+      setTimeout(() => router.push(isDemoMode ? `/dashboard/demo?lang=${lang}` : checkoutPath), 1200);
     }
 
     setLoading(false);
@@ -195,7 +195,7 @@ function SignupForm() {
 
         <p className="text-center text-sm text-gray-500 mt-4">
           {isAr ? "لديك حساب بالفعل؟" : "Already have an account?"}{" "}
-          <Link href="/login" className="font-semibold text-blue-800">{isAr ? "تسجيل الدخول" : "Sign in"}</Link>
+          <Link href={`/login?lang=${lang}`} className="font-semibold text-blue-800">{isAr ? "تسجيل الدخول" : "Sign in"}</Link>
         </p>
 
         <p className="text-center text-sm text-gray-500 mt-2">

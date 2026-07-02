@@ -80,9 +80,186 @@ interface ProgressData {
   weakAreas: string[]
 }
 
+type Locale = 'en' | 'ar'
+
+function normaliseLocale(value: string | null): Locale | null {
+  return value === 'ar' || value === 'en' ? value : null
+}
+
+function detectLocale(): Locale {
+  if (typeof window === 'undefined') return 'en'
+
+  const fromQuery = normaliseLocale(new URLSearchParams(window.location.search).get('lang'))
+  if (fromQuery) return fromQuery
+
+  const cookieMatch = document.cookie.match(/(?:^|; )pmp_locale=([^;]+)/)
+  const fromCookie = normaliseLocale(cookieMatch ? decodeURIComponent(cookieMatch[1]) : null)
+  if (fromCookie) return fromCookie
+
+  const fromHtml = normaliseLocale(document.documentElement.lang)
+  return fromHtml ?? 'en'
+}
+
+const UI = {
+  en: {
+    title: 'My Progress',
+    subtitle: 'Track your PMP exam readiness in real time',
+    launchRoute: 'PMBOK 7 + ECO 2021',
+    currentExam: 'Current PMP exam route',
+    loading: 'Loading your progress…',
+    noDataTitle: 'No progress data yet',
+    noDataBody: 'Complete your first practice session to start tracking your progress here.',
+    startPracticing: 'Start practicing',
+    readinessScore: 'Readiness Score',
+    readinessNote: 'Weighted by ECO domains',
+    overallAccuracy: 'Overall Accuracy',
+    correctOf: 'of',
+    correct: 'correct',
+    questionsAnswered: 'Questions Answered',
+    sessionsCompleted: 'sessions completed',
+    avgPerQuestion: 'avg per question',
+    studyStreak: 'Study Streak',
+    day: 'day',
+    days: 'days',
+    inRow: 'in a row',
+    streakGreat: '🏆 Impressive streak!',
+    streakGood: '⚡ Keep it going!',
+    streakStart: '✨ Build your habit!',
+    domainBreakdown: 'Domain Breakdown',
+    ecoWeightings: 'ECO 2021 Weightings',
+    difficultyLadder: 'Difficulty Ladder',
+    activity30: '30-Day Activity',
+    sessionsPerDay: 'Practice sessions per day',
+    less: 'Less',
+    more: 'More',
+    studied: "You've studied",
+    recentSessions: 'Recent Sessions',
+    newSession: '+ New Session',
+    date: 'Date',
+    domain: 'Domain',
+    difficulty: 'Difficulty',
+    score: 'Score',
+    accuracy: 'Accuracy',
+    noData: 'No data',
+    mixed: 'Mixed',
+    focusAreas: 'Focus Areas',
+    needsAttention: 'Needs Attention',
+    study: 'Study →',
+    openTutor: 'Open AiTutorZ for a targeted lesson',
+    guruReports: 'Readiness Reports',
+    report: 'report',
+    reports: 'reports',
+    bestScore: 'Best Score',
+    average: 'Average',
+    sessions: 'Sessions',
+    sessionReport: 'Session Report',
+    blocks: 'blocks',
+    badgesEarned: 'Badges Earned',
+    badge: 'badge',
+    badges: 'badges',
+    certifications: 'Certifications',
+    comingSoon: 'Coming Soon',
+    certBody: 'Complete domain mastery checks and mock exams to unlock downloadable achievement certificates.',
+    readyTip: "🏆 You're approaching exam readiness!",
+    keepPractising: '📚 Keep practising — consistency is the key!',
+    passMark: 'PMP pass mark is ~61%. Aim for 75%+ to build confidence.',
+    practiceNow: 'Practice Now',
+    examReady: 'Exam Ready',
+    onTrack: 'On Track',
+    buildingUp: 'Building Up',
+    earlyStage: 'Early Stage',
+    ecoWeight: 'ECO Weight',
+    noDataYet: 'No data yet',
+    people: '👥 People',
+    process: '⚙️ Process',
+    business: '🌐 Business Env',
+    entry: 'Entry',
+    paced: 'Paced',
+    difficult: 'Difficult',
+    challenging: 'Challenging',
+  },
+  ar: {
+    title: 'تقرير الجاهزية',
+    subtitle: 'تتبّع جاهزيتك لاختبار PMP الحالي لحظة بلحظة',
+    launchRoute: 'PMBOK 7 + ECO 2021',
+    currentExam: 'مسار اختبار PMP الحالي',
+    loading: 'جاري تحميل تقدمك…',
+    noDataTitle: 'لا توجد بيانات بعد',
+    noDataBody: 'أكمل أول جلسة تدريبية حتى تبدأ المنصة في تتبع تقدمك هنا.',
+    startPracticing: 'ابدأ التدريب',
+    readinessScore: 'درجة الجاهزية',
+    readinessNote: 'موزونة حسب مجالات ECO',
+    overallAccuracy: 'الدقة العامة',
+    correctOf: 'من',
+    correct: 'صحيحة',
+    questionsAnswered: 'الأسئلة المجابة',
+    sessionsCompleted: 'جلسات مكتملة',
+    avgPerQuestion: 'متوسط لكل سؤال',
+    studyStreak: 'استمرارية الدراسة',
+    day: 'يوم',
+    days: 'أيام',
+    inRow: 'متتالية',
+    streakGreat: '🏆 استمرارية ممتازة!',
+    streakGood: '⚡ واصل بنفس الإيقاع!',
+    streakStart: '✨ ابنِ عادة الدراسة!',
+    domainBreakdown: 'تفصيل المجالات',
+    ecoWeightings: 'أوزان ECO 2021',
+    difficultyLadder: 'سُلّم الصعوبة',
+    activity30: 'نشاط آخر 30 يومًا',
+    sessionsPerDay: 'جلسات التدريب في اليوم',
+    less: 'أقل',
+    more: 'أكثر',
+    studied: 'لقد درست لمدة',
+    recentSessions: 'الجلسات الأخيرة',
+    newSession: '+ جلسة جديدة',
+    date: 'التاريخ',
+    domain: 'المجال',
+    difficulty: 'الصعوبة',
+    score: 'النتيجة',
+    accuracy: 'الدقة',
+    noData: 'لا توجد بيانات',
+    mixed: 'مختلط',
+    focusAreas: 'مجالات التركيز',
+    needsAttention: 'تحتاج إلى اهتمام',
+    study: 'ادرس ←',
+    openTutor: 'افتح AiTutorZ لدرس موجّه',
+    guruReports: 'تقارير الجاهزية',
+    report: 'تقرير',
+    reports: 'تقارير',
+    bestScore: 'أفضل نتيجة',
+    average: 'المتوسط',
+    sessions: 'الجلسات',
+    sessionReport: 'تقرير الجلسة',
+    blocks: 'مقاطع',
+    badgesEarned: 'الشارات المكتسبة',
+    badge: 'شارة',
+    badges: 'شارات',
+    certifications: 'الشهادات',
+    comingSoon: 'قريبًا',
+    certBody: 'أكمل اختبارات إتقان المجالات والاختبارات المحاكية للحصول على شهادات إنجاز قابلة للتنزيل.',
+    readyTip: '🏆 أنت تقترب من جاهزية الاختبار!',
+    keepPractising: '📚 واصل التدريب — الاستمرارية هي المفتاح!',
+    passMark: 'درجة النجاح التقريبية في PMP هي 61%. استهدف 75% فأكثر لبناء الثقة.',
+    practiceNow: 'تدرّب الآن',
+    examReady: 'جاهز للاختبار',
+    onTrack: 'على المسار الصحيح',
+    buildingUp: 'قيد التحسن',
+    earlyStage: 'مرحلة مبكرة',
+    ecoWeight: 'وزن ECO',
+    noDataYet: 'لا توجد بيانات بعد',
+    people: '👥 الأفراد',
+    process: '⚙️ العمليات',
+    business: '🌐 بيئة الأعمال',
+    entry: 'تمهيدي',
+    paced: 'متدرّج',
+    difficult: 'صعب',
+    challenging: 'تحدّي',
+  },
+} as const
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function ReadinessRing({ score }: { score: number }) {
+function ReadinessRing({ score, locale }: { score: number; locale: Locale }) {
   const RADIUS = 44
   const CIRCUMFERENCE = 2 * Math.PI * RADIUS
   const offset = CIRCUMFERENCE - ((score || 0) / 100) * CIRCUMFERENCE
@@ -98,12 +275,12 @@ function ReadinessRing({ score }: { score: number }) {
 
   const label =
     score >= 85
-      ? 'Exam Ready'
+      ? UI[locale].examReady
       : score >= 70
-      ? 'On Track'
+      ? UI[locale].onTrack
       : score >= 50
-      ? 'Building Up'
-      : 'Early Stage'
+      ? UI[locale].buildingUp
+      : UI[locale].earlyStage
 
   return (
     <div className="flex flex-col items-center">
@@ -155,7 +332,7 @@ function AccuracyBar({
   )
 }
 
-function DomainCard({ stat }: { stat: DomainStat }) {
+function DomainCard({ stat, locale }: { stat: DomainStat; locale: Locale }) {
   const color =
     stat.accuracy >= 75
       ? '#10b981'
@@ -165,22 +342,21 @@ function DomainCard({ stat }: { stat: DomainStat }) {
       ? '#f59e0b'
       : '#9ca3af'
 
-  const icons: Record<string, string> = {
-    People: '👥',
-    Process: '⚙️',
-    'Business Environment': '🌐',
+  const domainNames: Record<string, string> = {
+    People: UI[locale].people,
+    Process: UI[locale].process,
+    'Business Environment': UI[locale].business,
   }
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
         <div>
-          <span className="text-2xl">{icons[stat.domain] ?? '📊'}</span>
           <h3 className="mt-1 text-sm font-semibold text-gray-900">
-            {stat.domain}
+            {domainNames[stat.domain] ?? stat.domain}
           </h3>
           <p className="text-xs text-gray-400 mt-0.5">
-            ECO Weight: {stat.weight}%
+            {UI[locale].ecoWeight}: {stat.weight}%
           </p>
         </div>
         <div className="text-right">
@@ -188,7 +364,7 @@ function DomainCard({ stat }: { stat: DomainStat }) {
             {stat.total > 0 ? `${stat.accuracy}%` : '—'}
           </span>
           <p className="text-xs text-gray-400 mt-0.5">
-            {stat.total > 0 ? `${stat.correct} / ${stat.total}` : 'No data yet'}
+            {stat.total > 0 ? `${stat.correct} / ${stat.total}` : UI[locale].noDataYet}
           </p>
         </div>
       </div>
@@ -199,27 +375,36 @@ function DomainCard({ stat }: { stat: DomainStat }) {
 
 const DIFFICULTY_META: Record<
   string,
-  { label: string; color: string; emoji: string }
+  { label: { en: string; ar: string }; color: string; emoji: string }
 > = {
-  entry: { label: 'Entry', color: '#10b981', emoji: '🌱' },
-  paced: { label: 'Paced', color: '#3b82f6', emoji: '⚡' },
-  difficult: { label: 'Difficult', color: '#f59e0b', emoji: '🔥' },
-  challenging: { label: 'Challenging', color: '#ef4444', emoji: '💎' },
+  entry: { label: { en: 'Entry', ar: 'تمهيدي' }, color: '#10b981', emoji: '🌱' },
+  paced: { label: { en: 'Paced', ar: 'متدرّج' }, color: '#3b82f6', emoji: '⚡' },
+  difficult: { label: { en: 'Difficult', ar: 'صعب' }, color: '#f59e0b', emoji: '🔥' },
+  challenging: { label: { en: 'Challenging', ar: 'تحدّي' }, color: '#ef4444', emoji: '💎' },
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function ProgressPage() {
-  const [framework, setFramework] = useState<'pmbok7' | 'pmbok8'>('pmbok7')
+  const framework = 'pmbok7'
+  const [locale, setLocale] = useState<Locale>('en')
+
+  useEffect(() => {
+    const nextLocale = detectLocale()
+    setLocale(nextLocale)
+    document.documentElement.lang = nextLocale
+    document.cookie = `pmp_locale=${nextLocale}; path=/; max-age=31536000; SameSite=Lax`
+  }, [])
   const [data, setData] = useState<ProgressData | null>(null)
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    setLocale(detectLocale())
     fetchProgress()
     fetchPortfolio()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [framework])
+  }, [])
 
   async function fetchProgress() {
     setLoading(true)
@@ -244,47 +429,39 @@ export default function ProgressPage() {
     }
   }
 
+  const isArabic = locale === 'ar'
+  const copy = UI[locale]
+
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString('en-US', {
+    new Date(iso).toLocaleDateString(isArabic ? 'ar' : 'en-US', {
       month: 'short',
       day: 'numeric',
     })
 
   const domainLabel: Record<string, string> = {
-    People: '👥 People',
-    Process: '⚙️ Process',
-    'Business Environment': '🌐 Business Env',
+    People: copy.people,
+    Process: copy.process,
+    'Business Environment': copy.business,
   }
 
   const todayStr = new Date().toISOString().slice(0, 10)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* ── Header ── */}
       <div className="bg-white border-b border-gray-100 px-6 py-5 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Progress</h1>
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+          <div className={isArabic ? 'text-right' : 'text-left'}>
+            <h1 className="text-2xl font-bold text-gray-900">{copy.title}</h1>
             <p className="text-sm text-gray-500 mt-0.5">
-              Track your PMP exam readiness in real time
+              {copy.subtitle}
             </p>
           </div>
 
-          {/* Framework toggle */}
-          <div className="flex bg-gray-100 rounded-xl p-1">
-            {(['pmbok7', 'pmbok8'] as const).map((fw) => (
-              <button
-                key={fw}
-                onClick={() => setFramework(fw)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  framework === fw
-                    ? 'bg-white text-violet-600 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {fw === 'pmbok7' ? 'PMBOK 7' : 'PMBOK 8'}
-              </button>
-            ))}
+          <div className="rounded-xl bg-violet-50 px-4 py-2 text-sm font-bold text-violet-700 shadow-sm">
+            <span>{copy.launchRoute}</span>
+            <span className="mx-2 text-violet-300">•</span>
+            <span className="text-xs text-violet-500">{copy.currentExam}</span>
           </div>
         </div>
       </div>
@@ -296,7 +473,7 @@ export default function ProgressPage() {
             <div className="text-center">
               <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin mx-auto" />
               <p className="mt-4 text-gray-500 text-sm">
-                Loading your progress…
+                {copy.loading}
               </p>
             </div>
           </div>
@@ -307,17 +484,16 @@ export default function ProgressPage() {
           <div className="flex flex-col items-center justify-center py-40 text-center">
             <div className="text-6xl mb-4">📊</div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">
-              No Data Yet
+              {copy.noDataTitle}
             </h2>
             <p className="text-gray-500 mb-6 max-w-sm text-sm">
-              Complete your first practice session to start tracking your
-              progress here.
+              {copy.noDataBody}
             </p>
             <Link
-              href="/practice"
+              href={`/dashboard/practice?lang=${locale}`}
               className="bg-violet-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-violet-700 transition-colors"
             >
-              Start Practicing
+              {copy.startPracticing}
             </Link>
           </div>
         )}
@@ -327,54 +503,53 @@ export default function ProgressPage() {
           <>
             {/* Row 1 — Hero Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Readiness Score */}
+              {/* {copy.readinessScore} */}
               <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col items-center justify-center">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
-                  Readiness Score
+                  {copy.readinessScore}
                 </p>
-                <ReadinessRing score={data.readinessScore} />
+                <ReadinessRing score={data.readinessScore} locale={locale} />
                 <p className="text-[10px] text-gray-400 mt-3 text-center leading-tight">
-                  ECO-weighted across all domains
+                  {copy.readinessNote}
                 </p>
               </div>
 
-              {/* Overall Accuracy */}
+              {/* {copy.overallAccuracy} */}
               <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-center">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                  Overall Accuracy
+                  {copy.overallAccuracy}
                 </p>
                 <p className="text-4xl font-bold text-gray-900 mt-1">
                   {data.overallAccuracy}%
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
-                  {data.totalCorrect} of {data.totalQuestions} correct
+                  {data.totalCorrect} {copy.correctOf} {data.totalQuestions} {copy.correct}
                 </p>
                 <div className="mt-3">
                   <AccuracyBar accuracy={data.overallAccuracy} color="#6366f1" />
                 </div>
               </div>
 
-              {/* Questions Answered */}
+              {/* {copy.questionsAnswered} */}
               <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-center">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                  Questions Answered
+                  {copy.questionsAnswered}
                 </p>
                 <p className="text-4xl font-bold text-gray-900 mt-1">
                   {(data.totalQuestions ?? 0).toLocaleString()}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
-                  {data.totalSessions ?? 0} session
-                  {(data.totalSessions ?? 0) !== 1 ? 's' : ''} completed
+                  {data.totalSessions ?? 0} {copy.sessionsCompleted}
                 </p>
                 <p className="text-sm text-gray-400 mt-0.5">
-                  ~{data.avgTimePerQuestion ?? 0}s avg per question
+                  ~{data.avgTimePerQuestion ?? 0}s {copy.avgPerQuestion}
                 </p>
               </div>
 
-              {/* Study Streak */}
+              {/* {copy.studyStreak} */}
               <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-center">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                  Study Streak
+                  {copy.studyStreak}
                 </p>
                 <div className="flex items-end gap-2 mt-1">
                   <p className="text-4xl font-bold text-gray-900">
@@ -383,46 +558,46 @@ export default function ProgressPage() {
                   <span className="text-3xl mb-0.5">🔥</span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  {data.streak === 1 ? 'day' : 'days'} in a row
+                  {data.streak === 1 ? copy.day : copy.days} {copy.inRow}
                 </p>
                 <p className="text-xs text-amber-500 mt-1 font-medium">
                   {data.streak >= 7
-                    ? '🏆 Impressive streak!'
+                    ? copy.streakGreat
                     : data.streak >= 3
-                    ? '⚡ Keep it going!'
-                    : '✨ Build your habit!'}
+                    ? copy.streakGood
+                    : copy.streakStart}
                 </p>
               </div>
             </div>
 
-            {/* Row 2 — Domain Breakdown */}
+            {/* Row 2 — {copy.domainBreakdown} */}
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <h2 className="text-base font-bold text-gray-900">
-                  Domain Breakdown
+                  {copy.domainBreakdown}
                 </h2>
                 <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                  ECO 2021 weightings
+                  {copy.ecoWeightings}
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {(data.domainStats ?? []).map((stat) => (
-                  <DomainCard key={stat.domain} stat={stat} />
+                  <DomainCard key={stat.domain} stat={stat} locale={locale} />
                 ))}
               </div>
             </div>
 
             {/* Row 3 — Difficulty + Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Difficulty Ladder */}
+              {/* {copy.difficultyLadder} */}
               <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
                 <h2 className="text-base font-bold text-gray-900 mb-4">
-                  Difficulty Ladder
+                  {copy.difficultyLadder}
                 </h2>
                 <div className="space-y-5">
                   {(data.difficultyStats ?? []).map((s) => {
                     const meta = DIFFICULTY_META[s.difficulty] ?? {
-                      label: s.difficulty,
+                      label: { en: s.difficulty, ar: s.difficulty },
                       color: '#6366f1',
                       emoji: '📊',
                     }
@@ -432,7 +607,7 @@ export default function ProgressPage() {
                           <div className="flex items-center gap-2">
                             <span className="text-base">{meta.emoji}</span>
                             <span className="text-sm font-medium text-gray-700">
-                              {meta.label}
+                              {meta.label[locale]}
                             </span>
                           </div>
                           <div className="text-right flex items-baseline gap-2">
@@ -445,7 +620,7 @@ export default function ProgressPage() {
                             <span className="text-xs text-gray-400">
                               {s.total > 0
                                 ? `${s.correct}/${s.total}`
-                                : 'No data'}
+                                : copy.noData}
                             </span>
                           </div>
                         </div>
@@ -459,13 +634,13 @@ export default function ProgressPage() {
                 </div>
               </div>
 
-              {/* 30-Day Activity Grid */}
+              {/* {copy.activity30} Grid */}
               <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
                 <h2 className="text-base font-bold text-gray-900 mb-0.5">
-                  30-Day Activity
+                  {copy.activity30}
                 </h2>
                 <p className="text-xs text-gray-400 mb-4">
-                  Practice sessions per day
+                  {copy.sessionsPerDay}
                 </p>
 
                 <div className="grid grid-cols-10 gap-1.5">
@@ -496,7 +671,7 @@ export default function ProgressPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-4">
-                  <span className="text-[10px] text-gray-400 mr-1">Less</span>
+                  <span className="text-[10px] text-gray-400 mr-1">{copy.less}</span>
                   {[
                     'bg-gray-100',
                     'bg-violet-200',
@@ -505,33 +680,32 @@ export default function ProgressPage() {
                   ].map((c, i) => (
                     <div key={i} className={`w-3 h-3 rounded-sm ${c}`} />
                   ))}
-                  <span className="text-[10px] text-gray-400 ml-1">More</span>
+                  <span className="text-[10px] text-gray-400 ml-1">{copy.more}</span>
                 </div>
 
                 {data.streak > 0 && (
                   <div className="mt-4 flex items-center gap-2 bg-amber-50 rounded-xl px-3 py-2">
                     <span className="text-lg">🔥</span>
                     <span className="text-xs text-amber-700 font-medium">
-                      You&apos;ve studied {data.streak} day
-                      {data.streak !== 1 ? 's' : ''} in a row!
+                      {copy.studied} {data.streak} {data.streak === 1 ? copy.day : copy.days} {copy.inRow}!
                     </span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Row 4 — Recent Sessions */}
+            {/* Row 4 — {copy.recentSessions} */}
             {(data.recentSessions ?? []).length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
                   <h2 className="text-base font-bold text-gray-900">
-                    Recent Sessions
+                    {copy.recentSessions}
                   </h2>
                   <Link
-                    href="/practice"
+                    href={`/dashboard/practice?lang=${locale}`}
                     className="text-xs text-violet-600 font-medium hover:underline"
                   >
-                    + New Session
+                    {copy.newSession}
                   </Link>
                 </div>
                 <div className="overflow-x-auto">
@@ -539,11 +713,11 @@ export default function ProgressPage() {
                     <thead className="bg-gray-50">
                       <tr>
                         {[
-                          'Date',
-                          'Domain',
-                          'Difficulty',
-                          'Score',
-                          'Accuracy',
+                          copy.date,
+                          copy.domain,
+                          copy.difficulty,
+                          copy.score,
+                          copy.accuracy,
                         ].map((h) => (
                           <th
                             key={h}
@@ -580,7 +754,7 @@ export default function ProgressPage() {
                                   : 'bg-gray-100 text-gray-600'
                               }`}
                             >
-                              {s.difficulty || 'Mixed'}
+                              {s.difficulty || copy.mixed}
                             </span>
                           </td>
                           <td className="px-5 py-3 text-sm text-gray-700">
@@ -621,16 +795,16 @@ export default function ProgressPage() {
               </div>
             )}
 
-            {/* Row 5 — Focus Areas */}
+            {/* Row 5 — {copy.focusAreas} */}
             {(data.weakAreas ?? []).length > 0 && (
               <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-100 p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-xl">🎯</span>
                   <h2 className="text-base font-bold text-gray-900">
-                    Focus Areas
+                    {copy.focusAreas}
                   </h2>
                   <span className="text-xs text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full font-medium">
-                    Needs attention
+                    {copy.needsAttention}
                   </span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -638,8 +812,10 @@ export default function ProgressPage() {
                     <Link
                       key={area}
                       href={`/tutor?topic=${encodeURIComponent(
-                        `I need focused help on "${area}" for my PMP exam. Please explain the key concepts, common question patterns, and the most important tips from Rita Mulcahy and the ECO framework for this area.`
-                      )}&from=progress`}
+                        isArabic
+                          ? `أحتاج إلى مساعدة مركزة في "${area}" لاختبار PMP. اشرح المفاهيم الأساسية وأنماط الأسئلة الشائعة وأهم نصائح ريتا ملقاهي وإطار ECO لهذا المجال.`
+                          : `I need focused help on "${area}" for my PMP exam. Please explain the key concepts, common question patterns, and the most important tips from Rita Mulcahy and the ECO framework for this area.`
+                      )}&from=progress&lang=${locale}`}
                       className="bg-white rounded-xl border border-amber-100 p-4 hover:border-amber-300 hover:shadow-md transition-all group block"
                     >
                       <div className="flex items-center justify-between mb-1">
@@ -647,11 +823,11 @@ export default function ProgressPage() {
                           {area}
                         </span>
                         <span className="text-xs text-amber-600 group-hover:translate-x-0.5 transition-transform">
-                          Study →
+                          {copy.study}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500">
-                        Open AiTuTorZ for a targeted lesson
+                        {copy.openTutor}
                       </p>
                     </Link>
                   ))}
@@ -665,24 +841,24 @@ export default function ProgressPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🧙‍♂️</span>
-                    <h3 className="text-base font-bold text-gray-900">Guru Progress Reports</h3>
+                    <h3 className="text-base font-bold text-gray-900">{copy.guruReports}</h3>
                   </div>
                   <span className="text-xs bg-violet-100 text-violet-700 px-2.5 py-1 rounded-full font-medium">
-                    {portfolio.stats.totalReports} report{portfolio.stats.totalReports !== 1 ? 's' : ''}
+                    {portfolio.stats.totalReports} {portfolio.stats.totalReports === 1 ? copy.report : copy.reports}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 text-center">
                     <p className="text-2xl font-black text-violet-700">{portfolio.stats.bestScore}%</p>
-                    <p className="text-[10px] text-violet-500 font-medium uppercase">Best Score</p>
+                    <p className="text-[10px] text-violet-500 font-medium uppercase">{copy.bestScore}</p>
                   </div>
                   <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 text-center">
                     <p className="text-2xl font-black text-violet-700">{portfolio.stats.avgScore}%</p>
-                    <p className="text-[10px] text-violet-500 font-medium uppercase">Average</p>
+                    <p className="text-[10px] text-violet-500 font-medium uppercase">{copy.average}</p>
                   </div>
                   <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 text-center">
                     <p className="text-2xl font-black text-violet-700">{portfolio.stats.totalReports}</p>
-                    <p className="text-[10px] text-violet-500 font-medium uppercase">Sessions</p>
+                    <p className="text-[10px] text-violet-500 font-medium uppercase">{copy.sessions}</p>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -700,9 +876,9 @@ export default function ProgressPage() {
                           </div>
                           <div>
                             <p className="text-sm font-semibold text-gray-900 group-hover:text-violet-700 transition-colors">
-                              Session Report — {r.overall_correct}/{r.overall_total} correct
+                              {copy.sessionReport} — {r.overall_correct}/{r.overall_total} {copy.correct}
                             </p>
-                            <p className="text-xs text-gray-400">{date} · {r.blocks_completed} blocks · {r.framework === 'pmbok8' ? 'PMBOK 8' : 'PMBOK 7'}</p>
+                            <p className="text-xs text-gray-400">{date} · {r.blocks_completed} {copy.blocks} · PMBOK 7</p>
                           </div>
                         </div>
                         <span className={`text-sm font-bold ${color}`}>{r.overall_score}%</span>
@@ -719,10 +895,10 @@ export default function ProgressPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🏆</span>
-                    <h3 className="text-base font-bold text-gray-900">Badges Earned</h3>
+                    <h3 className="text-base font-bold text-gray-900">{copy.badgesEarned}</h3>
                   </div>
                   <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">
-                    {portfolio.stats.totalBadges} badge{portfolio.stats.totalBadges !== 1 ? 's' : ''}
+                    {portfolio.stats.totalBadges} {portfolio.stats.totalBadges === 1 ? copy.badge : copy.badges}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -746,16 +922,16 @@ export default function ProgressPage() {
               </div>
             )}
 
-            {/* ── Certifications (Coming Soon) ── */}
+            {/* ── {copy.certifications} ({copy.comingSoon}) ── */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">📜</span>
-                  <h3 className="text-base font-bold text-gray-900">Certifications</h3>
+                  <h3 className="text-base font-bold text-gray-900">{copy.certifications}</h3>
                 </div>
-                <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full font-medium">Coming Soon</span>
+                <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full font-medium">{copy.comingSoon}</span>
               </div>
-              <p className="text-sm text-gray-500">Complete domain mastery tests and mock exams to earn downloadable certificates of achievement.</p>
+              <p className="text-sm text-gray-500">{copy.certBody}</p>
             </div>
 
             {/* Exam readiness tip banner */}
@@ -763,18 +939,18 @@ export default function ProgressPage() {
               <div>
                 <p className="text-sm font-bold">
                   {data.readinessScore >= 75
-                    ? '🏆 You\'re approaching exam readiness!'
-                    : '📚 Keep practising — consistency is the key!'}
+                    ? copy.readyTip
+                    : copy.keepPractising}
                 </p>
                 <p className="text-xs text-violet-200 mt-0.5">
-                  PMP pass mark is ~61%. Aim for 75%+ to build confidence.
+                  {copy.passMark}
                 </p>
               </div>
               <Link
-                href="/practice"
+                href={`/dashboard/practice?lang=${locale}`}
                 className="bg-white text-violet-600 text-sm font-bold px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors whitespace-nowrap ml-4"
               >
-                Practice Now
+                {copy.practiceNow}
               </Link>
             </div>
           </>

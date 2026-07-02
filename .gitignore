@@ -12,3 +12,7 @@ next-env.d.ts
 *.before-*
 *.bak
 backups/
+.DS_Store
+*.bak-*
+fix-anthropic-model.sh
+split-commit-model-fix.sh

@@ -719,7 +719,7 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
   const [mode, setMode] = useState<'setup' | 'question' | 'wrapup' | 'loading'>('setup');
   const [difficulty, setDifficulty] = useState('entry');
   const [domain, setDomain] = useState('all');
-  const [framework, setFramework] = useState<ExamPathId>(normalizeExamPath(initialFramework));
+  const [framework, setFramework] = useState<ExamPathId>(initialFramework);
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [blockNumber, setBlockNumber] = useState(1);

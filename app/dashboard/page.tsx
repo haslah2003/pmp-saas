@@ -210,8 +210,24 @@ export default async function DashboardPage() {
     Math.max(curriculumModules.length, 1)
   );
 
-  const nextModuleTitle = isArabic ? "ماهية عقلية محترف إدارة المشاريع" : "What the PMP mindset is";
-  const nextModuleHref = `/dashboard/path/pmbok8-eco2026-F1/pmbok8-eco2026-F1.L1/preview?lang=${locale}`;
+  const firstMissionByFramework = {
+    pmbok7: {
+      title: isArabic ? "ماهية عقلية محترف إدارة المشاريع" : "What the PMP mindset is",
+      href: `/dashboard/path/pmbok7-eco2021-F1/pmbok7-eco2021-F1.L1/preview?lang=${locale}`,
+    },
+    pmbok8: {
+      title: isArabic ? "ماهية عقلية محترف إدارة المشاريع" : "What the PMP mindset is",
+      href: `/dashboard/path/pmbok8-eco2026-F1/pmbok8-eco2026-F1.L1/preview?lang=${locale}`,
+    },
+    bridge: {
+      title: isArabic ? "فرضية PMBOK 8 — لماذا هذا الإصدار" : "The PMBOK 8 thesis — why this edition",
+      href: `/dashboard/path/bridge-7-to-8-B1/bridge-7-to-8-B1.L1/preview?lang=${locale}`,
+    },
+  } as const;
+
+  const firstMission = firstMissionByFramework[activeFramework];
+  const nextModuleTitle = firstMission.title;
+  const nextModuleHref = firstMission.href;
 
   const missionTasks = [
     {

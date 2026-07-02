@@ -247,7 +247,7 @@ export default function DemoPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  const lessonHref = `/dashboard/path/pmbok8-eco2026-F1/pmbok8-eco2026-F1.L1/preview?lang=${lang}`;
+  const lessonHref = `/dashboard/path/pmbok7-eco2021-F1/pmbok7-eco2021-F1.L1/preview?lang=${lang}`;
   const pricingHref = `/dashboard/pricing?lang=${lang}`;
 
   return (

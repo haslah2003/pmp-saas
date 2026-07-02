@@ -91,6 +91,13 @@ interface StrategicReport {
   next_actions: string[];
 }
 
+
+function normalizePracticeRoute(route?: string | null): 'pmbok7' | 'pmbok8' | 'bridge' {
+  if (route === 'pmbok8') return 'pmbok8';
+  if (route === 'bridge') return 'bridge';
+  return 'pmbok7';
+}
+
 function domainLabel(domain: string, isArabic: boolean): string {
   const labels: Record<string, { en: string; ar: string }> = {
     people: { en: 'People', ar: 'مجال الأفراد' },
@@ -275,7 +282,7 @@ function buildStrategicReport({
   isArabic: boolean;
   blockNumber: number;
 }): StrategicReport {
-  const routeKey = route === 'pmbok8' || route === 'bridge' ? route : 'pmbok7';
+  const routeKey = normalizePracticeRoute(route);
   const usableResults = cycleResults.length > 0 ? cycleResults : [];
   const total = usableResults.length;
   const correct = usableResults.filter((r) => r.isCorrect).length;
@@ -731,8 +738,7 @@ All fields in the JSON response must be Arabic:
 Keep the tone encouraging, executive, exam-focused, concise, and suitable for PMP learners.`
       : `Generate the full wrap-up report in English.`;
 
-    const normalizedRoute =
-      activeRoute === 'pmbok8' || activeRoute === 'bridge' ? activeRoute : 'pmbok7';
+    const normalizedRoute = normalizePracticeRoute(activeRoute);
 
     const sourceExample =
       normalizedRoute === 'pmbok8'

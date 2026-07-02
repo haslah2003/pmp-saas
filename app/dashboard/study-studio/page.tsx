@@ -602,14 +602,14 @@ WHY: [Brief rationale]`,
 // ── Audio Loading Messages ────────────────────────────────────────────────────
 
 const AUDIO_LOADING_MESSAGES_EN = [
-  { text: "Our AI narrator is preparing your lesson...", sub: "Studio-quality voice powered by ElevenLabs" },
+  { text: "Our AI narrator is preparing your lesson...", sub: "Creating a focused PMP audio experience" },
   { text: "Writing the narration script from PMBOK 7...", sub: "Every word grounded in official PMI sources" },
   { text: "Converting knowledge into an audio experience...", sub: "Listen, learn, and absorb at your own pace" },
   { text: "Crafting a personalized audio lesson...", sub: "The best PMs learn through multiple channels" },
 ];
 
 const AUDIO_LOADING_MESSAGES_AR = [
-  { text: "راويك الذكي يحضر درسك...", sub: "صوت بجودة الاستوديو من ElevenLabs" },
+  { text: "راويك الذكي يحضر درسك...", sub: "إنشاء تجربة صوتية مركزة لاختبار PMP" },
   { text: "كتابة نص السرد من PMBOK 7...", sub: "كل كلمة مستندة إلى مصادر PMI الرسمية" },
   { text: "تحويل المعرفة إلى تجربة صوتية...", sub: "استمع وتعلم واستوعب بسرعتك الخاصة" },
   { text: "صياغة درس صوتي شخصي...", sub: "أفضل مديري المشاريع يتعلمون عبر قنوات متعددة" },
@@ -695,11 +695,11 @@ function AudioTab() {
       const res = await fetch('/api/tts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: topicTitle }),
+        body: JSON.stringify({ topic: topicTitle, topicId: topic.id, language: isArabic ? 'ar' : 'en', scriptOnly: false }),
       });
       if (!res.ok) {
         const err = await res.json();
-        setError(err.upgrade ? (isArabic ? 'يتطلب سرد الصوت اشتراك Premium.' : isArabic ? 'يتطلب السرد الصوتي اشتراكًا مميزًا.' : 'Audio narration requires a Premium subscription.') : (err.error || (isArabic ? 'فشل إنشاء الصوت.' : isArabic ? 'تعذر توليد الصوت.' : 'Failed to generate audio.')));
+        setError(err.upgrade ? (isArabic ? 'يتطلب السرد الصوتي اشتراكًا مميزًا.' : 'Audio narration requires a premium subscription.') : (isArabic ? 'الصوت غير متاح مؤقتًا. يمكنك متابعة الدراسة من خلال الملاحظات أو البطاقات التعليمية.' : 'Audio is temporarily unavailable. You can continue with notes or flashcards.'));
         setIsGenerating(false); return;
       }
       const data = await res.json();
@@ -837,7 +837,7 @@ function AudioTab() {
       <Card padding="lg">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold">{isArabic ? 'دروس صوتية' : 'Audio Lessons'}</h3>
-          <Badge variant="info">{isArabic ? 'مدعوم بتقنية ElevenLabs TTS' : 'Powered by ElevenLabs TTS'}</Badge>
+          <Badge variant="info">{isArabic ? 'تجربة صوتية ذكية' : 'AI audio experience'}</Badge>
         </div>
         <p className="text-sm text-brand-900/50 mb-6">{isArabic ? 'انقر على أي درس لإنشاء تجربة صوتية مروية بالذكاء الاصطناعي.' : 'Click any lesson to generate an AI-narrated audio experience.'}</p>
         <div className="space-y-1">

@@ -395,6 +395,13 @@ function localSections(node: RichMindMapNode, mode: MindMapMode, isArabic: boole
   ];
 }
 
+function isMostlyLatinText(value: string) {
+  const latinMatches = value.match(/[A-Za-z]{3,}/g) || [];
+  const arabicMatches = value.match(/[\u0600-\u06FF]{2,}/g) || [];
+
+  return latinMatches.length >= 8 && latinMatches.length > arabicMatches.length * 2;
+}
+
 function sanitizeAiText(raw: string) {
   return raw
     .replace(/I notice that the HEADING and CONTENT fields[\s\S]*?identified\./gi, '')
@@ -555,6 +562,7 @@ function ExplanationPanel({
 
   const title = cleanText(textOf(selectedNode.label, isArabic, 'Selected concept'));
   const description = cleanText(textOf(selectedNode.description, isArabic, ''));
+  const safeAiContent = isArabic && isMostlyLatinText(aiContent) ? '' : aiContent;
 
   return (
     <aside className="rounded-[2rem] border border-[#eadff0] bg-white p-5 shadow-sm lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto" dir={isArabic ? 'rtl' : 'ltr'}>
@@ -576,17 +584,17 @@ function ExplanationPanel({
           </section>
         ))}
 
-        {(isLoading || aiContent) && (
+        {(isLoading || safeAiContent) && (
           <section className="rounded-2xl border border-[#eadff0] bg-[#f4edf6] p-4">
             <h3 className={`text-sm font-black text-[#2b2b2f] ${isArabic ? 'text-right' : 'text-left'}`}>
               {translate('AiTutorZ Deep Dive', isArabic)}
             </h3>
-            {isLoading && !aiContent && (
+            {isLoading && !safeAiContent && (
               <p className={`mt-3 text-sm text-[#4b164c] ${isArabic ? 'text-right' : 'text-left'}`}>
                 {translate('Generating focused explanation...', isArabic)}
               </p>
             )}
-            {aiContent && <div className="mt-3"><RenderText text={aiContent} isArabic={isArabic} /></div>}
+            {safeAiContent && <div className="mt-3"><RenderText text={safeAiContent} isArabic={isArabic} /></div>}
           </section>
         )}
 
