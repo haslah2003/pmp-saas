@@ -7,6 +7,7 @@ export const maxDuration = 60
 type ExamFramework = 'pmbok7' | 'pmbok8' | 'bridge'
 type EcoDomain = 'people' | 'process' | 'business-environment'
 type QuestionDifficulty = 'entry' | 'paced' | 'difficult' | 'challenging'
+type QuestionType = 'single_response' | 'multiple_response' | 'pull_down'
 
 const SYSTEM_PROMPT = `You are a senior PMP exam question writer and PMP/PMI content quality auditor.
 
@@ -21,6 +22,7 @@ Every item must be a JSON object with exactly the requested keys.`
 const FRAMEWORKS: ExamFramework[] = ['pmbok7', 'pmbok8', 'bridge']
 const DOMAINS: EcoDomain[] = ['people', 'process', 'business-environment']
 const DIFFICULTIES: QuestionDifficulty[] = ['entry', 'paced', 'difficult', 'challenging']
+const QUESTION_TYPES: QuestionType[] = ['single_response', 'multiple_response', 'pull_down']
 
 type AnswerKey = 'a' | 'b' | 'c' | 'd'
 
@@ -46,6 +48,10 @@ function normalizeDifficulty(value: unknown): QuestionDifficulty {
   }
 
   return legacyMap[String(value || '')] || 'entry'
+}
+
+function normalizeQuestionType(value: unknown): QuestionType {
+  return QUESTION_TYPES.includes(value as QuestionType) ? (value as QuestionType) : 'single_response'
 }
 
 function clampInteger(value: unknown, fallback: number, min: number, max: number) {
@@ -462,6 +468,353 @@ Quality requirements:
 Respond with ONLY the JSON array.`
 }
 
+
+function buildFormatPrompt({
+  framework,
+  domain,
+  difficulty,
+  count,
+  questionType,
+  retryReason,
+}: {
+  framework: ExamFramework
+  domain: EcoDomain
+  difficulty: QuestionDifficulty
+  count: number
+  questionType: Exclude<QuestionType, 'single_response'>
+  retryReason?: string
+}) {
+  const retryBlock = retryReason
+    ? `\nRetry correction requirement:\nThe previous generation attempt failed validation because: ${retryReason}\nRegenerate the full JSON array from scratch. Do not reuse failed questions.\n`
+    : ''
+
+  if (questionType === 'multiple_response') {
+    return `Generate ${count} PMP exam questions in Multiple-Response format.
+
+${frameworkContext(framework)}
+
+Assessment target:
+- Framework route: ${framework}
+- ECO domain DB value: ${domain}
+- ECO domain label: ${domainLabel(domain)}
+- Difficulty DB value: ${difficulty}
+- Question type: multiple_response
+- Scoring rule: all-or-nothing; learner must select the exact required set.
+- Bilingual requirement: English and Arabic must both be populated.
+
+${domainGuidance(framework, domain)}
+
+${retryBlock}
+
+Output must be a valid JSON array. Each object must use this exact shape:
+{
+  "question_text": "Scenario stem in English. It must clearly say Select TWO or Select THREE.",
+  "question_text_ar": "Arabic MSA translation/adaptation of the stem. It must clearly say اختر إجابتين or اختر ثلاث إجابات.",
+  "domain": "${domain}",
+  "subdomain": "specific subtopic within ${domainLabel(domain)}",
+  "difficulty": "${difficulty}",
+  "explanation": "English explanation of why the full correct set is correct and why distractors are wrong.",
+  "explanation_ar": "Arabic explanation.",
+  "rita_tip": "Concise PMP exam strategy tip in English.",
+  "rita_tip_ar": "Concise PMP exam strategy tip in Arabic.",
+  "pmbok_reference": "Careful PMBOK reference with no fake page/section numbers.",
+  "eco_reference": "Careful ECO reference with no fake task numbers.",
+  "answer_data": {
+    "select_count": 2,
+    "options": {
+      "a": "English option",
+      "b": "English option",
+      "c": "English option",
+      "d": "English option",
+      "e": "English option"
+    },
+    "correct": ["a", "c"]
+  },
+  "answer_data_ar": {
+    "select_count": 2,
+    "options": {
+      "a": "Arabic option",
+      "b": "Arabic option",
+      "c": "Arabic option",
+      "d": "Arabic option",
+      "e": "Arabic option"
+    },
+    "correct": ["a", "c"]
+  },
+  "asf_profile": {
+    "primaryCompetency":"Leadership",
+    "secondaryCompetency":"Stakeholder Influence",
+    "decisionArchitecture":"Best Action",
+    "ambiguityLevel":2,
+    "distractorStrength":"advanced",
+    "decisionHorizon":"short_term",
+    "principleAlignment":"Be an Accountable Leader",
+    "leadershipDimension":"Accountability",
+    "systemsThinkingDimension":"Medium",
+    "cognitiveLoad":8,
+    "estimatedPMIDifficulty":8,
+    "qualityScore":85
+  }
+}
+
+Strict rules:
+- Generate 5 to 7 options per question.
+- select_count must be 2 or 3.
+- correct must contain exactly select_count option keys.
+- The stem must state the number of selections.
+- answer_data_ar must mirror answer_data using the same option keys and same correct key array.
+- Do not use partial-credit language.
+- Do not invent PMI/PMBOK page numbers or task numbers.
+- No markdown. No text outside the JSON array.`
+  }
+
+  return `Generate ${count} PMP exam questions in Pull-down List format.
+
+${frameworkContext(framework)}
+
+Assessment target:
+- Framework route: ${framework}
+- ECO domain DB value: ${domain}
+- ECO domain label: ${domainLabel(domain)}
+- Difficulty DB value: ${difficulty}
+- Question type: pull_down
+- Scoring rule: all-or-nothing; every blank must be correct.
+- Bilingual requirement: English and Arabic must both be populated.
+
+${domainGuidance(framework, domain)}
+
+${retryBlock}
+
+Output must be a valid JSON array. Each object must use this exact shape:
+{
+  "question_text": "Brief scenario/context in English introducing the sentence with blanks.",
+  "question_text_ar": "Arabic MSA translation/adaptation of the scenario/context.",
+  "domain": "${domain}",
+  "subdomain": "specific subtopic within ${domainLabel(domain)}",
+  "difficulty": "${difficulty}",
+  "explanation": "English explanation of the correct dropdown choices.",
+  "explanation_ar": "Arabic explanation.",
+  "rita_tip": "Concise PMP exam strategy tip in English.",
+  "rita_tip_ar": "Concise PMP exam strategy tip in Arabic.",
+  "pmbok_reference": "Careful PMBOK reference with no fake page/section numbers.",
+  "eco_reference": "Careful ECO reference with no fake task numbers.",
+  "answer_data": {
+    "blanks": [
+      {
+        "id": "b1",
+        "prompt_before": "The project manager should first",
+        "prompt_after": "the risk register.",
+        "options": ["update", "archive", "delete"],
+        "correct": "update"
+      }
+    ]
+  },
+  "answer_data_ar": {
+    "blanks": [
+      {
+        "id": "b1",
+        "prompt_before": "ينبغي لمدير المشروع أولاً أن",
+        "prompt_after": "سجل المخاطر.",
+        "options": ["يحدّث", "يؤرشف", "يحذف"],
+        "correct": "يحدّث"
+      }
+    ]
+  },
+  "asf_profile": {
+    "primaryCompetency":"Leadership",
+    "secondaryCompetency":"Stakeholder Influence",
+    "decisionArchitecture":"Best Action",
+    "ambiguityLevel":2,
+    "distractorStrength":"advanced",
+    "decisionHorizon":"short_term",
+    "principleAlignment":"Be an Accountable Leader",
+    "leadershipDimension":"Accountability",
+    "systemsThinkingDimension":"Medium",
+    "cognitiveLoad":8,
+    "estimatedPMIDifficulty":8,
+    "qualityScore":85
+  }
+}
+
+Strict rules:
+- Generate 1 to 3 blanks per question.
+- Each blank must have 3 to 4 options.
+- Each blank must have exactly one correct value.
+- The correct value must exactly match one option in the same blank.
+- answer_data_ar must mirror answer_data with matching blank ids.
+- Do not use partial-credit language.
+- Do not invent PMI/PMBOK page numbers or task numbers.
+- No markdown. No text outside the JSON array.`
+}
+
+const FORMAT_OPTION_KEYS = ['a', 'b', 'c', 'd', 'e', 'f', 'g'] as const
+
+function stringValue(value: unknown) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function objectValue(value: unknown): Record<string, any> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, any>) : {}
+}
+
+function normalizeFormatOptions(value: unknown) {
+  const source = objectValue(value)
+  const options: Record<string, string> = {}
+
+  for (const key of FORMAT_OPTION_KEYS) {
+    const text = stringValue(source[key])
+    if (text) options[key] = text
+  }
+
+  return options
+}
+
+function firstOptionColumns(options: Record<string, string>) {
+  return {
+    option_a: options.a || '',
+    option_b: options.b || '',
+    option_c: options.c || '',
+    option_d: options.d || '',
+  }
+}
+
+function normalizeCorrectKeys(value: unknown, options: Record<string, string>, selectCount: number) {
+  if (!Array.isArray(value)) return []
+  const allowed = new Set(Object.keys(options))
+  const unique = Array.from(
+    new Set(
+      value
+        .map((item) => stringValue(item).toLowerCase())
+        .filter((item) => allowed.has(item))
+    )
+  )
+
+  return unique.length === selectCount ? unique : []
+}
+
+function normalizePullDownBlanks(value: unknown) {
+  if (!Array.isArray(value)) return []
+
+  return value
+    .map((blank, index) => {
+      const source = objectValue(blank)
+      const options = Array.isArray(source.options)
+        ? source.options.map((item: unknown) => stringValue(item)).filter(Boolean)
+        : []
+      const correct = stringValue(source.correct)
+
+      return {
+        id: stringValue(source.id) || `b${index + 1}`,
+        prompt_before: stringValue(source.prompt_before),
+        prompt_after: stringValue(source.prompt_after),
+        options,
+        correct,
+      }
+    })
+    .filter((blank) => {
+      return (
+        blank.options.length >= 3 &&
+        blank.options.length <= 4 &&
+        blank.correct.length > 0 &&
+        blank.options.includes(blank.correct)
+      )
+    })
+}
+
+function cleanGeneratedFormatQuestions({
+  questions,
+  framework,
+  domain,
+  difficulty,
+  questionType,
+}: {
+  questions: any[]
+  framework: ExamFramework
+  domain: EcoDomain
+  difficulty: QuestionDifficulty
+  questionType: Exclude<QuestionType, 'single_response'>
+}): any[] {
+  return questions
+    .map((q) => {
+      const rawAnswerData = objectValue(q.answer_data)
+      const rawAnswerDataAr = objectValue(q.answer_data_ar)
+      const questionText = stringValue(q.question_text)
+      const explanation = stringValue(q.explanation)
+
+      if (!questionText || !explanation) return null
+
+      if (questionType === 'multiple_response') {
+        const options = normalizeFormatOptions(rawAnswerData.options || q.options)
+        const selectCount = Math.min(Math.max(Number(rawAnswerData.select_count ?? q.select_count ?? 2), 2), 3)
+        const correct = normalizeCorrectKeys(rawAnswerData.correct ?? q.correct, options, selectCount)
+
+        if (Object.keys(options).length < 5 || Object.keys(options).length > 7 || correct.length !== selectCount) {
+          return null
+        }
+
+        const arOptions = normalizeFormatOptions(rawAnswerDataAr.options)
+        const arCorrect = normalizeCorrectKeys(rawAnswerDataAr.correct, arOptions, selectCount)
+        const answerDataAr =
+          Object.keys(arOptions).length === Object.keys(options).length && arCorrect.length === selectCount
+            ? { select_count: selectCount, options: arOptions, correct: arCorrect }
+            : null
+
+        return {
+          framework,
+          domain,
+          subdomain: stringValue(q.subdomain),
+          difficulty,
+          question_type: 'multiple_response',
+          question_text: questionText,
+          question_text_ar: stringValue(q.question_text_ar) || null,
+          ...firstOptionColumns(options),
+          correct_answer: 'a',
+          explanation,
+          explanation_ar: stringValue(q.explanation_ar) || null,
+          rita_tip: stringValue(q.rita_tip),
+          rita_tip_ar: stringValue(q.rita_tip_ar) || null,
+          pmbok_reference: stringValue(q.pmbok_reference),
+          eco_reference: stringValue(q.eco_reference),
+          answer_data: { select_count: selectCount, options, correct },
+          answer_data_ar: answerDataAr,
+          asf_profile: q.asf_profile && typeof q.asf_profile === 'object' ? q.asf_profile : {},
+        }
+      }
+
+      const blanks = normalizePullDownBlanks(rawAnswerData.blanks || q.blanks)
+      if (blanks.length < 1 || blanks.length > 3) return null
+
+      const arBlanks = normalizePullDownBlanks(rawAnswerDataAr.blanks)
+      const answerDataAr = arBlanks.length === blanks.length ? { blanks: arBlanks } : null
+      const flattenedOptions = blanks.flatMap((blank) => blank.options)
+
+      return {
+        framework,
+        domain,
+        subdomain: stringValue(q.subdomain),
+        difficulty,
+        question_type: 'pull_down',
+        question_text: questionText,
+        question_text_ar: stringValue(q.question_text_ar) || null,
+        option_a: flattenedOptions[0] || '',
+        option_b: flattenedOptions[1] || '',
+        option_c: flattenedOptions[2] || '',
+        option_d: flattenedOptions[3] || flattenedOptions[0] || '',
+        correct_answer: 'a',
+        explanation,
+        explanation_ar: stringValue(q.explanation_ar) || null,
+        rita_tip: stringValue(q.rita_tip),
+        rita_tip_ar: stringValue(q.rita_tip_ar) || null,
+        pmbok_reference: stringValue(q.pmbok_reference),
+        eco_reference: stringValue(q.eco_reference),
+        answer_data: { blanks },
+        answer_data_ar: answerDataAr,
+        asf_profile: q.asf_profile && typeof q.asf_profile === 'object' ? q.asf_profile : {},
+      }
+    })
+    .filter(Boolean)
+}
+
 function cleanGeneratedQuestions({
   questions,
   framework,
@@ -777,6 +1130,7 @@ export async function POST(req: NextRequest) {
     const framework = normalizeFramework(body.framework)
     const domain = normalizeDomain(body.domain)
     const difficulty = normalizeDifficulty(body.difficulty)
+    const questionType = normalizeQuestionType(body.questionType ?? body.question_type)
     const count = clampInteger(body.count, 5, 1, 20)
     const variants = clampInteger(body.variants, 1, 1, 6)
 
@@ -825,14 +1179,24 @@ export async function POST(req: NextRequest) {
 
       for (let attempt = 1; attempt <= MAX_VARIANT_ATTEMPTS; attempt += 1) {
         const variantSeed = `${framework}-${domain}-${difficulty}-variant-${v}-attempt-${attempt}-${Date.now()}`
-        const prompt = buildPrompt({
-          framework,
-          domain,
-          difficulty,
-          count,
-          seed: variantSeed,
-          retryReason,
-        })
+        const prompt =
+          questionType === 'single_response'
+            ? buildPrompt({
+                framework,
+                domain,
+                difficulty,
+                count,
+                seed: variantSeed,
+                retryReason,
+              })
+            : buildFormatPrompt({
+                framework,
+                domain,
+                difficulty,
+                count,
+                questionType,
+                retryReason,
+              })
 
         console.log(
           `[QUESTION GEN] ${framework}/${domain}/${difficulty} variant ${v}, attempt ${attempt}: Calling Anthropic API`
@@ -910,12 +1274,21 @@ const anthropicModel = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5'
             continue
           }
 
-          const cleanedQuestions = cleanGeneratedQuestions({
-            questions: parsed,
-            framework,
-            domain,
-            difficulty,
-          })
+          const cleanedQuestions: any[] =
+            questionType === 'single_response'
+              ? cleanGeneratedQuestions({
+                  questions: parsed,
+                  framework,
+                  domain,
+                  difficulty,
+                })
+              : cleanGeneratedFormatQuestions({
+                  questions: parsed,
+                  framework,
+                  domain,
+                  difficulty,
+                  questionType,
+                })
 
           if (cleanedQuestions.length === 0) {
             retryReason = 'No valid questions after validation'
@@ -925,19 +1298,30 @@ const anthropicModel = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5'
             continue
           }
 
-          const alignedQuestions = alignQuestionsToMandatoryAnswerKey({
-            questions: cleanedQuestions,
-            seed: variantSeed,
-          })
+          const preparedQuestions =
+            questionType === 'single_response'
+              ? alignQuestionsToMandatoryAnswerKey({
+                  questions: cleanedQuestions,
+                  seed: variantSeed,
+                })
+              : cleanedQuestions
 
           const attemptKnownNormalizedQuestions = new Set(knownNormalizedQuestions)
           const attemptKnownQuestionTexts = [...knownQuestionTexts]
 
-          const duplicateAudit = removeDuplicateQuestions({
-            questions: alignedQuestions,
-            knownNormalizedQuestions: attemptKnownNormalizedQuestions,
-            knownQuestionTexts: attemptKnownQuestionTexts,
-          })
+          const duplicateAudit =
+            questionType === 'single_response'
+              ? removeDuplicateQuestions({
+                  questions: preparedQuestions,
+                  knownNormalizedQuestions: attemptKnownNormalizedQuestions,
+                  knownQuestionTexts: attemptKnownQuestionTexts,
+                })
+              : {
+                  questions: preparedQuestions,
+                  skippedExactDuplicates: 0,
+                  skippedNearDuplicates: 0,
+                  skippedWeakOptions: 0,
+                }
 
           const toInsert = duplicateAudit.questions.map((q: any) => {
             const rawAsf = q.asf_profile && typeof q.asf_profile === "object" ? q.asf_profile : {}
@@ -983,7 +1367,14 @@ const anthropicModel = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5'
             continue
           }
 
-          const qualityAudit = auditGeneratedQuestionBatch(toInsert)
+          const qualityAudit =
+            questionType === 'single_response'
+              ? auditGeneratedQuestionBatch(toInsert)
+              : {
+                  errors: [] as string[],
+                  warnings: [] as string[],
+                  answerDistribution: { a: 0, b: 0, c: 0, d: 0 },
+                }
 
           if (qualityAudit.errors.length > 0) {
             retryReason = qualityAudit.errors.join('; ')
@@ -1002,14 +1393,16 @@ const anthropicModel = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5'
           skippedWeakOptions += duplicateAudit.skippedWeakOptions
           warnings.push(...qualityAudit.warnings.map((warning) => `Variant ${v}: ${warning}`))
 
-          for (const key of ANSWER_KEYS) {
-            totalAnswerDistribution[key] += qualityAudit.answerDistribution[key]
+          if (questionType === 'single_response') {
+            for (const key of ANSWER_KEYS) {
+              totalAnswerDistribution[key] += qualityAudit.answerDistribution[key]
+            }
           }
 
           const { data: inserted, error: insertError } = await adminSupabase
             .from('questions')
             .insert(toInsert)
-            .select('id, framework, domain, difficulty')
+            .select('id, framework, domain, difficulty, question_type')
 
           if (insertError) {
             console.error(`[QUESTION GEN] Variant ${v}: DB insert error:`, insertError.message)
@@ -1052,6 +1445,7 @@ const anthropicModel = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5'
       framework,
       domain,
       difficulty,
+      question_type: questionType,
       generated: allGenerated.length,
       skipped_exact_duplicates: skippedExactDuplicates,
       skipped_near_duplicates: skippedNearDuplicates,
