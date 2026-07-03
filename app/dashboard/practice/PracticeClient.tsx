@@ -8,6 +8,28 @@ import { EXAM_PATH_ORDER, EXAM_PATHS, getExamPathCopy, normalizeExamPath, type E
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+type QuestionType = 'single_response' | 'multiple_response' | 'pull_down';
+
+type MultipleResponseAnswerData = {
+  select_count?: number;
+  options?: Record<string, string>;
+  correct?: string[];
+};
+
+type PullDownBlank = {
+  id: string;
+  prompt_before?: string;
+  prompt_after?: string;
+  options?: string[];
+  correct?: string;
+};
+
+type PullDownAnswerData = {
+  blanks?: PullDownBlank[];
+};
+
+type StructuredAnswerData = MultipleResponseAnswerData | PullDownAnswerData | null;
+
 interface Question {
   id: string;
   framework?: string;
@@ -25,6 +47,9 @@ interface Question {
   option_d: string;
   option_d_ar?: string;
   correct_answer: string;
+  question_type?: QuestionType;
+  answer_data?: StructuredAnswerData;
+  answer_data_ar?: StructuredAnswerData;
   explanation: string;
   explanation_ar?: string;
   rita_tip: string;
@@ -709,6 +734,99 @@ function GuruPanel({
 
 // ─── Main Practice Component ──────────────────────────────────────────────────
 
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function getQuestionType(question: Question): QuestionType {
+  return question.question_type === 'multiple_response' || question.question_type === 'pull_down'
+    ? question.question_type
+    : 'single_response';
+}
+
+function getStructuredAnswerData(question: Question, isArabic: boolean): Record<string, unknown> {
+  const arData = question.answer_data_ar;
+  const enData = question.answer_data;
+
+  if (isArabic && isPlainRecord(arData)) return arData;
+  if (isPlainRecord(enData)) return enData;
+
+  return {};
+}
+
+function getMultipleResponseData(question: Question, isArabic: boolean) {
+  const data = getStructuredAnswerData(question, isArabic);
+  const rawOptions = isPlainRecord(data.options) ? data.options : {};
+  const options: Record<string, string> = {};
+
+  Object.entries(rawOptions).forEach(([key, value]) => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      options[key] = value;
+    }
+  });
+
+  const rawSelectCount = Number(data.select_count ?? 2);
+  const optionCount = Object.keys(options).length;
+  const selectCount = Number.isFinite(rawSelectCount)
+    ? Math.min(Math.max(rawSelectCount, 1), Math.max(optionCount, 1))
+    : 2;
+
+  const correct = Array.isArray(data.correct)
+    ? data.correct.filter((key): key is string => typeof key === 'string' && key in options)
+    : [];
+
+  return { selectCount, options, correct };
+}
+
+function getPullDownData(question: Question, isArabic: boolean) {
+  const data = getStructuredAnswerData(question, isArabic);
+  const blanks = Array.isArray(data.blanks)
+    ? data.blanks
+        .map((item, index) => {
+          const blank = isPlainRecord(item) ? item : {};
+          const options = Array.isArray(blank.options)
+            ? blank.options.filter((option): option is string => typeof option === 'string' && option.trim().length > 0)
+            : [];
+
+          return {
+            id: typeof blank.id === 'string' && blank.id.trim().length > 0 ? blank.id : `b${index + 1}`,
+            prompt_before: typeof blank.prompt_before === 'string' ? blank.prompt_before : '',
+            prompt_after: typeof blank.prompt_after === 'string' ? blank.prompt_after : '',
+            options,
+            correct: typeof blank.correct === 'string' ? blank.correct : '',
+          };
+        })
+        .filter((blank) => blank.options.length > 0)
+    : [];
+
+  return { blanks };
+}
+
+function sameAnswerSet(selected: string[], correct: string[]) {
+  if (selected.length !== correct.length) return false;
+  const selectedSet = new Set(selected);
+  return correct.every((key) => selectedSet.has(key));
+}
+
+function formatMultipleAnswerSummary(keys: string[], options: Record<string, string>, isArabic: boolean) {
+  return keys
+    .map((key) => `${answerLabel(key, isArabic)}. ${options[key] ?? key}`)
+    .join(' | ');
+}
+
+function formatPullDownSummary(blanks: ReturnType<typeof getPullDownData>['blanks'], answers: Record<string, string>) {
+  return blanks
+    .map((blank) => `${blank.prompt_before} [${answers[blank.id] || '—'}] ${blank.prompt_after}`.trim())
+    .join(' | ');
+}
+
+function formatPullDownCorrectSummary(blanks: ReturnType<typeof getPullDownData>['blanks']) {
+  return blanks
+    .map((blank) => `${blank.prompt_before} [${blank.correct || '—'}] ${blank.prompt_after}`.trim())
+    .join(' | ');
+}
+
 type PracticeClientProps = { initialFramework: ExamPathId };
 
 export default function PracticeClient({ initialFramework }: PracticeClientProps) {
@@ -727,6 +845,8 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [selectedMultiAnswers, setSelectedMultiAnswers] = useState<string[]>([]);
+  const [selectedPullDownAnswers, setSelectedPullDownAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [blockResults, setBlockResults] = useState<QuestionResult[]>([]);
   const [cycleResults, setCycleResults] = useState<QuestionResult[]>([]);
@@ -759,6 +879,8 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
     setQuestions([]);
     setCurrentQ(0);
     setSelectedAnswer(null);
+    setSelectedMultiAnswers([]);
+    setSelectedPullDownAnswers({});
     setSubmitted(false);
     setBlockResults([]);
     setCycleResults([]);
@@ -841,6 +963,8 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
         setQuestionBankStatus(data.questionBankStatus || null);
         setCurrentQ(0);
         setSelectedAnswer(null);
+    setSelectedMultiAnswers([]);
+    setSelectedPullDownAnswers({});
         setSubmitted(false);
         setBlockResults([]);
         setMode('question');
@@ -855,10 +979,36 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
   );
 
   const handleSubmit = () => {
-    if (!selectedAnswer) return;
-
     const question = questions[currentQ];
-    const isCorrect = selectedAnswer === question.correct_answer;
+    const questionType = getQuestionType(question);
+
+    let selectedAnswerText = selectedAnswer || '';
+    let correctAnswerText = question.correct_answer;
+    let isCorrect = false;
+
+    if (questionType === 'multiple_response') {
+      const multipleData = getMultipleResponseData(question, isArabic);
+
+      if (selectedMultiAnswers.length !== multipleData.selectCount) return;
+
+      isCorrect = sameAnswerSet(selectedMultiAnswers, multipleData.correct);
+      selectedAnswerText = formatMultipleAnswerSummary(selectedMultiAnswers, multipleData.options, isArabic);
+      correctAnswerText = formatMultipleAnswerSummary(multipleData.correct, multipleData.options, isArabic);
+    } else if (questionType === 'pull_down') {
+      const pullDownData = getPullDownData(question, isArabic);
+      const allBlanksAnswered =
+        pullDownData.blanks.length > 0 &&
+        pullDownData.blanks.every((blank) => selectedPullDownAnswers[blank.id]);
+
+      if (!allBlanksAnswered) return;
+
+      isCorrect = pullDownData.blanks.every((blank) => selectedPullDownAnswers[blank.id] === blank.correct);
+      selectedAnswerText = formatPullDownSummary(pullDownData.blanks, selectedPullDownAnswers);
+      correctAnswerText = formatPullDownCorrectSummary(pullDownData.blanks);
+    } else {
+      if (!selectedAnswer) return;
+      isCorrect = selectedAnswer === question.correct_answer;
+    }
 
     const result: QuestionResult = {
       questionId: question.id,
@@ -867,8 +1017,8 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
         question.question_text,
         question.question_text_ar
       ),
-      selectedAnswer,
-      correctAnswer: question.correct_answer,
+      selectedAnswer: selectedAnswerText,
+      correctAnswer: correctAnswerText,
       isCorrect,
       explanation: getFieldByLanguage(isArabic, question.explanation, question.explanation_ar),
       ritaTip: getFieldByLanguage(isArabic, question.rita_tip, question.rita_tip_ar),
@@ -884,6 +1034,8 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
     if (currentQ < questions.length - 1) {
       setCurrentQ((previous) => previous + 1);
       setSelectedAnswer(null);
+    setSelectedMultiAnswers([]);
+    setSelectedPullDownAnswers({});
       setSubmitted(false);
       return;
     }
@@ -1181,6 +1333,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
   }
 
   if (mode === 'question' && currentQuestion) {
+    const questionType = getQuestionType(currentQuestion);
     const optionKeys = ['a', 'b', 'c', 'd'] as const;
 
     const optionTexts: Record<string, string> = {
@@ -1188,6 +1341,26 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
       b: getFieldByLanguage(isArabic, currentQuestion.option_b, currentQuestion.option_b_ar),
       c: getFieldByLanguage(isArabic, currentQuestion.option_c, currentQuestion.option_c_ar),
       d: getFieldByLanguage(isArabic, currentQuestion.option_d, currentQuestion.option_d_ar),
+    };
+
+    const multipleResponseData = getMultipleResponseData(currentQuestion, isArabic);
+    const pullDownData = getPullDownData(currentQuestion, isArabic);
+    const canSubmitCurrentAnswer =
+      questionType === 'multiple_response'
+        ? selectedMultiAnswers.length === multipleResponseData.selectCount
+        : questionType === 'pull_down'
+          ? pullDownData.blanks.length > 0 &&
+            pullDownData.blanks.every((blank) => selectedPullDownAnswers[blank.id])
+          : Boolean(selectedAnswer);
+
+    const toggleMultiAnswer = (key: string) => {
+      if (submitted) return;
+
+      setSelectedMultiAnswers((previous) => {
+        if (previous.includes(key)) return previous.filter((item) => item !== key);
+        if (previous.length >= multipleResponseData.selectCount) return previous;
+        return [...previous, key];
+      });
     };
 
     return (
@@ -1281,57 +1454,173 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
         </div>
 
         <div className="space-y-3 mb-6">
-          {optionKeys.map((key) => {
-            const isSelected = selectedAnswer === key;
-            const isCorrect = key === currentQuestion.correct_answer;
+          {questionType === 'multiple_response' ? (
+            <>
+              <div className="rounded-xl border border-violet-100 bg-violet-50 px-4 py-3 text-sm text-violet-800">
+                {isArabic
+                  ? `اختر ${multipleResponseData.selectCount} إجابة. يجب اختيار جميع الإجابات الصحيحة.`
+                  : `Select ${multipleResponseData.selectCount} answers. All required selections must be correct.`}
+              </div>
 
-            let style = 'border-gray-200 bg-white hover:border-violet-300 hover:bg-violet-50';
+              {Object.entries(multipleResponseData.options).map(([key, text]) => {
+                const isSelected = selectedMultiAnswers.includes(key);
+                const isCorrect = multipleResponseData.correct.includes(key);
 
-            if (submitted) {
-              if (isCorrect) {
-                style = 'border-green-400 bg-green-50';
-              } else if (isSelected && !isCorrect) {
-                style = 'border-red-400 bg-red-50';
-              } else {
-                style = 'border-gray-100 bg-gray-50 opacity-60';
-              }
-            } else if (isSelected) {
-              style = 'border-violet-500 bg-violet-50';
-            }
+                let style = 'border-gray-200 bg-white hover:border-violet-300 hover:bg-violet-50';
 
-            return (
-              <button
-                key={key}
-                onClick={() => !submitted && setSelectedAnswer(key)}
-                disabled={submitted}
-                className={`w-full ${isArabic ? 'text-right' : 'text-left'} p-4 rounded-xl border-2 transition-all ${style}`}
-              >
-                <div className="flex items-start gap-3">
-                  <span
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                      submitted && isCorrect
-                        ? 'bg-green-500 text-white'
-                        : submitted && isSelected && !isCorrect
-                          ? 'bg-red-500 text-white'
-                          : isSelected
-                            ? 'bg-violet-600 text-white'
-                            : 'bg-gray-100 text-gray-600'
-                    }`}
+                if (submitted) {
+                  if (isCorrect) {
+                    style = 'border-green-400 bg-green-50';
+                  } else if (isSelected && !isCorrect) {
+                    style = 'border-red-400 bg-red-50';
+                  } else {
+                    style = 'border-gray-100 bg-gray-50 opacity-60';
+                  }
+                } else if (isSelected) {
+                  style = 'border-violet-500 bg-violet-50';
+                }
+
+                return (
+                  <button
+                    key={key}
+                    onClick={() => toggleMultiAnswer(key)}
+                    disabled={submitted}
+                    className={`w-full ${isArabic ? 'text-right' : 'text-left'} p-4 rounded-xl border-2 transition-all ${style}`}
                   >
-                    {submitted && isCorrect
-                      ? '✓'
-                      : submitted && isSelected && !isCorrect
-                        ? '✗'
-                        : answerLabel(key, isArabic)}
-                  </span>
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={`w-7 h-7 rounded-md flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                          submitted && isCorrect
+                            ? 'bg-green-500 text-white'
+                            : submitted && isSelected && !isCorrect
+                              ? 'bg-red-500 text-white'
+                              : isSelected
+                                ? 'bg-violet-600 text-white'
+                                : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {submitted && isCorrect
+                          ? '✓'
+                          : submitted && isSelected && !isCorrect
+                            ? '✗'
+                            : isSelected
+                              ? '✓'
+                              : answerLabel(key, isArabic)}
+                      </span>
 
-                  <span className="text-gray-800 text-sm leading-relaxed">
-                    {optionTexts[key]}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
+                      <span className="text-gray-800 text-sm leading-relaxed">
+                        {text}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </>
+          ) : questionType === 'pull_down' ? (
+            <div className="space-y-4">
+              {pullDownData.blanks.map((blank) => {
+                const selectedValue = selectedPullDownAnswers[blank.id] || '';
+                const isCorrect = selectedValue === blank.correct;
+
+                return (
+                  <div
+                    key={blank.id}
+                    className="rounded-xl border border-gray-200 bg-white p-4"
+                  >
+                    <div className="flex flex-wrap items-center gap-2 text-sm leading-7 text-gray-800">
+                      {blank.prompt_before && <span>{blank.prompt_before}</span>}
+
+                      <select
+                        value={selectedValue}
+                        onChange={(event) =>
+                          !submitted &&
+                          setSelectedPullDownAnswers((previous) => ({
+                            ...previous,
+                            [blank.id]: event.target.value,
+                          }))
+                        }
+                        disabled={submitted}
+                        className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-semibold text-violet-800 outline-none focus:border-violet-500 disabled:opacity-70"
+                      >
+                        <option value="">{isArabic ? 'اختر...' : 'Choose...'}</option>
+                        {blank.options.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+
+                      {blank.prompt_after && <span>{blank.prompt_after}</span>}
+                    </div>
+
+                    {submitted && (
+                      <p
+                        className={`mt-3 text-xs font-medium ${
+                          isCorrect ? 'text-green-700' : 'text-red-700'
+                        }`}
+                      >
+                        {isCorrect
+                          ? dt('Correct', isArabic)
+                          : `${dt('Correct answer', isArabic)}: ${blank.correct}`}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            optionKeys.map((key) => {
+              const isSelected = selectedAnswer === key;
+              const isCorrect = key === currentQuestion.correct_answer;
+
+              let style = 'border-gray-200 bg-white hover:border-violet-300 hover:bg-violet-50';
+
+              if (submitted) {
+                if (isCorrect) {
+                  style = 'border-green-400 bg-green-50';
+                } else if (isSelected && !isCorrect) {
+                  style = 'border-red-400 bg-red-50';
+                } else {
+                  style = 'border-gray-100 bg-gray-50 opacity-60';
+                }
+              } else if (isSelected) {
+                style = 'border-violet-500 bg-violet-50';
+              }
+
+              return (
+                <button
+                  key={key}
+                  onClick={() => !submitted && setSelectedAnswer(key)}
+                  disabled={submitted}
+                  className={`w-full ${isArabic ? 'text-right' : 'text-left'} p-4 rounded-xl border-2 transition-all ${style}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                        submitted && isCorrect
+                          ? 'bg-green-500 text-white'
+                          : submitted && isSelected && !isCorrect
+                            ? 'bg-red-500 text-white'
+                            : isSelected
+                              ? 'bg-violet-600 text-white'
+                              : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {submitted && isCorrect
+                        ? '✓'
+                        : submitted && isSelected && !isCorrect
+                          ? '✗'
+                          : answerLabel(key, isArabic)}
+                    </span>
+
+                    <span className="text-gray-800 text-sm leading-relaxed">
+                      {optionTexts[key]}
+                    </span>
+                  </div>
+                </button>
+              );
+            })
+          )}
         </div>
 
         {submitted && (
@@ -1372,7 +1661,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
           {!submitted ? (
             <button
               onClick={handleSubmit}
-              disabled={!selectedAnswer}
+              disabled={!canSubmitCurrentAnswer}
               className="flex-1 bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-40"
             >
               {dt('Submit Answer', isArabic)}
