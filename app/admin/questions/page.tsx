@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 type ExamFramework = 'pmbok7' | 'pmbok8' | 'bridge'
 type EcoDomain = 'people' | 'process' | 'business-environment'
 type QuestionDifficulty = 'entry' | 'paced' | 'difficult' | 'challenging'
+type QuestionType = 'single_response' | 'multiple_response' | 'pull_down'
 
 const FRAMEWORKS: {
   value: ExamFramework
@@ -110,6 +111,16 @@ const DIFFICULTIES: {
   { value: 'challenging', label: '🔴 Challenging', desc: 'Complex exam-style scenarios' },
 ]
 
+const QUESTION_TYPES: {
+  value: QuestionType
+  label: string
+  desc: string
+}[] = [
+  { value: 'single_response', label: 'Single Response', desc: 'Classic one-correct-answer PMP item' },
+  { value: 'multiple_response', label: 'Multiple Response', desc: 'Select two or three correct answers' },
+  { value: 'pull_down', label: 'Pull-down List', desc: 'Dropdown blanks for sequence or judgment testing' },
+]
+
 interface QuestionStats {
   framework: string
   domain: string
@@ -122,6 +133,7 @@ interface GenerateResult {
   framework?: string
   domain?: string
   difficulty?: string
+  question_type?: string
   generated: number
   skipped_exact_duplicates?: number
   skipped_near_duplicates?: number
@@ -140,6 +152,7 @@ export default function AdminQuestionsPage() {
   const [framework, setFramework] = useState<ExamFramework>('pmbok8')
   const [domain, setDomain] = useState<EcoDomain>('people')
   const [difficulty, setDifficulty] = useState<QuestionDifficulty>('entry')
+  const [questionType, setQuestionType] = useState<QuestionType>('single_response')
   const [count, setCount] = useState(3)
   const [variants, setVariants] = useState(1)
   const [generating, setGenerating] = useState(false)
@@ -215,7 +228,7 @@ export default function AdminQuestionsPage() {
       const res = await fetch('/api/admin/generate-questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ framework, domain, difficulty, count, variants }),
+        body: JSON.stringify({ framework, domain, difficulty, count, variants, questionType }),
       })
 
       const data = await res.json()
@@ -241,6 +254,9 @@ export default function AdminQuestionsPage() {
 
   const diffLabel = (d: string) =>
     DIFFICULTIES.find((x) => x.value === d)?.label || d
+
+  const questionTypeLabel = (type: string) =>
+    QUESTION_TYPES.find((x) => x.value === type)?.label || type
 
   const currentDomainTotal = (domainValue: EcoDomain) =>
     stats
@@ -379,6 +395,35 @@ export default function AdminQuestionsPage() {
             </div>
           </div>
 
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Question Type</label>
+            <div className="grid grid-cols-1 gap-2">
+              {QUESTION_TYPES.map((type) => (
+                <label
+                  key={type.value}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    questionType === type.value
+                      ? 'border-violet-500 bg-violet-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="questionType"
+                    value={type.value}
+                    checked={questionType === type.value}
+                    onChange={(e) => setQuestionType(e.target.value as QuestionType)}
+                    className="text-violet-600"
+                  />
+                  <div>
+                    <span className="text-sm font-medium text-gray-900">{type.label}</span>
+                    <span className="text-xs text-gray-500 ml-2">{type.desc}</span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -419,7 +464,8 @@ export default function AdminQuestionsPage() {
             Will generate{' '}
             <strong className="text-violet-600">{count * variants} questions</strong>{' '}
             for <strong>{frameworkLabel(framework)}</strong> ·{' '}
-            <strong>{domainLabel(domain)}</strong> · <strong>{diffLabel(difficulty)}</strong>
+            <strong>{domainLabel(domain)}</strong> · <strong>{diffLabel(difficulty)}</strong> ·{' '}
+            <strong>{questionTypeLabel(questionType)}</strong>
           </div>
 
           {framework === 'pmbok8' && (
@@ -445,7 +491,8 @@ export default function AdminQuestionsPage() {
             >
               ✅ Generated and saved <strong>{result.generated} questions</strong> to database.
               <p className="text-xs mt-1">
-                Route: {result.framework} · Domain: {result.domain} · Difficulty: {result.difficulty}
+                Route: {result.framework} · Domain: {result.domain} · Difficulty: {result.difficulty} · Type:{' '}
+                {questionTypeLabel(result.question_type || questionType)}
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3 text-xs">
