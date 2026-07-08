@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useLanguage } from '@/lib/i18n/language-context'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -14,14 +15,23 @@ interface CompanionContext {
   question?: string
 }
 
-const QUICK_ACTIONS = [
-  { label: '📐 Formula lookup', prompt: 'Show me the most important PMP formulas I need to know for the exam.' },
-  { label: '📋 Artifact check', prompt: 'What are the most important PMP artifacts and when are they used?' },
-  { label: '💡 Rita technique', prompt: 'What are Rita Mulcahy\'s top exam-taking techniques?' },
-  { label: '🔑 Key terms', prompt: 'Define the most commonly confused PMP terms on the exam.' },
-]
+const QUICK_ACTIONS = {
+  en: [
+    { label: '📐 Formula lookup', prompt: 'Show me the most important PMP formulas I need to know for the exam.' },
+    { label: '📋 Artifact check', prompt: 'What are the most important PMP artifacts and when are they used?' },
+    { label: '💡 Rita technique', prompt: 'What are Rita Mulcahy\'s top exam-taking techniques?' },
+    { label: '🔑 Key terms', prompt: 'Define the most commonly confused PMP terms on the exam.' },
+  ],
+  ar: [
+    { label: '📐 البحث عن معادلة', prompt: 'أرني أهم معادلات PMP التي أحتاج معرفتها للامتحان.' },
+    { label: '📋 مراجعة الوثائق', prompt: 'ما هي أهم وثائق PMP ومتى تُستخدم؟' },
+    { label: '💡 تقنيات ريتا', prompt: 'ما هي أهم تقنيات ريتا مولكاهي لاجتياز الامتحان؟' },
+    { label: '🔑 مصطلحات أساسية', prompt: 'عرّف مصطلحات PMP الأكثر التباسًا في الامتحان.' },
+  ],
+} as const
 
 export default function CompanionChat() {
+  const { locale, isArabic } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -71,22 +81,32 @@ export default function CompanionChat() {
   useEffect(() => {
     if (isOpen && !hasGreeted && messages.length === 0) {
       const ctx = getContext()
-      let greeting = '👋 Hey! I\'m your PMP Companion — here to help with quick answers, formulas, artifacts, and exam tips.'
+      let greeting = isArabic
+        ? '👋 أهلًا! أنا رفيقك في رحلة PMP — هنا لمساعدتك بإجابات سريعة ومعادلات ووثائق ونصائح للامتحان.'
+        : '👋 Hey! I\'m your PMP Companion — here to help with quick answers, formulas, artifacts, and exam tips.'
 
       if (ctx.page.includes('/course/') && ctx.lesson) {
-        greeting += `\n\n📖 I see you\'re studying a lesson. Need help with any concept?`
+        greeting += isArabic
+          ? '\n\n📖 أرى أنك تدرس درسًا. هل تحتاج مساعدة في أي مفهوم؟'
+          : `\n\n📖 I see you\'re studying a lesson. Need help with any concept?`
       } else if (ctx.page === 'practice') {
-        greeting += `\n\n✏️ You\'re in practice mode! Ask me about any concept you\'re unsure about.`
+        greeting += isArabic
+          ? '\n\n✏️ أنت في وضع التدريب! اسألني عن أي مفهوم لست متأكدًا منه.'
+          : `\n\n✏️ You\'re in practice mode! Ask me about any concept you\'re unsure about.`
       } else if (ctx.page === 'progress dashboard') {
-        greeting += `\n\n📊 Reviewing your progress? I can explain what to focus on next.`
+        greeting += isArabic
+          ? '\n\n📊 تراجع تقدمك؟ يمكنني أن أوضح لك ما يجب التركيز عليه تاليًا.'
+          : `\n\n📊 Reviewing your progress? I can explain what to focus on next.`
       }
 
-      greeting += '\n\nTry the quick actions below or ask me anything!'
+      greeting += isArabic
+        ? '\n\nجرّب الإجراءات السريعة أدناه أو اسألني أي شيء!'
+        : '\n\nTry the quick actions below or ask me anything!'
 
       setMessages([{ role: 'assistant', content: greeting }])
       setHasGreeted(true)
     }
-  }, [isOpen, hasGreeted, messages.length, getContext])
+  }, [isOpen, hasGreeted, messages.length, getContext, isArabic])
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || loading) return
@@ -105,6 +125,7 @@ export default function CompanionChat() {
           message: text.trim(),
           context: getContext(),
           history: newMessages.slice(-8),
+          language: locale,
         }),
       })
 
@@ -115,7 +136,7 @@ export default function CompanionChat() {
     } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: '⚠️ Sorry, I couldn\'t process that. Please try again.',
+        content: isArabic ? '⚠️ عذرًا، لم أستطع معالجة ذلك. حاول مرة أخرى.' : '⚠️ Sorry, I couldn\'t process that. Please try again.',
       }])
     } finally {
       setLoading(false)
@@ -161,17 +182,17 @@ export default function CompanionChat() {
               <div className="flex items-center gap-2">
                 <span className="text-xl">💬</span>
                 <div>
-                  <p className="text-white font-bold text-sm">PMP Companion</p>
-                  <p className="text-violet-200 text-[10px]">Quick help · Formulas · Artifacts · Tips</p>
+                  <p className="text-white font-bold text-sm">{isArabic ? 'رفيق PMP' : 'PMP Companion'}</p>
+                  <p className="text-violet-200 text-[10px]">{isArabic ? 'مساعدة سريعة · معادلات · وثائق · نصائح' : 'Quick help · Formulas · Artifacts · Tips'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => { setMessages([]); setHasGreeted(false) }}
                   className="text-white/50 hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-white/10 transition-all"
-                  title="Clear chat"
+                  title={isArabic ? 'مسح المحادثة' : 'Clear chat'}
                 >
-                  Clear
+                  {isArabic ? 'مسح' : 'Clear'}
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
@@ -221,7 +242,7 @@ export default function CompanionChat() {
                 onClick={() => escalateToTutor(messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '')}
                 className="w-full text-xs bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 py-2 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5"
               >
-                🚀 Open in AiTuTorZ for detailed answer
+                {isArabic ? '🚀 افتح في AiTuTorZ لإجابة مفصّلة' : '🚀 Open in AiTuTorZ for detailed answer'}
               </button>
             </div>
           )}
@@ -229,9 +250,9 @@ export default function CompanionChat() {
           {/* Quick Actions — show when no messages or just greeting */}
           {messages.length <= 1 && (
             <div className="px-4 pb-2">
-              <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Quick Actions</p>
+              <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">{isArabic ? 'إجراءات سريعة' : 'Quick Actions'}</p>
               <div className="grid grid-cols-2 gap-2">
-                {QUICK_ACTIONS.map((action, i) => (
+                {QUICK_ACTIONS[isArabic ? 'ar' : 'en'].map((action, i) => (
                   <button
                     key={i}
                     onClick={() => sendMessage(action.prompt)}
@@ -253,7 +274,8 @@ export default function CompanionChat() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask me anything about PMP..."
+                placeholder={isArabic ? '...اسألني أي شيء عن PMP' : 'Ask me anything about PMP...'}
+                dir={isArabic ? 'rtl' : 'ltr'}
                 className="flex-1 text-sm border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-200 transition-all"
                 disabled={loading}
               />
@@ -266,7 +288,8 @@ export default function CompanionChat() {
               </button>
             </div>
             <p className="text-[9px] text-gray-400 text-center mt-1.5">
-              Quick answers · For detailed help, use <a href="/dashboard/tutor" className="text-violet-500 hover:underline">AiTuTorZ</a>
+              {isArabic ? 'إجابات سريعة · للمساعدة المفصّلة استخدم ' : 'Quick answers · For detailed help, use '}
+              <a href="/dashboard/tutor" className="text-violet-500 hover:underline">AiTuTorZ</a>
             </p>
           </div>
         </div>

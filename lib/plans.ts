@@ -13,7 +13,9 @@ export interface PlanPricing {
 export interface Plan {
   id: PlanId
   name: string
+  nameAr: string
   tagline: string
+  taglineAr: string
   icon: string
   gradient: string
   badgeColor: string
@@ -22,7 +24,9 @@ export interface Plan {
   monthly: PlanPricing
   annual: PlanPricing
   annualSaving: string
+  annualSavingAr: string
   features: string[]
+  featuresAr: string[]
   highlighted?: boolean
 }
 
@@ -30,7 +34,9 @@ export const PLANS: Plan[] = [
   {
     id: 'basic',
     name: 'Basic',
+    nameAr: 'الأساسية',
     tagline: 'Start your current-exam preparation',
+    taglineAr: 'ابدأ استعدادك للامتحان الحالي',
     icon: '🌱',
     gradient: 'from-blue-500 to-blue-700',
     badgeColor: 'bg-blue-100 text-blue-700',
@@ -39,6 +45,7 @@ export const PLANS: Plan[] = [
     monthly: { price: 29, label: '$29' },
     annual: { price: 79, label: '$79' },
     annualSaving: 'Save 9%',
+    annualSavingAr: 'وفّر 9%',
     features: [
       '📖 Full Course Library (24 lessons)',
       '🤖 AI Tutor — unlimited sessions',
@@ -47,11 +54,21 @@ export const PLANS: Plan[] = [
       '🗺️ Interactive Mind Maps',
       'PMBOK 7 + ECO 2021 framework',
     ],
+    featuresAr: [
+      '📖 مكتبة الدروس الكاملة (24 درسًا)',
+      '🤖 مدرّس ذكاء اصطناعي — جلسات غير محدودة',
+      '🎯 محرّك تدريب — مجموعات أسئلة مركّزة',
+      '📊 لوحة متابعة التقدم',
+      '🗺️ خرائط ذهنية تفاعلية',
+      'إطار PMBOK 7 + ECO 2021',
+    ],
   },
   {
     id: 'standard',
     name: 'Standard',
+    nameAr: 'القياسية',
     tagline: 'Complete current-exam preparation toolkit',
+    taglineAr: 'عدة الاستعداد الكاملة للامتحان الحالي',
     icon: '⚡',
     gradient: 'from-indigo-500 to-indigo-700',
     badgeColor: 'bg-indigo-100 text-indigo-700',
@@ -60,6 +77,7 @@ export const PLANS: Plan[] = [
     monthly: { price: 49, label: '$49' },
     annual: { price: 129, label: '$129' },
     annualSaving: 'Save 12%',
+    annualSavingAr: 'وفّر 12%',
     highlighted: true,
     features: [
       '✅ Everything in Basic',
@@ -70,11 +88,22 @@ export const PLANS: Plan[] = [
       'PMBOK 7 + ECO 2021 framework',
       '⚡ Priority content updates',
     ],
+    featuresAr: [
+      '✅ كل ما في الخطة الأساسية',
+      '🎯 679 سؤال تدريب ثنائي اللغة',
+      '📝 امتحان تجريبي (180 سؤالًا)',
+      '🧙 تقرير الخبير وتحليل نقاط الضعف',
+      '📖 توسّعات "تعمّق أكثر" بالذكاء الاصطناعي',
+      'إطار PMBOK 7 + ECO 2021',
+      '⚡ أولوية في تحديثات المحتوى',
+    ],
   },
   {
     id: 'professional',
     name: 'Professional',
+    nameAr: 'الاحترافية',
     tagline: 'Maximum support for urgent PMP candidates',
+    taglineAr: 'أقصى دعم للمرشحين المستعجلين لامتحان PMP',
     icon: '💎',
     gradient: 'from-violet-500 to-purple-700',
     badgeColor: 'bg-violet-100 text-violet-700',
@@ -83,6 +112,7 @@ export const PLANS: Plan[] = [
     monthly: { price: 79, label: '$79' },
     annual: { price: 199, label: '$199' },
     annualSaving: 'Save 16%',
+    annualSavingAr: 'وفّر 16%',
     features: [
       '✅ Everything in Standard',
       '🆕 Priority current-exam support',
@@ -91,6 +121,15 @@ export const PLANS: Plan[] = [
       '📞 Priority support',
       '🔄 Lifetime content updates',
       '🏆 Exam-readiness toolkit',
+    ],
+    featuresAr: [
+      '✅ كل ما في الخطة القياسية',
+      '🆕 أولوية دعم الامتحان الحالي',
+      '🎯 679 سؤال تدريب ثنائي اللغة',
+      '🎓 خطة دراسة مخصصة',
+      '📞 دعم ذو أولوية',
+      '🔄 تحديثات محتوى مدى الحياة',
+      '🏆 عدة الجاهزية للامتحان',
     ],
   },
 ]

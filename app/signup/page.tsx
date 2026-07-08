@@ -100,8 +100,8 @@ function SignupForm() {
 
         <div className="rounded-xl border-2 border-blue-800 bg-blue-50/50 px-4 py-3 mb-6 flex items-center justify-between">
           <div>
-            <p className="text-sm font-bold text-gray-900">{selectedPlan.name} Plan</p>
-            <p className="text-xs text-gray-500">PMBOK 7 + ECO 2021 final sprint preparation</p>
+            <p className="text-sm font-bold text-gray-900">{isAr ? `خطة ${selectedPlan.nameAr}` : `${selectedPlan.name} Plan`}</p>
+            <p className="text-xs text-gray-500">{isAr ? "الاستعداد للسباق الأخير — PMBOK 7 + ECO 2021" : "PMBOK 7 + ECO 2021 final sprint preparation"}</p>
           </div>
           <div className="text-right">
             <p className="text-sm font-bold text-blue-800">
@@ -115,8 +115,12 @@ function SignupForm() {
           {success ? (
             <div className="text-center py-4">
               <div className="text-4xl mb-3">✅</div>
-              <p className="font-bold text-gray-900">Account created!</p>
-              <p className="text-sm text-gray-500 mt-1">{isDemoMode ? "Opening your free demo..." : "Opening your selected checkout..."}</p>
+              <p className="font-bold text-gray-900">{isAr ? "تم إنشاء الحساب!" : "Account created!"}</p>
+              <p className="text-sm text-gray-500 mt-1">
+                {isDemoMode
+                  ? (isAr ? "جارٍ فتح تجربتك المجانية..." : "Opening your free demo...")
+                  : (isAr ? "جارٍ فتح صفحة الدفع المحددة..." : "Opening your selected checkout...")}
+              </p>
             </div>
           ) : (
             <>

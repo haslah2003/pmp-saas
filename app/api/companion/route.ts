@@ -7,7 +7,12 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { message, context, history = [] } = await req.json()
+    const { message, context, history = [], language = 'en' } = await req.json()
+
+    const languageInstruction =
+      language === 'ar'
+        ? '\n\nLANGUAGE:\nRespond in formal, clear Modern Standard Arabic. Keep professional PMP terminology (PMP, PMBOK, ECO, PMI, Agile, Scrum) in English where precision requires it. Keep the same short, friendly style.'
+        : ''
 
     const systemPrompt = `You are the PMP Companion — a friendly, concise mentor embedded in the PMP Expert Tutor platform (AiTuTorZ). Your role is to provide QUICK, helpful support to PMP exam learners.
 
@@ -41,7 +46,7 @@ RULES:
 6. Use emojis sparingly for warmth (📌, 💡, ✅, ⚠️)
 
 PROACTIVE TIPS:
-If the learner's context suggests they might need help (e.g., on a specific lesson or practice page), you can offer a brief relevant tip.`
+If the learner's context suggests they might need help (e.g., on a specific lesson or practice page), you can offer a brief relevant tip.${languageInstruction}`
 
     const messages = [
       ...history.slice(-6).map((h: { role: string; content: string }) => ({

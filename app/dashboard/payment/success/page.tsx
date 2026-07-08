@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { PLANS } from '@/lib/plans'
+import { useLanguage } from '@/lib/i18n/language-context'
 
 const PLAN_ICONS: Record<string, string> = {
   basic: '🌱',
@@ -18,11 +19,14 @@ const PLAN_GRADIENTS: Record<string, string> = {
   professional: 'from-violet-500 to-purple-700',
 }
 
-function formatPeriodLabel(period: string): string {
-  return period === 'annual' || period === 'sprint90' ? '90-Day Sprint' : 'Monthly'
+function formatPeriodLabel(period: string, isArabic: boolean): string {
+  return period === 'annual' || period === 'sprint90'
+    ? (isArabic ? 'سباق 90 يومًا' : '90-Day Sprint')
+    : (isArabic ? 'شهري' : 'Monthly')
 }
 
 function SuccessContent() {
+  const { isArabic, dir } = useLanguage()
   const params = useSearchParams()
   const plan = params.get('plan') ?? 'standard'
   const period = params.get('period') ?? 'monthly'
@@ -36,19 +40,18 @@ const receiptId = params.get('receiptId')
     return () => clearTimeout(t)
   }, [])
 
-  const planName = plan.charAt(0).toUpperCase() + plan.slice(1)
   const icon = PLAN_ICONS[plan] ?? '⭐'
   const gradient = PLAN_GRADIENTS[plan] ?? 'from-violet-500 to-violet-700'
   const selectedPlan = PLANS.find((p) => p.id === plan)
-  const includedFeatures = selectedPlan?.features || [
-    '📖 Course Library',
-    '🤖 AiTuTorZ AI Tutor',
-    '🎯 Practice Engine',
-    '📊 Progress Dashboard',
-  ]
+  const planName = selectedPlan
+    ? (isArabic ? selectedPlan.nameAr : selectedPlan.name)
+    : plan.charAt(0).toUpperCase() + plan.slice(1)
+  const includedFeatures = (isArabic ? selectedPlan?.featuresAr : selectedPlan?.features) || (isArabic
+    ? ['📖 مكتبة الدروس', '🤖 مدرّس AiTuTorZ الذكي', '🎯 محرّك التدريب', '📊 لوحة متابعة التقدم']
+    : ['📖 Course Library', '🤖 AiTuTorZ AI Tutor', '🎯 Practice Engine', '📊 Progress Dashboard'])
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6" dir={dir}>
       {/* Confetti effect */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
@@ -78,9 +81,9 @@ const receiptId = params.get('receiptId')
             <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
               <span className="text-3xl">{icon}</span>
             </div>
-            <h1 className="text-2xl font-bold mb-1">Payment Successful!</h1>
+            <h1 className="text-2xl font-bold mb-1">{isArabic ? 'تم الدفع بنجاح!' : 'Payment Successful!'}</h1>
             <p className="text-white/80 text-sm">
-              Welcome to PMP Expert Tutor {planName}
+              {isArabic ? `مرحبًا بك في خطة ${planName} من PMP Expert Tutor` : `Welcome to PMP Expert Tutor ${planName}`}
             </p>
           </div>
 
@@ -89,29 +92,29 @@ const receiptId = params.get('receiptId')
             {/* Plan summary */}
             <div className="bg-gray-50 rounded-xl p-4 space-y-2">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">Plan</span>
+                <span className="text-gray-500">{isArabic ? 'الخطة' : 'Plan'}</span>
                 <span className="font-semibold text-gray-900">{icon} {planName}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">Billing</span>
-                <span className="font-semibold text-gray-900">{formatPeriodLabel(period)}</span>
+                <span className="text-gray-500">{isArabic ? 'الفوترة' : 'Billing'}</span>
+                <span className="font-semibold text-gray-900">{formatPeriodLabel(period, isArabic)}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">Amount paid</span>
+                <span className="text-gray-500">{isArabic ? 'المبلغ المدفوع' : 'Amount paid'}</span>
                 <span className="font-bold text-gray-900">${amount}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-500">Status</span>
+                <span className="text-gray-500">{isArabic ? 'الحالة' : 'Status'}</span>
                 <span className="flex items-center gap-1 text-green-600 font-semibold">
                   <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                  Active
+                  {isArabic ? 'نشط' : 'Active'}
                 </span>
               </div>
             </div>
 
             {/* What's unlocked */}
             <div>
-              <p className="text-sm font-bold text-gray-900 mb-3">🎉 Your access is now active</p>
+              <p className="text-sm font-bold text-gray-900 mb-3">{isArabic ? '🎉 وصولك نشط الآن' : '🎉 Your access is now active'}</p>
               <div className="grid grid-cols-2 gap-2">
                 {includedFeatures.map((feature) => (
                   <div key={feature} className="flex items-center gap-2 text-xs text-gray-700">
@@ -128,26 +131,26 @@ const receiptId = params.get('receiptId')
                   href={"/dashboard/receipt/" + receiptId}
                   className="block w-full bg-white border border-violet-200 text-violet-700 text-sm font-semibold py-3 rounded-xl text-center hover:bg-violet-50 transition-colors"
                 >
-                  🧾 Download Payment Receipt
+                  {isArabic ? '🧾 تنزيل إيصال الدفع' : '🧾 Download Payment Receipt'}
                 </Link>
               )}
               <Link
                 href="/dashboard/path"
                 className={`block w-full bg-gradient-to-r ${gradient} text-white text-sm font-bold py-3 rounded-xl text-center hover:opacity-90 transition-opacity`}
               >
-                🚀 Start Learning Now
+                {isArabic ? '🚀 ابدأ التعلّم الآن' : '🚀 Start Learning Now'}
               </Link>
               <Link
                 href="/dashboard/practice"
                 className="block w-full bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium py-3 rounded-xl text-center transition-colors"
               >
-                🎯 Go to Practice Engine
+                {isArabic ? '🎯 انتقل إلى محرّك التدريب' : '🎯 Go to Practice Engine'}
               </Link>
               <Link
                 href="/dashboard"
                 className="block w-full text-center text-xs text-gray-400 hover:text-gray-600 py-1 transition-colors"
               >
-                Dashboard →
+                {isArabic ? '← لوحة التحكم' : 'Dashboard →'}
               </Link>
             </div>
           </div>
@@ -155,9 +158,9 @@ const receiptId = params.get('receiptId')
 
         {/* Receipt note */}
         <p className="text-center text-xs text-gray-400 mt-4">
-          A receipt has been sent to your PayPal email address.
+          {isArabic ? 'تم إرسال إيصال إلى بريدك الإلكتروني المسجّل في PayPal.' : 'A receipt has been sent to your PayPal email address.'}
           <br />
-          Questions? Contact us at support@pmpexperttutor.com
+          {isArabic ? 'لديك أسئلة؟ راسلنا على support@pmpexperttutor.com' : 'Questions? Contact us at support@pmpexperttutor.com'}
         </p>
       </div>
     </div>

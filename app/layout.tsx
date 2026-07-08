@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,13 +9,16 @@ export const metadata: Metadata = {
   keywords: "PMP, PMP exam, PMBOK, project management, certification, AiTuTorZ",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const locale = cookieStore.get("pmp_locale")?.value === "ar" ? "ar" : "en";
+
   return (
-    <html lang="en">
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <body className="bg-gray-50 text-gray-900 antialiased">
         {children}
       </body>
