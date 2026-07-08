@@ -53,7 +53,7 @@ const RECEIPT_STRINGS = {
     totalPaid: 'Total Paid', transactionDetails: 'Transaction Details', paymentMethod: 'Payment Method',
     dateTime: 'Date & Time', orderId: 'Order ID', transactionId: 'Transaction ID',
     planIncludes: 'Your Plan Includes', sprint: '90-Day Sprint', monthly: 'Monthly',
-    defaultTagline: 'PMP final sprint preparation access',
+    defaultTagline: 'PMP (ECO 2026) preparation access',
     footer1: (siteName: string) => `This is an official receipt from ${siteName} (AiTuTorZ Platform) · pmp.aitutorsz.com`,
     footer2: 'For billing inquiries, contact support@pmpexperttutor.com',
     backBilling: '← Billing', toDashboard: 'Dashboard →',

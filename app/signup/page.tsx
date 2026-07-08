@@ -101,7 +101,7 @@ function SignupForm() {
         <div className="rounded-xl border-2 border-blue-800 bg-blue-50/50 px-4 py-3 mb-6 flex items-center justify-between">
           <div>
             <p className="text-sm font-bold text-gray-900">{isAr ? `خطة ${selectedPlan.nameAr}` : `${selectedPlan.name} Plan`}</p>
-            <p className="text-xs text-gray-500">{isAr ? "الاستعداد للسباق الأخير — PMBOK 7 + ECO 2021" : "PMBOK 7 + ECO 2021 final sprint preparation"}</p>
+            <p className="text-xs text-gray-500">{isAr ? "استعداد PMBOK 8 + ECO 2026" : "PMBOK 8 + ECO 2026 preparation"}</p>
           </div>
           <div className="text-right">
             <p className="text-sm font-bold text-blue-800">

@@ -72,7 +72,7 @@ export default function PricingPage() {
         },
         {
           q: 'Is there a free trial?',
-          a: 'The Basic plan gives you a focused current-exam preparation route with AI tutor access, lessons, mind maps, and focused practice sets.',
+          a: 'The Basic plan gives you a focused PMP (ECO 2026) preparation route with AI tutor access, lessons, mind maps, and focused practice sets.',
         },
         {
           q: 'What happens when my plan expires?',
@@ -90,12 +90,12 @@ export default function PricingPage() {
       <div className="bg-white border-b border-gray-100 px-6 py-10">
         <div className="max-w-5xl mx-auto text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-3">
-            {isArabic ? 'اختر خطة السباق الأخير لامتحان PMP' : 'Choose Your PMP Final Sprint Plan'}
+            {isArabic ? 'اختر خطتك للتحضير لامتحان PMP (ECO 2026)' : 'Choose Your PMP (ECO 2026) Plan'}
           </h1>
           <p className="text-gray-500 max-w-xl mx-auto text-sm leading-relaxed">
             {isArabic
-              ? 'استعداد مركّز على PMBOK 7 + ECO 2021 للمرشحين المستهدفين لامتحان PMP الحالي قبل تحوّل يوليو.'
-              : 'Focused PMBOK 7 + ECO 2021 preparation for candidates targeting the current PMP exam before the July change.'}
+              ? 'استعداد مركّز على PMBOK 8 + ECO 2026 لامتحان PMP الحالي.'
+              : 'Focused PMBOK 8 + ECO 2026 preparation for the current PMP exam.'}
           </p>
 
           {/* Period toggle */}
