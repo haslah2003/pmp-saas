@@ -36,6 +36,7 @@ export default async function AdminLayout({
 
   const ADMIN_NAV = [
     { href: "/admin/analytics", icon: "📊", label: "Analytics" },
+    { href: "/admin/billing", icon: "💳", label: "Billing & Sales" },
     { href: "/admin/content-manager", icon: "⚡", label: "Content Manager" },
     { href: "/admin/branding", icon: "🎨", label: "Branding" },
     { href: "/admin/media", icon: "🖼️", label: "Media Library" },
@@ -53,7 +54,7 @@ export default async function AdminLayout({
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50" dir="ltr">
       <aside className="w-60 bg-white flex flex-col shrink-0 border-r border-gray-100">
 
         {/* Logo */}

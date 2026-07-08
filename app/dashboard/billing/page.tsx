@@ -18,9 +18,10 @@ export default async function BillingPage() {
     .eq("id", user.id)
     .single();
 
+  // Real receipts live in payment_receipts (written by the PayPal capture route).
   const { data: history } = await supabase
-    .from("billing_history")
-    .select("*")
+    .from("payment_receipts")
+    .select("id, receipt_number, plan, plan_period, amount, currency, status, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(20);
@@ -136,19 +137,19 @@ export default async function BillingPage() {
         </div>
         <div className="divide-y divide-gray-50">
           {history && history.length > 0 ? history.map((h) => (
-            <div key={h.id} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors">
+            <Link key={h.id} href={`/dashboard/receipt/${h.id}`} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-100">
-                <span className="text-base">{h.status === 'completed' ? '✅' : '⏳'}</span>
+                <span className="text-base">{h.status === 'paid' ? '✅' : '⏳'}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 capitalize">{h.plan_id} Plan — {h.period}</p>
-                <p className="text-xs text-gray-400">{new Date(h.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                <p className="text-sm font-semibold text-gray-900 capitalize">{h.plan} {dt("Plan", isArabic)} — {h.plan_period === 'annual' ? '90-Day Sprint' : h.plan_period}</p>
+                <p className="text-xs text-gray-400">{h.receipt_number ? `${h.receipt_number} · ` : ''}{new Date(h.created_at).toLocaleDateString(isArabic ? 'ar' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-gray-900">${h.amount}</p>
+                <p className="text-sm font-bold text-gray-900">${h.amount} <span className="text-[10px] text-gray-400 font-normal">{h.currency}</span></p>
                 <p className="text-[10px] font-semibold text-emerald-600 uppercase">{h.status}</p>
               </div>
-            </div>
+            </Link>
           )) : (
             <div className="px-6 py-12 text-center">
               <p className="text-4xl mb-3">📋</p>
