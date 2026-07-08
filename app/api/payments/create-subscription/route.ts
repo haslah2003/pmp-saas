@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { getPayPalBase } from "@/lib/paypal";
 
-const PAYPAL_BASE = process.env.PAYPAL_MODE === "live"
-  ? "https://api-m.paypal.com"
-  : "https://api-m.sandbox.paypal.com";
+const PAYPAL_BASE = getPayPalBase();
 
 async function getPayPalToken() {
   const auth = Buffer.from(

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getPayPalBase } from "@/lib/paypal";
 
 // Lazy-init: Supabase admin client created on first request, not at build time
 // This prevents "supabaseKey is required" errors during next build
@@ -10,9 +11,7 @@ function getSupabaseAdmin() {
   );
 }
 
-const PAYPAL_BASE = process.env.PAYPAL_MODE === "live"
-  ? "https://api-m.paypal.com"
-  : "https://api-m.sandbox.paypal.com";
+const PAYPAL_BASE = getPayPalBase();
 
 async function verifyWebhook(request: NextRequest, body: string): Promise<boolean> {
   // In production, verify the webhook signature with PayPal

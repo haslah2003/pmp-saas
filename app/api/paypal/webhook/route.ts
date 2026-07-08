@@ -1,8 +1,16 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyPayPalWebhook } from '@/lib/paypal'
 import { getPlanDays } from '@/lib/plans'
 import type { Period } from '@/lib/plans'
+
+// PayPal refund webhooks put the REFUND id in resource.id; the original capture id
+// (what we stored on the profile/receipt) is in the rel:"up" link. Extract it.
+function originalCaptureId(resource: { id?: string; links?: Array<{ rel?: string; href?: string }> }): string | null {
+  const up = resource?.links?.find((l) => l.rel === 'up')?.href
+  const fromLink = up?.match(/\/captures\/([^/?]+)/)?.[1]
+  return fromLink || resource?.id || null
+}
 
 export async function POST(req: NextRequest) {
   // ── 1. Read raw body for signature verification ───────────────────────────
@@ -21,7 +29,9 @@ export async function POST(req: NextRequest) {
   }
 
   const event = JSON.parse(rawBody)
-  const supabase = await createClient()
+  // Webhooks carry no user session — RLS would block profile writes. Use the
+  // service-role client (safe: PayPal signature already verified above).
+  const supabase = createAdminClient()
 
   // ── 3. Handle event types ─────────────────────────────────────────────────
   switch (event.event_type) {
@@ -68,19 +78,27 @@ export async function POST(req: NextRequest) {
     }
 
     case 'PAYMENT.CAPTURE.REFUNDED': {
-      // Payment refunded — downgrade to free
+      // Payment refunded — downgrade to free. resource.id here is the REFUND id,
+      // so identify the user by custom_id.userId (most direct) and fall back to
+      // the original capture id from the rel:"up" link.
       const resource = event.resource
-      const captureId = resource?.id
+      const captureId = originalCaptureId(resource)
 
-      if (!captureId) break
+      let userId = ''
+      try {
+        userId = JSON.parse(resource?.custom_id || '{}').userId || ''
+      } catch { /* no custom_id */ }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('paypal_capture_id', captureId)
-        .single()
+      if (!userId && captureId) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('paypal_capture_id', captureId)
+          .maybeSingle()
+        userId = profile?.id || ''
+      }
 
-      if (profile?.id) {
+      if (userId) {
         await supabase
           .from('profiles')
           .update({
@@ -89,10 +107,19 @@ export async function POST(req: NextRequest) {
             plan_expires_at: null,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', profile.id)
+          .eq('id', userId)
 
-        console.log(`Plan revoked (refund): user=${profile.id}`)
+        console.log(`Plan revoked (refund): user=${userId}`)
       }
+
+      // Mark the receipt refunded so revenue reporting reflects reality.
+      if (captureId) {
+        await supabase
+          .from('payment_receipts')
+          .update({ status: 'refunded' })
+          .eq('paypal_capture_id', captureId)
+      }
+
       break
     }
 

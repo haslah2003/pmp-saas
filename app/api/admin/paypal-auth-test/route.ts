@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server'
+import { getPayPalBase } from '@/lib/paypal'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  const baseUrl =
-    process.env.PAYPAL_ENV === 'production'
-      ? 'https://api-m.paypal.com'
-      : 'https://api-m.sandbox.paypal.com'
+  const baseUrl = getPayPalBase()
 
   const clientId = process.env.PAYPAL_CLIENT_ID
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET

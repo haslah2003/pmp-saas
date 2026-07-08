@@ -1,7 +1,15 @@
-const PAYPAL_BASE =
-  process.env.PAYPAL_ENV === 'production'
-    ? 'https://api-m.paypal.com'
-    : 'https://api-m.sandbox.paypal.com'
+// Single source of truth for live vs sandbox. Accepts either historical
+// convention: PAYPAL_ENV=production|live or PAYPAL_MODE=live.
+export function isPayPalLive(): boolean {
+  const flag = (process.env.PAYPAL_ENV || process.env.PAYPAL_MODE || '').toLowerCase()
+  return flag === 'production' || flag === 'live'
+}
+
+export function getPayPalBase(): string {
+  return isPayPalLive() ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com'
+}
+
+const PAYPAL_BASE = getPayPalBase()
 
 // ── Get OAuth access token ────────────────────────────────────────────────────
 export async function getPayPalAccessToken(): Promise<string> {
