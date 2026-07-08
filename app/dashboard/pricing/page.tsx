@@ -36,7 +36,7 @@ export default function PricingPage() {
     ? [
         { icon: '🔒', label: 'دفع آمن', sub: 'محمي عبر PayPal' },
         { icon: '/icons/upgrade-anytime.svg', label: 'ترقية في أي وقت', sub: 'انتقل للأعلى عندما تكون جاهزًا' },
-        { icon: '🏆', label: 'مركّز على الامتحان', sub: 'محتوى متوافق مع PMI' },
+        { icon: '🏆', label: 'مركّز على الاختبار', sub: 'محتوى متوافق مع PMI' },
         { icon: '⚡', label: 'وصول فوري', sub: 'ابدأ على الفور' },
       ]
     : [
@@ -54,7 +54,7 @@ export default function PricingPage() {
         },
         {
           q: 'هل توجد تجربة مجانية؟',
-          a: 'تمنحك الخطة الأساسية مسار استعداد مركّزًا للامتحان الحالي مع مدرّس ذكاء اصطناعي ودروس وخرائط ذهنية ومجموعات تدريب مركّزة.',
+          a: 'تمنحك الخطة الأساسية مسار استعداد مركّزًا للاختبار الحالي مع مدرّس ذكاء اصطناعي ودروس وخرائط ذهنية ومجموعات تدريب مركّزة.',
         },
         {
           q: 'ماذا يحدث عند انتهاء خطتي؟',
@@ -90,11 +90,11 @@ export default function PricingPage() {
       <div className="bg-white border-b border-gray-100 px-6 py-10">
         <div className="max-w-5xl mx-auto text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-3">
-            {isArabic ? 'اختر خطتك للتحضير لامتحان PMP (ECO 2026)' : 'Choose Your PMP (ECO 2026) Plan'}
+            {isArabic ? 'اختر خطتك للتحضير لاختبار PMP (ECO 2026)' : 'Choose Your PMP (ECO 2026) Plan'}
           </h1>
           <p className="text-gray-500 max-w-xl mx-auto text-sm leading-relaxed">
             {isArabic
-              ? 'استعداد مركّز على PMBOK 8 + ECO 2026 لامتحان PMP الحالي.'
+              ? 'استعداد مركّز على PMBOK 8 + ECO 2026 لاختبار PMP الحالي.'
               : 'Focused PMBOK 8 + ECO 2026 preparation for the current PMP exam.'}
           </p>
 

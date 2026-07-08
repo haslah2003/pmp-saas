@@ -65,7 +65,7 @@ const RECEIPT_STRINGS = {
     totalPaid: 'إجمالي المدفوع', transactionDetails: 'تفاصيل المعاملة', paymentMethod: 'طريقة الدفع',
     dateTime: 'التاريخ والوقت', orderId: 'رقم الطلب', transactionId: 'رقم المعاملة',
     planIncludes: 'خطتك تشمل', sprint: 'سباق 90 يومًا', monthly: 'شهري',
-    defaultTagline: 'وصول الاستعداد للسباق الأخير لامتحان PMP',
+    defaultTagline: 'وصول الاستعداد للسباق الأخير لاختبار PMP',
     footer1: (siteName: string) => `هذا إيصال رسمي من ${siteName} (منصة AiTuTorZ) · pmp.aitutorsz.com`,
     footer2: 'لاستفسارات الفوترة راسلنا على support@pmpexperttutor.com',
     backBilling: '→ الفوترة', toDashboard: '← لوحة التحكم',
