@@ -51,6 +51,17 @@ const copy = {
         { num: "04", title: "Finish with focus", desc: "Consolidate weak domains and walk into exam day prepared." },
       ],
     },
+    bridge: {
+      label: "Bridge 7 → 8",
+      title: "Prepared for PMBOK 7 but didn't pass before the change?",
+      sub: "You don't have to start from scratch. Bridge Mode focuses only on what changed from PMBOK 7 to PMBOK 8 — so you convert the preparation you already did into a pass on the new ECO 2026 exam.",
+      points: [
+        { icon: "🔄", title: "Only what changed", desc: "New concepts, consolidated principles, and deprecated content — not a full restart." },
+        { icon: "⚖️", title: "Re-weighted domains", desc: "Master the shifts — like Business Environment rising from 8% to 26% on the new exam." },
+        { icon: "🌐", title: "Bilingual bridge bank", desc: "144 transition-focused practice questions in English and Arabic, each with a full rationale." },
+      ],
+      cta: "Start Bridge Mode",
+    },
     pricing: {
       label: "Pricing",
       title: "Choose your PMP (ECO 2026) plan",
@@ -154,6 +165,17 @@ const copy = {
         { num: "03", title: "شخّص نقاط الضعف", desc: "استخدم التقارير والشروحات لتحديد ما يجب إصلاحه قبل موعد الاختبار." },
         { num: "04", title: "اختتم بتركيز", desc: "رسّخ المجالات الضعيفة وادخل الامتحان بثقة." },
       ],
+    },
+    bridge: {
+      label: "الجسر 7 ← 8",
+      title: "تحضّرت لـ PMBOK 7 ولم تجتز الامتحان قبل التغيير؟",
+      sub: "لا حاجة للبدء من الصفر. يركّز وضع الجسر على ما تغيّر فقط من PMBOK 7 إلى PMBOK 8 — لتحوّل التحضير الذي أنجزته إلى نجاح في امتحان ECO 2026 الجديد.",
+      points: [
+        { icon: "🔄", title: "ما تغيّر فقط", desc: "مفاهيم جديدة، ومبادئ مُدمجة، ومحتوى مُلغى — دون إعادة البدء بالكامل." },
+        { icon: "⚖️", title: "مجالات مُعاد وزنها", desc: "أتقن التحولات — مثل ارتفاع مجال بيئة الأعمال من 8% إلى 26% في الامتحان الجديد." },
+        { icon: "🌐", title: "بنك جسر ثنائي اللغة", desc: "144 سؤال تدريب مركّز على الانتقال بالعربية والإنجليزية، مع شرح كامل لكل سؤال." },
+      ],
+      cta: "ابدأ وضع الجسر",
     },
     pricing: {
       label: "الأسعار",
@@ -471,6 +493,23 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
             <div className="lp-steps-line" style={{background:`linear-gradient(90deg,${C.teal}44,${C.purple}44)`}} />
             {t.how.steps.map((s,i)=>(<FadeIn key={i} delay={i*0.1}><div style={{textAlign:"center",position:"relative",zIndex:1}}><div style={{width:52,height:52,borderRadius:"50%",margin:"0 auto 16px",background:i%2===0?`linear-gradient(135deg,${C.teal},${C.tealDk})`:`linear-gradient(135deg,${C.purple},${C.purpleDk})`,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,fontWeight:800,boxShadow:i%2===0?`0 4px 14px ${C.teal}33`:`0 4px 14px ${C.purple}33`}}>{s.num}</div><div style={{fontSize:15,fontWeight:700,color:C.dark,marginBottom:6,fontFamily:displayFont}}>{s.title}</div><div style={{fontSize:13,color:C.muted,lineHeight:1.6}}>{s.desc}</div></div></FadeIn>))}
           </div>
+        </div>
+      </section>
+
+      {/* BRIDGE 7 → 8 */}
+      <section id="bridge" style={{padding:"clamp(3rem,6vw,5rem) clamp(1rem,4vw,3rem)",background:`linear-gradient(135deg,${C.purpleLt} 0%,#FFFFFF 55%,${C.amberLt} 100%)`}}>
+        <div style={{maxWidth:1000,margin:"0 auto"}}>
+          <FadeIn><div style={{textAlign:"center",marginBottom:36}}>
+            <span style={{fontSize:12,fontWeight:700,color:C.purple,textTransform:"uppercase",letterSpacing:"0.1em"}}>{t.bridge.label}</span>
+            <h2 style={{fontSize:"clamp(24px,4vw,32px)",fontWeight:800,color:C.dark,marginTop:8,letterSpacing:"-0.02em",fontFamily:displayFont}}>{t.bridge.title}</h2>
+            <p style={{fontSize:"clamp(14px,2vw,16px)",color:C.muted,lineHeight:1.7,marginTop:12,maxWidth:640,marginLeft:"auto",marginRight:"auto"}}>{t.bridge.sub}</p>
+          </div></FadeIn>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:20,marginBottom:32}}>
+            {t.bridge.points.map((p,i)=>(<FadeIn key={i} delay={i*0.08}><div style={{padding:"24px 20px",borderRadius:16,border:`1px solid ${C.purple}22`,background:"rgba(255,255,255,0.72)",height:"100%"}}><div style={{fontSize:26,marginBottom:12}}>{p.icon}</div><div style={{fontSize:15,fontWeight:700,color:C.dark,marginBottom:6,fontFamily:displayFont}}>{p.title}</div><div style={{fontSize:13.5,color:C.muted,lineHeight:1.6}}>{p.desc}</div></div></FadeIn>))}
+          </div>
+          <FadeIn><div style={{textAlign:"center"}}>
+            <Link href={defaultSignupHref} style={{display:"inline-block",fontSize:15,fontWeight:700,color:"#fff",background:`linear-gradient(135deg,${C.purple},${C.purpleDk})`,padding:"14px 32px",borderRadius:10,textDecoration:"none"}}>{t.bridge.cta}</Link>
+          </div></FadeIn>
         </div>
       </section>
 
