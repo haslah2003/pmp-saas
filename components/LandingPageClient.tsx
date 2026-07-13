@@ -7,6 +7,9 @@ import LandingLanguageSelector from "@/components/LandingLanguageSelector";
 
 const C = { teal: "#1AB0A2", tealDk: "#148F84", tealLt: "#E6F8F6", purple: "#5B2D91", purpleDk: "#472272", purpleLt: "#F0EAFA", amber: "#F5A623", amberLt: "#FFF7E6", dark: "#1A1430", muted: "#5E6078", bg: "#FAFAF9" };
 
+// Landing promo video (Supabase Storage public URL). Swap this to change the video.
+const PROMO_VIDEO_URL = "https://tlydibfllrojhqnddwts.supabase.co/storage/v1/object/public/media/1783973188210-yvqdkbwlclr.mp4";
+
 const copy = {
   en: {
     nav: { pricing: "Pricing", login: "Sign In", cta: "Try a Free Lesson" },
@@ -442,31 +445,19 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
             <div className="p-4 sm:p-6 lg:p-8">
               <div
                 id="demo-video-card"
-                className="relative aspect-video overflow-hidden rounded-[1.5rem] border bg-gradient-to-br from-white to-[#E6F8F6] shadow-inner"
+                className="relative aspect-video overflow-hidden rounded-[1.5rem] border bg-black shadow-inner"
                 style={{ borderColor: C.tealLt }}
               >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(245,166,35,0.20),transparent_34%),radial-gradient(circle_at_75%_70%,rgba(91,45,145,0.16),transparent_32%)]" />
-
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <div
-                    className="flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-[0_18px_45px_rgba(26,20,48,0.16)]"
-                    style={{ border: `1px solid ${C.tealLt}` }}
-                    aria-hidden="true"
-                  >
-                    <span
-                      className="ml-1 block h-0 w-0 border-y-[13px] border-l-[20px] border-y-transparent"
-                      style={{ borderLeftColor: C.teal }}
-                    />
-                  </div>
-
-                  <p className="mt-5 text-sm font-bold uppercase tracking-[0.25em]" style={{ color: C.purple }}>
-                    {isAr ? "عرض PMP AiTutorZ" : "PMP AiTutorZ Demo"}
-                  </p>
-
-                  <p className="mt-2 max-w-sm px-6 text-sm leading-6" style={{ color: C.muted }}>
-                    {isAr ? "استكشف رحلة المتعلم، وضع الدراسة ثنائي اللغة، مسار التمارين، وخيارات الخطط قبل أن تبدأ." : "Explore the learner journey, bilingual study mode, practice flow, and plan options before you start."}
-                  </p>
-                </div>
+                <video
+                  className="absolute inset-0 h-full w-full object-cover"
+                  controls
+                  preload="metadata"
+                  playsInline
+                  aria-label={isAr ? "فيديو تعريفي لمنصة PMP AiTutorZ" : "PMP AiTutorZ platform intro video"}
+                >
+                  <source src={PROMO_VIDEO_URL} type="video/mp4" />
+                  {isAr ? "متصفحك لا يدعم تشغيل الفيديو." : "Your browser does not support the video tag."}
+                </video>
               </div>
             </div>
           </div>
