@@ -451,8 +451,9 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
                 <video
                   className="absolute inset-0 h-full w-full object-cover"
                   controls
-                  preload="metadata"
+                  preload="none"
                   playsInline
+                  poster="/promo-poster.jpg"
                   aria-label={isAr ? "فيديو تعريفي لمنصة PMP AiTutorZ" : "PMP AiTutorZ platform intro video"}
                 >
                   <source src={PROMO_VIDEO_URL} type="video/mp4" />
