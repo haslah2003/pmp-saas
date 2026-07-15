@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, type Dispatch, type SetStateAction, type DragEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { dt, rtlDir, rtlClass } from '@/lib/i18n/dashboard-content';
@@ -8,7 +8,7 @@ import { EXAM_PATH_ORDER, EXAM_PATHS, getExamPathCopy, normalizeExamPath, type E
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type QuestionType = 'single_response' | 'multiple_response' | 'pull_down';
+type QuestionType = 'single_response' | 'multiple_response' | 'pull_down' | 'matching' | 'ordering';
 
 type MultipleResponseAnswerData = {
   select_count?: number;
@@ -28,7 +28,25 @@ type PullDownAnswerData = {
   blanks?: PullDownBlank[];
 };
 
-type StructuredAnswerData = MultipleResponseAnswerData | PullDownAnswerData | null;
+type MatchingEntry = { id: string; text: string };
+type MatchingCategory = { id: string; label: string };
+type MatchingAnswerData = {
+  items?: MatchingEntry[];
+  categories?: MatchingCategory[];
+  correct?: Record<string, string>; // itemId -> categoryId
+};
+
+type OrderingAnswerData = {
+  items?: MatchingEntry[];
+  correct_order?: string[]; // ordered item ids
+};
+
+type StructuredAnswerData =
+  | MultipleResponseAnswerData
+  | PullDownAnswerData
+  | MatchingAnswerData
+  | OrderingAnswerData
+  | null;
 
 interface Question {
   id: string;
@@ -739,9 +757,11 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
+const STRUCTURED_TYPES: QuestionType[] = ['multiple_response', 'pull_down', 'matching', 'ordering'];
+
 function getQuestionType(question: Question): QuestionType {
-  return question.question_type === 'multiple_response' || question.question_type === 'pull_down'
-    ? question.question_type
+  return STRUCTURED_TYPES.includes(question.question_type as QuestionType)
+    ? (question.question_type as QuestionType)
     : 'single_response';
 }
 
@@ -827,6 +847,280 @@ function formatPullDownCorrectSummary(blanks: ReturnType<typeof getPullDownData>
     .join(' | ');
 }
 
+function getMatchingData(question: Question, isArabic: boolean) {
+  const data = getStructuredAnswerData(question, isArabic);
+  const items: MatchingEntry[] = Array.isArray(data.items)
+    ? data.items
+        .map((it, i) => (isPlainRecord(it) ? { id: typeof it.id === 'string' && it.id ? it.id : `m${i + 1}`, text: typeof it.text === 'string' ? it.text : '' } : null))
+        .filter((it): it is MatchingEntry => !!it && it.text.trim().length > 0)
+    : [];
+  const categories: MatchingCategory[] = Array.isArray(data.categories)
+    ? data.categories
+        .map((c, i) => (isPlainRecord(c) ? { id: typeof c.id === 'string' && c.id ? c.id : `c${i + 1}`, label: typeof c.label === 'string' ? c.label : '' } : null))
+        .filter((c): c is MatchingCategory => !!c && c.label.trim().length > 0)
+    : [];
+  const correct: Record<string, string> = isPlainRecord(data.correct)
+    ? (Object.fromEntries(Object.entries(data.correct).filter(([, v]) => typeof v === 'string')) as Record<string, string>)
+    : {};
+  return { items, categories, correct };
+}
+
+function getOrderingData(question: Question, isArabic: boolean) {
+  const data = getStructuredAnswerData(question, isArabic);
+  const items: MatchingEntry[] = Array.isArray(data.items)
+    ? data.items
+        .map((it, i) => (isPlainRecord(it) ? { id: typeof it.id === 'string' && it.id ? it.id : `o${i + 1}`, text: typeof it.text === 'string' ? it.text : '' } : null))
+        .filter((it): it is MatchingEntry => !!it && it.text.trim().length > 0)
+    : [];
+  const ids = new Set(items.map((i) => i.id));
+  const correctOrder: string[] = Array.isArray(data.correct_order)
+    ? data.correct_order.filter((id): id is string => typeof id === 'string' && ids.has(id))
+    : [];
+  return { items, correctOrder };
+}
+
+function shuffleIds(ids: string[]): string[] {
+  const a = [...ids];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  // Avoid landing on the identical starting order for a 1-move feel.
+  if (a.length > 1 && a.every((id, i) => id === ids[i])) return shuffleIds(ids);
+  return a;
+}
+
+function formatMatchingSummary(items: MatchingEntry[], categories: MatchingCategory[], assign: Record<string, string>) {
+  const catLabel = (id: string) => categories.find((c) => c.id === id)?.label || '—';
+  return items.map((it) => `${it.text} → ${catLabel(assign[it.id] || '')}`).join(' | ');
+}
+
+function formatOrderingSummary(order: string[], items: MatchingEntry[]) {
+  const txt = (id: string) => items.find((i) => i.id === id)?.text || '—';
+  return order.map((id, i) => `${i + 1}. ${txt(id)}`).join(' | ');
+}
+
+function MatchingQuestion({
+  data,
+  assignments,
+  setAssignments,
+  submitted,
+  isArabic,
+}: {
+  data: ReturnType<typeof getMatchingData>;
+  assignments: Record<string, string>;
+  setAssignments: Dispatch<SetStateAction<Record<string, string>>>;
+  submitted: boolean;
+  isArabic: boolean;
+}) {
+  const [picked, setPicked] = useState<string | null>(null);
+
+  const assign = (itemId: string, catId: string) => {
+    if (submitted) return;
+    setAssignments((prev) => ({ ...prev, [itemId]: catId }));
+    setPicked(null);
+  };
+  const unassign = (itemId: string) => {
+    if (submitted) return;
+    setAssignments((prev) => {
+      const next = { ...prev };
+      delete next[itemId];
+      return next;
+    });
+    setPicked(null);
+  };
+
+  const unassigned = data.items.filter((it) => !assignments[it.id]);
+  const itemsIn = (catId: string) => data.items.filter((it) => assignments[it.id] === catId);
+  const onDropTo = (catId: string) => (e: DragEvent) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/plain');
+    if (id) assign(id, catId);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-violet-100 bg-violet-50 px-4 py-3 text-sm text-violet-800">
+        {isArabic
+          ? 'اسحب كل عنصر — أو انقره ثم انقر الفئة — لوضعه في الفئة الصحيحة.'
+          : 'Drag each item — or tap it, then tap a category — into the correct category.'}
+      </div>
+
+      {!submitted && (
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            const id = e.dataTransfer.getData('text/plain');
+            if (id) unassign(id);
+          }}
+          className="flex flex-wrap gap-2 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-3 min-h-[52px]"
+        >
+          {unassigned.length === 0 ? (
+            <span className="text-xs text-gray-400">{isArabic ? 'تم توزيع كل العناصر' : 'All items placed'}</span>
+          ) : (
+            unassigned.map((it) => (
+              <button
+                key={it.id}
+                type="button"
+                draggable
+                onDragStart={(e) => e.dataTransfer.setData('text/plain', it.id)}
+                onClick={() => setPicked(picked === it.id ? null : it.id)}
+                className={`rounded-lg border-2 px-3 py-2 text-sm transition-all cursor-grab active:cursor-grabbing ${
+                  picked === it.id ? 'border-violet-500 bg-violet-100 text-violet-800' : 'border-gray-200 bg-white text-gray-800 hover:border-violet-300'
+                }`}
+              >
+                {it.text}
+              </button>
+            ))
+          )}
+        </div>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {data.categories.map((cat) => (
+          <div
+            key={cat.id}
+            onDragOver={(e) => !submitted && e.preventDefault()}
+            onDrop={onDropTo(cat.id)}
+            onClick={() => picked && assign(picked, cat.id)}
+            className={`rounded-xl border-2 p-3 transition-all ${
+              picked && !submitted ? 'border-violet-400 bg-violet-50/60 cursor-pointer' : 'border-gray-200 bg-white'
+            }`}
+          >
+            <p className="mb-2 text-sm font-bold text-gray-800">{cat.label}</p>
+            <div className="flex flex-wrap gap-2 min-h-[36px]">
+              {itemsIn(cat.id).map((it) => {
+                const correct = data.correct[it.id] === cat.id;
+                const style = submitted
+                  ? correct
+                    ? 'border-green-400 bg-green-50 text-green-800'
+                    : 'border-red-400 bg-red-50 text-red-800'
+                  : 'border-violet-200 bg-violet-50 text-violet-800';
+                return (
+                  <button
+                    key={it.id}
+                    type="button"
+                    draggable={!submitted}
+                    onDragStart={(e) => e.dataTransfer.setData('text/plain', it.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      unassign(it.id);
+                    }}
+                    disabled={submitted}
+                    className={`rounded-lg border-2 px-2.5 py-1.5 text-xs transition-all ${style} ${!submitted ? 'cursor-grab' : ''}`}
+                  >
+                    {submitted && (correct ? '✓ ' : '✗ ')}
+                    {it.text}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {submitted && (
+        <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600">
+          <p className="font-semibold text-gray-700">{isArabic ? 'التوزيع الصحيح:' : 'Correct placement:'}</p>
+          <ul className="mt-1 space-y-0.5">
+            {data.items.map((it) => (
+              <li key={it.id}>
+                {it.text} → <span className="font-medium">{data.categories.find((c) => c.id === data.correct[it.id])?.label || '—'}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OrderingQuestion({
+  data,
+  order,
+  setOrder,
+  submitted,
+  isArabic,
+}: {
+  data: ReturnType<typeof getOrderingData>;
+  order: string[];
+  setOrder: Dispatch<SetStateAction<string[]>>;
+  submitted: boolean;
+  isArabic: boolean;
+}) {
+  const text = (id: string) => data.items.find((i) => i.id === id)?.text || '—';
+  const dragFrom = useRef<number | null>(null);
+  const move = (from: number, to: number) => {
+    if (submitted || to < 0 || to >= order.length) return;
+    setOrder((prev) => {
+      const a = [...prev];
+      const [x] = a.splice(from, 1);
+      a.splice(to, 0, x);
+      return a;
+    });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-violet-100 bg-violet-50 px-4 py-3 text-sm text-violet-800">
+        {isArabic ? 'رتّب الخطوات بالترتيب الصحيح (اسحب أو استخدم الأسهم).' : 'Put the steps in the correct order (drag, or use the arrows).'}
+      </div>
+      <div className="space-y-2">
+        {order.map((id, i) => {
+          const correctHere = submitted && data.correctOrder[i] === id;
+          const wrongHere = submitted && data.correctOrder[i] !== id;
+          const style = correctHere ? 'border-green-400 bg-green-50' : wrongHere ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white';
+          return (
+            <div
+              key={id}
+              draggable={!submitted}
+              onDragStart={() => {
+                dragFrom.current = i;
+              }}
+              onDragOver={(e) => !submitted && e.preventDefault()}
+              onDrop={() => {
+                if (dragFrom.current !== null) move(dragFrom.current, i);
+                dragFrom.current = null;
+              }}
+              className={`flex items-center gap-3 rounded-xl border-2 p-3 transition-all ${style}`}
+            >
+              <span
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                  correctHere ? 'bg-green-500 text-white' : wrongHere ? 'bg-red-500 text-white' : 'bg-violet-600 text-white'
+                }`}
+              >
+                {i + 1}
+              </span>
+              <span className="flex-1 text-sm text-gray-800">{text(id)}</span>
+              {!submitted && (
+                <span className="flex flex-col gap-0.5">
+                  <button type="button" onClick={() => move(i, i - 1)} disabled={i === 0} className="px-2 leading-none text-gray-500 hover:text-violet-600 disabled:opacity-30" aria-label="Move up">
+                    ▲
+                  </button>
+                  <button type="button" onClick={() => move(i, i + 1)} disabled={i === order.length - 1} className="px-2 leading-none text-gray-500 hover:text-violet-600 disabled:opacity-30" aria-label="Move down">
+                    ▼
+                  </button>
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {submitted && (
+        <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600">
+          <p className="font-semibold text-gray-700">{isArabic ? 'الترتيب الصحيح:' : 'Correct order:'}</p>
+          <ol className="mt-1 space-y-0.5 list-decimal list-inside">
+            {data.correctOrder.map((id) => (
+              <li key={id}>{text(id)}</li>
+            ))}
+          </ol>
+        </div>
+      )}
+    </div>
+  );
+}
+
 type PracticeClientProps = { initialFramework: ExamPathId };
 
 export default function PracticeClient({ initialFramework }: PracticeClientProps) {
@@ -847,6 +1141,8 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [selectedMultiAnswers, setSelectedMultiAnswers] = useState<string[]>([]);
   const [selectedPullDownAnswers, setSelectedPullDownAnswers] = useState<Record<string, string>>({});
+  const [matchingAssignments, setMatchingAssignments] = useState<Record<string, string>>({});
+  const [orderingSequence, setOrderingSequence] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [blockResults, setBlockResults] = useState<QuestionResult[]>([]);
   const [cycleResults, setCycleResults] = useState<QuestionResult[]>([]);
@@ -881,6 +1177,8 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
     setSelectedAnswer(null);
     setSelectedMultiAnswers([]);
     setSelectedPullDownAnswers({});
+    setMatchingAssignments({});
+    setOrderingSequence([]);
     setSubmitted(false);
     setBlockResults([]);
     setCycleResults([]);
@@ -907,6 +1205,19 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
     languageRef.current = isArabic;
     resetPracticeState();
   }, [isArabic, resetPracticeState]);
+
+  // Initialize per-question interactive state when the current question changes:
+  // clear matching assignments; seed ordering with a shuffled sequence.
+  useEffect(() => {
+    const q = questions[currentQ];
+    if (!q) return;
+    setMatchingAssignments({});
+    if (getQuestionType(q) === 'ordering') {
+      setOrderingSequence(shuffleIds(getOrderingData(q, isArabic).items.map((item) => item.id)));
+    } else {
+      setOrderingSequence([]);
+    }
+  }, [currentQ, questions, isArabic]);
 
   const startSession = async () => {
     setIsLoading(true);
@@ -965,6 +1276,8 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
         setSelectedAnswer(null);
     setSelectedMultiAnswers([]);
     setSelectedPullDownAnswers({});
+    setMatchingAssignments({});
+    setOrderingSequence([]);
         setSubmitted(false);
         setBlockResults([]);
         setMode('question');
@@ -1005,6 +1318,21 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
       isCorrect = pullDownData.blanks.every((blank) => selectedPullDownAnswers[blank.id] === blank.correct);
       selectedAnswerText = formatPullDownSummary(pullDownData.blanks, selectedPullDownAnswers);
       correctAnswerText = formatPullDownCorrectSummary(pullDownData.blanks);
+    } else if (questionType === 'matching') {
+      const m = getMatchingData(question, isArabic);
+      const allAssigned = m.items.length > 0 && m.items.every((it) => matchingAssignments[it.id]);
+      if (!allAssigned) return;
+
+      isCorrect = m.items.every((it) => matchingAssignments[it.id] === m.correct[it.id]);
+      selectedAnswerText = formatMatchingSummary(m.items, m.categories, matchingAssignments);
+      correctAnswerText = formatMatchingSummary(m.items, m.categories, m.correct);
+    } else if (questionType === 'ordering') {
+      const o = getOrderingData(question, isArabic);
+      if (orderingSequence.length !== o.items.length || o.correctOrder.length !== o.items.length) return;
+
+      isCorrect = o.correctOrder.every((id, i) => orderingSequence[i] === id);
+      selectedAnswerText = formatOrderingSummary(orderingSequence, o.items);
+      correctAnswerText = formatOrderingSummary(o.correctOrder, o.items);
     } else {
       if (!selectedAnswer) return;
       isCorrect = selectedAnswer === question.correct_answer;
@@ -1036,6 +1364,8 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
       setSelectedAnswer(null);
     setSelectedMultiAnswers([]);
     setSelectedPullDownAnswers({});
+    setMatchingAssignments({});
+    setOrderingSequence([]);
       setSubmitted(false);
       return;
     }
@@ -1345,13 +1675,19 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
 
     const multipleResponseData = getMultipleResponseData(currentQuestion, isArabic);
     const pullDownData = getPullDownData(currentQuestion, isArabic);
+    const matchingData = getMatchingData(currentQuestion, isArabic);
+    const orderingData = getOrderingData(currentQuestion, isArabic);
     const canSubmitCurrentAnswer =
       questionType === 'multiple_response'
         ? selectedMultiAnswers.length === multipleResponseData.selectCount
         : questionType === 'pull_down'
           ? pullDownData.blanks.length > 0 &&
             pullDownData.blanks.every((blank) => selectedPullDownAnswers[blank.id])
-          : Boolean(selectedAnswer);
+          : questionType === 'matching'
+            ? matchingData.items.length > 0 && matchingData.items.every((it) => matchingAssignments[it.id])
+            : questionType === 'ordering'
+              ? orderingData.items.length > 0 && orderingSequence.length === orderingData.items.length
+              : Boolean(selectedAnswer);
 
     const toggleMultiAnswer = (key: string) => {
       if (submitted) return;
@@ -1568,6 +1904,22 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
                 );
               })}
             </div>
+          ) : questionType === 'matching' ? (
+            <MatchingQuestion
+              data={matchingData}
+              assignments={matchingAssignments}
+              setAssignments={setMatchingAssignments}
+              submitted={submitted}
+              isArabic={isArabic}
+            />
+          ) : questionType === 'ordering' ? (
+            <OrderingQuestion
+              data={orderingData}
+              order={orderingSequence}
+              setOrder={setOrderingSequence}
+              submitted={submitted}
+              isArabic={isArabic}
+            />
           ) : (
             optionKeys.map((key) => {
               const isSelected = selectedAnswer === key;
