@@ -7,7 +7,7 @@ export const maxDuration = 60
 type ExamFramework = 'pmbok7' | 'pmbok8' | 'bridge'
 type EcoDomain = 'people' | 'process' | 'business-environment'
 type QuestionDifficulty = 'entry' | 'paced' | 'difficult' | 'challenging'
-type QuestionType = 'single_response' | 'multiple_response' | 'pull_down'
+type QuestionType = 'single_response' | 'multiple_response' | 'pull_down' | 'matching' | 'ordering'
 
 const SYSTEM_PROMPT = `You are a senior PMP exam question writer and PMP/PMI content quality auditor.
 
@@ -22,7 +22,7 @@ Every item must be a JSON object with exactly the requested keys.`
 const FRAMEWORKS: ExamFramework[] = ['pmbok7', 'pmbok8', 'bridge']
 const DOMAINS: EcoDomain[] = ['people', 'process', 'business-environment']
 const DIFFICULTIES: QuestionDifficulty[] = ['entry', 'paced', 'difficult', 'challenging']
-const QUESTION_TYPES: QuestionType[] = ['single_response', 'multiple_response', 'pull_down']
+const QUESTION_TYPES: QuestionType[] = ['single_response', 'multiple_response', 'pull_down', 'matching', 'ordering']
 
 type AnswerKey = 'a' | 'b' | 'c' | 'd'
 
@@ -568,6 +568,140 @@ Strict rules:
 - No markdown. No text outside the JSON array.`
   }
 
+  if (questionType === 'matching') {
+    return `Generate ${count} PMP exam questions in Matching (drag-and-drop) format.
+
+${frameworkContext(framework)}
+
+Assessment target:
+- Framework route: ${framework}
+- ECO domain DB value: ${domain}
+- ECO domain label: ${domainLabel(domain)}
+- Difficulty DB value: ${difficulty}
+- Question type: matching
+- Scoring rule: all-or-nothing; every item must be dragged into its correct category.
+- Bilingual requirement: English and Arabic must both be populated.
+
+${domainGuidance(framework, domain)}
+
+${retryBlock}
+
+Output must be a valid JSON array. Each object must use this exact shape:
+{
+  "question_text": "English instruction telling the learner to drag each item into the correct category.",
+  "question_text_ar": "Arabic MSA instruction telling the learner to place each item in the correct category.",
+  "domain": "${domain}",
+  "subdomain": "specific subtopic within ${domainLabel(domain)}",
+  "difficulty": "${difficulty}",
+  "explanation": "English explanation of why each item belongs to its category.",
+  "explanation_ar": "Arabic explanation.",
+  "rita_tip": "Concise PMP exam strategy tip in English.",
+  "rita_tip_ar": "Concise PMP exam strategy tip in Arabic.",
+  "pmbok_reference": "Careful PMBOK reference with no fake page/section numbers.",
+  "eco_reference": "Careful ECO reference with no fake task numbers.",
+  "answer_data": {
+    "items": [
+      { "id": "i1", "text": "English item to be placed" },
+      { "id": "i2", "text": "English item to be placed" },
+      { "id": "i3", "text": "English item to be placed" },
+      { "id": "i4", "text": "English item to be placed" }
+    ],
+    "categories": [
+      { "id": "c1", "label": "English category" },
+      { "id": "c2", "label": "English category" }
+    ],
+    "correct": { "i1": "c1", "i2": "c2", "i3": "c1", "i4": "c2" }
+  },
+  "answer_data_ar": {
+    "items": [
+      { "id": "i1", "text": "Arabic item" },
+      { "id": "i2", "text": "Arabic item" },
+      { "id": "i3", "text": "Arabic item" },
+      { "id": "i4", "text": "Arabic item" }
+    ],
+    "categories": [
+      { "id": "c1", "label": "Arabic category" },
+      { "id": "c2", "label": "Arabic category" }
+    ],
+    "correct": { "i1": "c1", "i2": "c2", "i3": "c1", "i4": "c2" }
+  },
+  "asf_profile": {
+    "primaryCompetency":"Leadership","secondaryCompetency":"Stakeholder Influence","decisionArchitecture":"Best Action","ambiguityLevel":2,"distractorStrength":"advanced","decisionHorizon":"short_term","principleAlignment":"Be an Accountable Leader","leadershipDimension":"Accountability","systemsThinkingDimension":"Medium","cognitiveLoad":8,"estimatedPMIDifficulty":8,"qualityScore":85
+  }
+}
+
+Strict rules:
+- 4 to 6 items and 2 to 4 categories per question.
+- Every item id must appear once in "correct" mapped to a valid category id.
+- Categories should each receive at least one item (avoid empty categories).
+- answer_data_ar MUST use the EXACT SAME item ids and category ids as answer_data — translate only the text/label values.
+- Do not invent PMI/PMBOK page numbers or task numbers.
+- No markdown. No text outside the JSON array.`
+  }
+
+  if (questionType === 'ordering') {
+    return `Generate ${count} PMP exam questions in Ordering (sequencing) format.
+
+${frameworkContext(framework)}
+
+Assessment target:
+- Framework route: ${framework}
+- ECO domain DB value: ${domain}
+- ECO domain label: ${domainLabel(domain)}
+- Difficulty DB value: ${difficulty}
+- Question type: ordering
+- Scoring rule: all-or-nothing; every step must be in its correct position.
+- Bilingual requirement: English and Arabic must both be populated.
+
+${domainGuidance(framework, domain)}
+
+${retryBlock}
+
+Output must be a valid JSON array. Each object must use this exact shape:
+{
+  "question_text": "English instruction telling the learner to arrange the steps in the correct order.",
+  "question_text_ar": "Arabic MSA instruction telling the learner to order the steps correctly.",
+  "domain": "${domain}",
+  "subdomain": "specific subtopic within ${domainLabel(domain)}",
+  "difficulty": "${difficulty}",
+  "explanation": "English explanation of why this is the correct sequence.",
+  "explanation_ar": "Arabic explanation.",
+  "rita_tip": "Concise PMP exam strategy tip in English.",
+  "rita_tip_ar": "Concise PMP exam strategy tip in Arabic.",
+  "pmbok_reference": "Careful PMBOK reference with no fake page/section numbers.",
+  "eco_reference": "Careful ECO reference with no fake task numbers.",
+  "answer_data": {
+    "items": [
+      { "id": "s1", "text": "English step" },
+      { "id": "s2", "text": "English step" },
+      { "id": "s3", "text": "English step" },
+      { "id": "s4", "text": "English step" }
+    ],
+    "correct_order": ["s1", "s2", "s3", "s4"]
+  },
+  "answer_data_ar": {
+    "items": [
+      { "id": "s1", "text": "Arabic step" },
+      { "id": "s2", "text": "Arabic step" },
+      { "id": "s3", "text": "Arabic step" },
+      { "id": "s4", "text": "Arabic step" }
+    ],
+    "correct_order": ["s1", "s2", "s3", "s4"]
+  },
+  "asf_profile": {
+    "primaryCompetency":"Leadership","secondaryCompetency":"Stakeholder Influence","decisionArchitecture":"Best Action","ambiguityLevel":2,"distractorStrength":"advanced","decisionHorizon":"short_term","principleAlignment":"Be an Accountable Leader","leadershipDimension":"Accountability","systemsThinkingDimension":"Medium","cognitiveLoad":8,"estimatedPMIDifficulty":8,"qualityScore":85
+  }
+}
+
+Strict rules:
+- 4 to 6 steps per question, in a genuinely sequence-dependent process.
+- "correct_order" MUST list every item id exactly once, in the correct sequence.
+- The item array order does not need to be the correct order; only "correct_order" defines correctness.
+- answer_data_ar MUST use the EXACT SAME item ids and the SAME correct_order as answer_data — translate only the text values.
+- Do not invent PMI/PMBOK page numbers or task numbers.
+- No markdown. No text outside the JSON array.`
+  }
+
   return `Generate ${count} PMP exam questions in Pull-down List format.
 
 ${frameworkContext(framework)}
@@ -721,6 +855,50 @@ function normalizePullDownBlanks(value: unknown) {
     })
 }
 
+function normalizeIdTextEntries(value: unknown, prefix: string) {
+  if (!Array.isArray(value)) return [] as { id: string; text: string }[]
+  return value
+    .map((entry, index) => {
+      const source = objectValue(entry)
+      return { id: stringValue(source.id) || `${prefix}${index + 1}`, text: stringValue(source.text) }
+    })
+    .filter((entry) => entry.text.length > 0)
+}
+
+function normalizeMatchingData(value: unknown) {
+  const raw = objectValue(value)
+  const items = normalizeIdTextEntries(raw.items, 'i')
+  const categories = (Array.isArray(raw.categories) ? raw.categories : [])
+    .map((entry: unknown, index: number) => {
+      const source = objectValue(entry)
+      return { id: stringValue(source.id) || `c${index + 1}`, label: stringValue(source.label) }
+    })
+    .filter((entry: { id: string; label: string }) => entry.label.length > 0)
+  const categoryIds = new Set(categories.map((c: { id: string }) => c.id))
+  const correctSource = objectValue(raw.correct)
+  const correct: Record<string, string> = {}
+  for (const item of items) {
+    const catId = stringValue(correctSource[item.id])
+    if (categoryIds.has(catId)) correct[item.id] = catId
+  }
+  const valid =
+    items.length >= 3 && items.length <= 8 &&
+    categories.length >= 2 && categories.length <= 5 &&
+    items.every((item) => correct[item.id])
+  return valid ? { items, categories, correct } : null
+}
+
+function normalizeOrderingData(value: unknown) {
+  const raw = objectValue(value)
+  const items = normalizeIdTextEntries(raw.items, 's')
+  const idSet = new Set(items.map((i) => i.id))
+  const order = Array.isArray(raw.correct_order)
+    ? Array.from(new Set(raw.correct_order.map((x: unknown) => stringValue(x)).filter((x: string) => idSet.has(x))))
+    : []
+  const valid = items.length >= 3 && items.length <= 8 && order.length === items.length
+  return valid ? { items, correct_order: order as string[] } : null
+}
+
 function cleanGeneratedFormatQuestions({
   questions,
   framework,
@@ -776,6 +954,74 @@ function cleanGeneratedFormatQuestions({
           pmbok_reference: stringValue(q.pmbok_reference),
           eco_reference: stringValue(q.eco_reference),
           answer_data: { select_count: selectCount, options, correct },
+          answer_data_ar: answerDataAr,
+          asf_profile: q.asf_profile && typeof q.asf_profile === 'object' ? q.asf_profile : {},
+        }
+      }
+
+      if (questionType === 'matching') {
+        const m = normalizeMatchingData(rawAnswerData)
+        if (!m) return null
+        const mAr = normalizeMatchingData(rawAnswerDataAr)
+        const answerDataAr =
+          mAr && mAr.items.length === m.items.length && m.items.every((it) => mAr.correct[it.id] !== undefined)
+            ? mAr
+            : null
+        const texts = m.items.map((it) => it.text)
+        return {
+          framework,
+          domain,
+          subdomain: stringValue(q.subdomain),
+          difficulty,
+          question_type: 'matching',
+          question_text: questionText,
+          question_text_ar: stringValue(q.question_text_ar) || null,
+          option_a: texts[0] || '—',
+          option_b: texts[1] || '—',
+          option_c: texts[2] || '—',
+          option_d: texts[3] || '—',
+          correct_answer: 'a',
+          explanation,
+          explanation_ar: stringValue(q.explanation_ar) || null,
+          rita_tip: stringValue(q.rita_tip),
+          rita_tip_ar: stringValue(q.rita_tip_ar) || null,
+          pmbok_reference: stringValue(q.pmbok_reference),
+          eco_reference: stringValue(q.eco_reference),
+          answer_data: m,
+          answer_data_ar: answerDataAr,
+          asf_profile: q.asf_profile && typeof q.asf_profile === 'object' ? q.asf_profile : {},
+        }
+      }
+
+      if (questionType === 'ordering') {
+        const o = normalizeOrderingData(rawAnswerData)
+        if (!o) return null
+        const oAr = normalizeOrderingData(rawAnswerDataAr)
+        const answerDataAr =
+          oAr && oAr.items.length === o.items.length && oAr.correct_order.join('|') === o.correct_order.join('|')
+            ? oAr
+            : null
+        const texts = o.items.map((it) => it.text)
+        return {
+          framework,
+          domain,
+          subdomain: stringValue(q.subdomain),
+          difficulty,
+          question_type: 'ordering',
+          question_text: questionText,
+          question_text_ar: stringValue(q.question_text_ar) || null,
+          option_a: texts[0] || '—',
+          option_b: texts[1] || '—',
+          option_c: texts[2] || '—',
+          option_d: texts[3] || '—',
+          correct_answer: 'a',
+          explanation,
+          explanation_ar: stringValue(q.explanation_ar) || null,
+          rita_tip: stringValue(q.rita_tip),
+          rita_tip_ar: stringValue(q.rita_tip_ar) || null,
+          pmbok_reference: stringValue(q.pmbok_reference),
+          eco_reference: stringValue(q.eco_reference),
+          answer_data: o,
           answer_data_ar: answerDataAr,
           asf_profile: q.asf_profile && typeof q.asf_profile === 'object' ? q.asf_profile : {},
         }

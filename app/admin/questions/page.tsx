@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 type ExamFramework = 'pmbok7' | 'pmbok8' | 'bridge'
 type EcoDomain = 'people' | 'process' | 'business-environment'
 type QuestionDifficulty = 'entry' | 'paced' | 'difficult' | 'challenging'
-type QuestionType = 'single_response' | 'multiple_response' | 'pull_down'
+type QuestionType = 'single_response' | 'multiple_response' | 'pull_down' | 'matching' | 'ordering'
 
 const FRAMEWORKS: {
   value: ExamFramework
@@ -119,6 +119,8 @@ const QUESTION_TYPES: {
   { value: 'single_response', label: 'Single Response', desc: 'Classic one-correct-answer PMP item' },
   { value: 'multiple_response', label: 'Multiple Response', desc: 'Select two or three correct answers' },
   { value: 'pull_down', label: 'Pull-down List', desc: 'Dropdown blanks for sequence or judgment testing' },
+  { value: 'matching', label: 'Matching (drag-and-drop)', desc: 'Drag each item into its correct category' },
+  { value: 'ordering', label: 'Ordering (sequencing)', desc: 'Arrange steps into the correct sequence' },
 ]
 
 interface QuestionStats {
