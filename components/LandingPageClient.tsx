@@ -7,8 +7,13 @@ import LandingLanguageSelector from "@/components/LandingLanguageSelector";
 
 const C = { teal: "#1AB0A2", tealDk: "#148F84", tealLt: "#E6F8F6", purple: "#5B2D91", purpleDk: "#472272", purpleLt: "#F0EAFA", amber: "#F5A623", amberLt: "#FFF7E6", dark: "#1A1430", muted: "#5E6078", bg: "#FAFAF9" };
 
-// Landing promo video (Supabase Storage public URL). Swap this to change the video.
-const PROMO_VIDEO_URL = "https://tlydibfllrojhqnddwts.supabase.co/storage/v1/object/public/media/1783973188210-yvqdkbwlclr.mp4";
+// Landing promo videos (Supabase Storage public URLs). Swap these to change a video.
+const PROMO_VIDEO_URL_EN = "https://tlydibfllrojhqnddwts.supabase.co/storage/v1/object/public/media/1783973188210-yvqdkbwlclr.mp4";
+// Arabic promo — set this once the Arabic video is uploaded; until then Arabic falls back to the English video.
+const PROMO_VIDEO_URL_AR = "";
+const PROMO_POSTER_EN = "/promo-poster.jpg";
+// Arabic poster frame — set once available; falls back to the English poster.
+const PROMO_POSTER_AR = "";
 
 const copy = {
   en: {
@@ -449,14 +454,15 @@ export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
                 style={{ borderColor: C.tealLt }}
               >
                 <video
+                  key={isAr && PROMO_VIDEO_URL_AR ? "promo-ar" : "promo-en"}
                   className="absolute inset-0 h-full w-full object-cover"
                   controls
                   preload="none"
                   playsInline
-                  poster="/promo-poster.jpg"
+                  poster={isAr && PROMO_POSTER_AR ? PROMO_POSTER_AR : PROMO_POSTER_EN}
                   aria-label={isAr ? "فيديو تعريفي لمنصة PMP AiTutorZ" : "PMP AiTutorZ platform intro video"}
                 >
-                  <source src={PROMO_VIDEO_URL} type="video/mp4" />
+                  <source src={isAr && PROMO_VIDEO_URL_AR ? PROMO_VIDEO_URL_AR : PROMO_VIDEO_URL_EN} type="video/mp4" />
                   {isAr ? "متصفحك لا يدعم تشغيل الفيديو." : "Your browser does not support the video tag."}
                 </video>
               </div>
