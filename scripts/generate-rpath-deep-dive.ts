@@ -481,7 +481,8 @@ async function main() {
   const response = await anthropic.messages.create({
     model: MODEL,
     max_tokens: GENERATION_MAX_TOKENS,
-    temperature: 0.2,
+    // temperature is rejected (400) on Opus 4.6+/Sonnet 5/Fable 5; keep it only for models that accept it.
+    ...(/(opus-4-[678]|sonnet-5|fable-5)/.test(MODEL) ? {} : { temperature: 0.2 }),
     system: buildSystemPrompt(framework, language),
     messages: [
       {
