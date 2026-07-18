@@ -19,8 +19,10 @@ export default function LandingLanguageSelector() {
   function select(code: string) {
     setCurrent(code)
     setOpen(false)
-    document.cookie = `lang=${code};path=/;max-age=31536000`
-    // Reload so server-rendered content reflects new language
+    // Set both cookies so the <html> direction (pmp_locale) and page content stay in sync.
+    document.cookie = `lang=${code};path=/;max-age=31536000;SameSite=Lax`
+    document.cookie = `pmp_locale=${code};path=/;max-age=31536000;SameSite=Lax`
+    // Reload; the static page re-resolves locale from the cookie on the client.
     window.location.reload()
   }
 

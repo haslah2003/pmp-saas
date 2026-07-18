@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -9,19 +8,22 @@ export const metadata: Metadata = {
   keywords: "PMP, PMP exam, PMBOK, project management, certification, AiTuTorZ",
 };
 
-export default async function RootLayout({
+// Apply locale (lang + text direction) from the cookie BEFORE first paint, so the
+// document can be statically rendered (and served from the global edge CDN) without
+// a flash of the wrong direction. Reads pmp_locale first, then the legacy `lang` cookie.
+const LOCALE_INIT = `(function(){try{var m=document.cookie.match(/(?:^|; )pmp_locale=(ar|en)/)||document.cookie.match(/(?:^|; )lang=(ar|en)/);var l=m&&m[1]==='ar'?'ar':'en';var e=document.documentElement;e.lang=l;e.dir=l==='ar'?'rtl':'ltr';if(l==='ar'){e.classList.add('rtl');}else{e.classList.remove('rtl');}}catch(_){}})();`;
+
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const locale = cookieStore.get("pmp_locale")?.value === "ar" ? "ar" : "en";
-
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
-      <body className="bg-gray-50 text-gray-900 antialiased">
-        {children}
-      </body>
+    <html lang="en" dir="ltr" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: LOCALE_INIT }} />
+      </head>
+      <body className="bg-gray-50 text-gray-900 antialiased">{children}</body>
     </html>
   );
 }

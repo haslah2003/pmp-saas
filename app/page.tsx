@@ -1,8 +1,7 @@
-import { cookies } from "next/headers";
 import LandingPageClient from "@/components/LandingPageClient";
 
-export default async function LandingPage() {
-  const cookieStore = await cookies();
-  const lang = cookieStore.get("lang")?.value === "ar" ? "ar" : "en";
-  return <LandingPageClient lang={lang} />;
+// Statically rendered (no cookies() read) so it is served from the global edge CDN,
+// fast for every visitor worldwide. Language is resolved client-side from the cookie.
+export default function LandingPage() {
+  return <LandingPageClient />;
 }

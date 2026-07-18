@@ -256,7 +256,15 @@ const planGradients = [`linear-gradient(135deg, ${C.teal}, ${C.tealDk})`,`linear
 const planBtnColors = [C.teal, C.purple, C.purpleDk];
 
 
-export default function LandingPageClient({ lang }: { lang: "en" | "ar" }) {
+export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "ar" }) {
+  // When rendered statically (no server prop), resolve locale from the cookie on the
+  // client. Default 'en' keeps the static HTML stable; returning Arabic users switch on mount.
+  const [lang, setLang] = useState<"en" | "ar">(langProp ?? "en");
+  useEffect(() => {
+    if (langProp) return;
+    const m = document.cookie.match(/(?:^|; )pmp_locale=(ar|en)/) || document.cookie.match(/(?:^|; )lang=(ar|en)/);
+    if (m?.[1] === "ar") setLang("ar");
+  }, [langProp]);
   const t = copy[lang];
   const pricingPlanIds = ["basic", "standard", "professional"] as const;
   const isAr = lang === "ar";
