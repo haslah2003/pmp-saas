@@ -43,11 +43,12 @@ async function main() {
   }
 
   const admin = createAdminClient();
+  // Treat ANY existing row as "have" (approved OR needs_human_review) so we only generate
+  // lessons that have no row at all — avoids duplicating the needs_human_review lessons.
   const { data, error } = await admin
     .from('lesson_deep_dives')
     .select('module_id,lesson_id,language')
-    .eq('is_active', true)
-    .eq('quality_status', 'approved');
+    .eq('track_id', 'pmbok8-eco2026');
   if (error) throw new Error(`DB read failed: ${error.message}`);
   const have = new Set((data || []).map((r: any) => `${r.module_id}|${r.lesson_id}|${r.language}`));
 
