@@ -160,7 +160,7 @@ const receiptId = params.get('receiptId')
         <p className="text-center text-xs text-gray-400 mt-4">
           {isArabic ? 'تم إرسال إيصال إلى بريدك الإلكتروني المسجّل في PayPal.' : 'A receipt has been sent to your PayPal email address.'}
           <br />
-          {isArabic ? 'لديك أسئلة؟ راسلنا على support@pmpexperttutor.com' : 'Questions? Contact us at support@pmpexperttutor.com'}
+          {isArabic ? 'لديك أسئلة؟ راسلنا على support@pmpeco.com' : 'Questions? Contact us at support@pmpeco.com'}
         </p>
       </div>
     </div>

@@ -55,7 +55,7 @@ const RECEIPT_STRINGS = {
     planIncludes: 'Your Plan Includes', sprint: '90-Day Sprint', monthly: 'Monthly',
     defaultTagline: 'PMP (ECO 2026) preparation access',
     footer1: (siteName: string) => `This is an official receipt from ${siteName} (AiTuTorZ Platform) · pmpeco.com`,
-    footer2: 'For billing inquiries, contact support@pmpexperttutor.com',
+    footer2: 'For billing inquiries, contact support@pmpeco.com',
     backBilling: '← Billing', toDashboard: 'Dashboard →',
   },
   ar: {
@@ -67,7 +67,7 @@ const RECEIPT_STRINGS = {
     planIncludes: 'خطتك تشمل', sprint: 'سباق 90 يومًا', monthly: 'شهري',
     defaultTagline: 'وصول الاستعداد للسباق الأخير لاختبار PMP',
     footer1: (siteName: string) => `هذا إيصال رسمي من ${siteName} (منصة AiTuTorZ) · pmpeco.com`,
-    footer2: 'لاستفسارات الفوترة راسلنا على support@pmpexperttutor.com',
+    footer2: 'لاستفسارات الفوترة راسلنا على support@pmpeco.com',
     backBilling: '→ الفوترة', toDashboard: '← لوحة التحكم',
   },
 }
