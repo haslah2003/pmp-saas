@@ -54,7 +54,7 @@ const RECEIPT_STRINGS = {
     dateTime: 'Date & Time', orderId: 'Order ID', transactionId: 'Transaction ID',
     planIncludes: 'Your Plan Includes', sprint: '90-Day Sprint', monthly: 'Monthly',
     defaultTagline: 'PMP (ECO 2026) preparation access',
-    footer1: (siteName: string) => `This is an official receipt from ${siteName} (AiTuTorZ Platform) · pmp.aitutorsz.com`,
+    footer1: (siteName: string) => `This is an official receipt from ${siteName} (AiTuTorZ Platform) · pmpeco.com`,
     footer2: 'For billing inquiries, contact support@pmpexperttutor.com',
     backBilling: '← Billing', toDashboard: 'Dashboard →',
   },
@@ -66,7 +66,7 @@ const RECEIPT_STRINGS = {
     dateTime: 'التاريخ والوقت', orderId: 'رقم الطلب', transactionId: 'رقم المعاملة',
     planIncludes: 'خطتك تشمل', sprint: 'سباق 90 يومًا', monthly: 'شهري',
     defaultTagline: 'وصول الاستعداد للسباق الأخير لاختبار PMP',
-    footer1: (siteName: string) => `هذا إيصال رسمي من ${siteName} (منصة AiTuTorZ) · pmp.aitutorsz.com`,
+    footer1: (siteName: string) => `هذا إيصال رسمي من ${siteName} (منصة AiTuTorZ) · pmpeco.com`,
     footer2: 'لاستفسارات الفوترة راسلنا على support@pmpexperttutor.com',
     backBilling: '→ الفوترة', toDashboard: '← لوحة التحكم',
   },
@@ -175,7 +175,7 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">{L.from}</p>
                 <p className="text-sm font-bold text-gray-900">{siteName}</p>
                 <p className="text-xs text-gray-500">AiTuTorZ Platform</p>
-                <p className="text-xs text-gray-500">pmp.aitutorsz.com</p>
+                <p className="text-xs text-gray-500">pmpeco.com</p>
               </div>
             </div>
 
