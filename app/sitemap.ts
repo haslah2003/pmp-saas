@@ -10,12 +10,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: "weekly",
       priority: 1,
-      alternates: {
-        languages: {
-          en: `${SITE_URL}/?lang=en`,
-          ar: `${SITE_URL}/?lang=ar`,
-        },
-      },
     },
     {
       url: `${SITE_URL}/signup`,

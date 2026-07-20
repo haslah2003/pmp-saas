@@ -14,12 +14,7 @@ export const metadata: Metadata = {
   keywords:
     "PMP, PMP exam, PMBOK 8, ECO 2026, project management certification, PMP prep, PMP practice questions, PMP Arabic, PMP بالعربية",
   alternates: {
-    canonical: "/",
-    languages: {
-      en: "/?lang=en",
-      ar: "/?lang=ar",
-      "x-default": "/",
-    },
+    canonical: SITE_URL,
   },
   openGraph: {
     type: "website",
