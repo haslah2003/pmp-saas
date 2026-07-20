@@ -1,11 +1,41 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const SITE_URL = "https://pmpeco.com";
+const TITLE = "PMP Expert Tutor — AI-Powered PMP Exam Prep";
+const DESCRIPTION =
+  "Master the new PMP exam with AI-powered tutoring grounded in PMBOK Guide 8th Edition and PMP ECO 2026 — with bilingual English & Arabic content. Study notes, mock exams, practice questions, mind maps, and more.";
+
 export const metadata: Metadata = {
-  title: "PMP Expert Tutor — AI-Powered PMP Exam Prep",
-  description:
-    "Master the new PMP exam with AI-powered tutoring grounded in PMBOK Guide 8th Edition and PMP ECO 2026 — with bilingual English & Arabic content. Study notes, mock exams, practice questions, mind maps, and more.",
-  keywords: "PMP, PMP exam, PMBOK, project management, certification, AiTuTorZ",
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
+  description: DESCRIPTION,
+  applicationName: "PMP Expert Tutor",
+  keywords:
+    "PMP, PMP exam, PMBOK 8, ECO 2026, project management certification, PMP prep, PMP practice questions, PMP Arabic, PMP بالعربية",
+  alternates: {
+    canonical: "/",
+    languages: {
+      en: "/?lang=en",
+      ar: "/?lang=ar",
+      "x-default": "/",
+    },
+  },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: "PMP Expert Tutor",
+    title: TITLE,
+    description: DESCRIPTION,
+    locale: "en_US",
+    alternateLocale: "ar_AR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+  robots: { index: true, follow: true },
 };
 
 // Apply locale (lang + text direction) from the cookie BEFORE first paint, so the
