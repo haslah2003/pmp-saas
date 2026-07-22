@@ -4,5 +4,5 @@ import { ogCard } from "@/lib/og-card";
 export const dynamic = "force-static";
 
 export function GET() {
-  return ogCard("en");
+  return ogCard();
 }
