@@ -7,13 +7,40 @@ import LandingLanguageSelector from "@/components/LandingLanguageSelector";
 
 const C = { teal: "#1AB0A2", tealDk: "#148F84", tealLt: "#E6F8F6", purple: "#5B2D91", purpleDk: "#472272", purpleLt: "#F0EAFA", amber: "#F5A623", amberLt: "#FFF7E6", dark: "#1A1430", muted: "#5E6078", bg: "#FAFAF9" };
 
-// Landing promo videos (Supabase Storage public URLs). Swap these to change a video.
-const PROMO_VIDEO_URL_EN = "https://tlydibfllrojhqnddwts.supabase.co/storage/v1/object/public/media/1783973188210-yvqdkbwlclr.mp4";
-// Arabic promo — set this once the Arabic video is uploaded; until then Arabic falls back to the English video.
-const PROMO_VIDEO_URL_AR = "";
-const PROMO_POSTER_EN = "/promo-poster.jpg";
-// Arabic poster frame — set once available; falls back to the English poster.
-const PROMO_POSTER_AR = "";
+// Landing promo videos + posters (Supabase Storage public URLs). Swap these to change a video.
+const PROMO_VIDEO_URL_EN = "https://tlydibfllrojhqnddwts.supabase.co/storage/v1/object/public/media/1786134390440-10i8vvabt15.mp4";
+const PROMO_VIDEO_URL_AR = "https://tlydibfllrojhqnddwts.supabase.co/storage/v1/object/public/media/1786133631694-4d5hrcxkfk.mp4";
+const PROMO_POSTER_EN = "https://tlydibfllrojhqnddwts.supabase.co/storage/v1/object/public/media/1786133541004-qqr8lbauhte.jpg";
+const PROMO_POSTER_AR = "https://tlydibfllrojhqnddwts.supabase.co/storage/v1/object/public/media/1786134552022-m7xacw2o2m.jpg";
+
+// Bilingual VideoObject structured data for the demo video (SEO — Google video rich results).
+const VIDEO_SCHEMA = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "VideoObject",
+      name: "PMP Expert Tutor — AI-Powered PMP Exam Prep (PMBOK 8 · ECO 2026)",
+      description:
+        "A focused walkthrough of PMP Expert Tutor (pmpeco.com), the AI-powered platform for the new PMP exam based on PMBOK Guide 8th Edition and the 2026 Examination Content Outline (ECO 2026). See how it previews lessons, explains concepts like a personal mentor, drills 1,200+ bilingual practice questions across every PMP question format, and tracks your readiness — in English and Arabic — so you pass with confidence.",
+      thumbnailUrl: PROMO_POSTER_EN,
+      contentUrl: PROMO_VIDEO_URL_EN,
+      uploadDate: "2026-08-08",
+      duration: "PT1M39S",
+      inLanguage: "en",
+    },
+    {
+      "@type": "VideoObject",
+      name: "معلّم PMP الذكي — تحضير اختبار PMP بالذكاء الاصطناعي (PMBOK 8 · ECO 2026)",
+      description:
+        "جولة مركزة في منصة معلّم PMP الذكي (pmpeco.com)، المنصة المدعومة بالذكاء الاصطناعي للتحضير لاختبار PMP الجديد المبني على دليل PMBOK الإصدار الثامن ومخطط محتوى الاختبار 2026 (ECO 2026). شاهد كيف تعاين الدروس، وتشرح المفاهيم كمعلّم شخصي، وتدرّبك على أكثر من 1200 سؤال ثنائي اللغة بمختلف صيغ أسئلة PMP، وتتابع جاهزيتك — بالعربية والإنجليزية — لتجتاز الاختبار بثقة.",
+      thumbnailUrl: PROMO_POSTER_AR,
+      contentUrl: PROMO_VIDEO_URL_AR,
+      uploadDate: "2026-08-08",
+      duration: "PT1M43S",
+      inLanguage: "ar",
+    },
+  ],
+};
 
 const copy = {
   en: {
@@ -456,9 +483,13 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
             </div>
 
             <div className="p-4 sm:p-6 lg:p-8">
+              <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(VIDEO_SCHEMA) }}
+              />
               <div
                 id="demo-video-card"
-                className="relative aspect-video overflow-hidden rounded-[1.5rem] border bg-black shadow-inner"
+                className="relative aspect-video overflow-hidden rounded-[1.5rem] border bg-white"
                 style={{ borderColor: C.tealLt }}
               >
                 <video
