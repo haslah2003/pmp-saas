@@ -149,6 +149,7 @@ const copy = {
     },
     footer: {
       by: "by",
+      refund: "Refund Policy",
       line1: "© 2026 PMP Expert Tutor by AiTuTorZ. Content sourced exclusively from PMBOK® Guide 7th Edition (2021), PMBOK® Guide 8th Edition, PMP Examination Content Outline — January 2021 & 2026.",
       line2: "PMP® is a registered mark of Project Management Institute, Inc. This platform is not affiliated with or endorsed by PMI.",
       product: "Product",
@@ -264,6 +265,7 @@ const copy = {
     },
     footer: {
       by: "بواسطة",
+      refund: "سياسة الاسترداد",
       line1: "© 2026 PMP Expert Tutor بواسطة AiTuTorZ. المحتوى مستمد حصريًا من دليل PMBOK® الإصدار السابع (2021)، دليل PMBOK® الإصدار الثامن، ومحتوى اختبار PMP — يناير 2021 و2026.",
       line2: "PMP® علامة تجارية مسجلة لمعهد إدارة المشاريع (PMI). هذه المنصة غير تابعة لـ PMI ولا معتمدة منه.",
       product: "المنتج",
@@ -682,9 +684,10 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
             </div>
             <div>
               <div style={{fontSize:12,fontWeight:700,color:C.dark,marginBottom:10,textTransform:"uppercase",letterSpacing:"0.08em"}}>{t.footer.legal}</div>
-              <a href="#" style={{display:"block",fontSize:13,color:C.muted,textDecoration:"none",padding:"3px 0"}}>{t.footer.privacy}</a>
-              <a href="#" style={{display:"block",fontSize:13,color:C.muted,textDecoration:"none",padding:"3px 0"}}>{t.footer.terms}</a>
-              <a href="#" style={{display:"block",fontSize:13,color:C.muted,textDecoration:"none",padding:"3px 0"}}>{t.footer.contact}</a>
+              <a href="/privacy" style={{display:"block",fontSize:13,color:C.muted,textDecoration:"none",padding:"3px 0"}}>{t.footer.privacy}</a>
+              <a href="/terms" style={{display:"block",fontSize:13,color:C.muted,textDecoration:"none",padding:"3px 0"}}>{t.footer.terms}</a>
+              <a href="/refund" style={{display:"block",fontSize:13,color:C.muted,textDecoration:"none",padding:"3px 0"}}>{t.footer.refund}</a>
+              <a href="mailto:support@pmpeco.com" style={{display:"block",fontSize:13,color:C.muted,textDecoration:"none",padding:"3px 0"}}>{t.footer.contact}</a>
             </div>
           </div>
         </div>
