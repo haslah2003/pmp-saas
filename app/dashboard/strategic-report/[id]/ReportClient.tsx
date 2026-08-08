@@ -2,6 +2,47 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useLanguage } from '@/lib/i18n/language-context'
+
+// ─── Bilingual report chrome (labels/UI only; report body is already localized) ─
+const SC = {
+  en: {
+    dashboard: 'Dashboard', practice: 'Practice', strategicReport: 'Strategic Report',
+    copyLink: 'Copy Link', copied: 'Copied!', print: 'Print / PDF',
+    learner: 'Learner', date: 'Date', cycleScore: 'Cycle Score', readiness: 'Readiness',
+    baselineTrend: 'Baseline established. Future saved strategic reports will create a real readiness trend.',
+    ptsAcross: 'pts across saved strategic reports',
+    reportElementTip: 'This report element is part of the saved strategic cycle snapshot and can be revisited from this direct link.',
+    velocityTitle: 'PMP Readiness Velocity', viewTrendLogic: 'View readiness trend logic',
+    readinessScore: 'Readiness Score', readinessScoreHint: 'Overall strategic readiness across this 15-question cycle.',
+    mindsetGap: 'PMP Mindset Gap', contextualJudgment: 'PMP Contextual Judgment',
+    contextualHint: 'Measures how well you adapt PMP decisions to delivery approach, stakeholder context, risk, governance, and value impact.',
+    domainProficiency: 'Domain Proficiency', evidenceTitle: 'Evidence From Weak Answers',
+    selected: 'Selected', correctLbl: 'Correct', evidenceSuffix: 'Evidence',
+    actionPath: 'Recommended Action Path', actionPathSub: 'These actions convert the report into targeted learning interventions.',
+    action: 'Action', startPractice: 'Start targeted practice →',
+    actionTip: 'This action is generated from your saved cycle evidence. Future versions will route directly to a pre-filtered drill.',
+    focus: 'Focus', focusTip: 'This focus item connects the saved report to your selected PMP pathway and should guide your next practice cycle.',
+  },
+  ar: {
+    dashboard: 'لوحة التحكم', practice: 'التدريب', strategicReport: 'التقرير الاستراتيجي',
+    copyLink: 'نسخ الرابط', copied: 'تم النسخ!', print: 'طباعة / PDF',
+    learner: 'المتعلّم', date: 'التاريخ', cycleScore: 'نتيجة الدورة', readiness: 'الجاهزية',
+    baselineTrend: 'تم تحديد خط الأساس. ستُنشئ التقارير الاستراتيجية المحفوظة مستقبلًا اتجاهًا حقيقيًا للجاهزية.',
+    ptsAcross: 'نقطة عبر التقارير الاستراتيجية المحفوظة',
+    reportElementTip: 'هذا العنصر جزء من لقطة الدورة الاستراتيجية المحفوظة ويمكن الرجوع إليه من هذا الرابط المباشر.',
+    velocityTitle: 'سرعة الجاهزية لـ PMP', viewTrendLogic: 'عرض منطق اتجاه الجاهزية',
+    readinessScore: 'نتيجة الجاهزية', readinessScoreHint: 'الجاهزية الاستراتيجية الإجمالية عبر دورة الـ 15 سؤالًا هذه.',
+    mindsetGap: 'فجوة عقلية PMP', contextualJudgment: 'الحُكم السياقي لـ PMP',
+    contextualHint: 'يقيس مدى قدرتك على تكييف قرارات PMP مع نهج التسليم وسياق أصحاب المصلحة والمخاطر والحوكمة وأثر القيمة.',
+    domainProficiency: 'الكفاءة حسب المجال', evidenceTitle: 'أدلّة من الإجابات الضعيفة',
+    selected: 'المُختار', correctLbl: 'الصحيح', evidenceSuffix: 'دليل',
+    actionPath: 'مسار الإجراءات الموصى به', actionPathSub: 'تُحوّل هذه الإجراءات التقرير إلى تدخّلات تعلّم مُوجّهة.',
+    action: 'إجراء', startPractice: 'ابدأ التدريب المُوجّه ←',
+    actionTip: 'هذا الإجراء مُولَّد من أدلّة دورتك المحفوظة. ستوجّه النسخ المستقبلية مباشرةً إلى تدريب مُصفّى مسبقًا.',
+    focus: 'تركيز', focusTip: 'يربط عنصر التركيز هذا التقرير المحفوظ بمسار PMP الذي اخترته وينبغي أن يوجّه دورة تدريبك القادمة.',
+  },
+}
 
 interface StrategicReport {
   report_title: string
@@ -108,7 +149,8 @@ function InsightBubble({
   )
 }
 
-function ScoreGauge({ score }: { score: number }) {
+function ScoreGauge({ score, isAr }: { score: number; isAr: boolean }) {
+  const S = SC[isAr ? 'ar' : 'en']
   const radius = 52
   const circumference = 2 * Math.PI * radius
   const progress = (Math.max(0, Math.min(score, 100)) / 100) * circumference
@@ -131,7 +173,7 @@ function ScoreGauge({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-3xl font-black text-[#322057]">{score}%</span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Readiness</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">{S.readiness}</span>
       </div>
     </div>
   )
@@ -139,9 +181,12 @@ function ScoreGauge({ score }: { score: number }) {
 
 function MiniTrend({
   history,
+  isAr,
 }: {
   history: { readiness_score: number | null; overall_pct: number | null; created_at: string }[]
+  isAr: boolean
 }) {
+  const S = SC[isAr ? 'ar' : 'en']
   const scores = history
     .map((item) => item.readiness_score ?? item.overall_pct)
     .filter((score): score is number => typeof score === 'number')
@@ -149,7 +194,7 @@ function MiniTrend({
   if (scores.length < 2) {
     return (
       <div className="h-16 rounded-2xl border border-dashed border-violet-200 bg-white/70 px-4 py-3 text-xs text-gray-500">
-        Baseline established. Future saved strategic reports will create a real readiness trend.
+        {S.baselineTrend}
       </div>
     )
   }
@@ -181,24 +226,26 @@ function MiniTrend({
       </svg>
       <p className="mt-1 text-xs font-semibold text-gray-600">
         {delta >= 0 ? '+' : ''}
-        {delta} pts across saved strategic reports
+        {delta} {S.ptsAcross}
       </p>
     </div>
   )
 }
 
 export default function StrategicReportClient({ reportRow, learnerName, reportHistory }: Props) {
+  const { isArabic: isAr, dir } = useLanguage()
+  const S = SC[isAr ? 'ar' : 'en']
   const report = reportRow.report_payload
   const [copied, setCopied] = useState(false)
 
   const reportDate = useMemo(
     () =>
-      new Date(reportRow.created_at).toLocaleDateString('en-US', {
+      new Date(reportRow.created_at).toLocaleDateString(isAr ? 'ar' : 'en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
       }),
-    [reportRow.created_at]
+    [reportRow.created_at, isAr]
   )
 
   const reportUrl = typeof window !== 'undefined' ? window.location.href : ''
@@ -211,19 +258,19 @@ export default function StrategicReportClient({ reportRow, learnerName, reportHi
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF9]">
+    <div dir={dir} className="min-h-screen bg-[#FAFAF9]">
       <div className="sticky top-0 z-20 border-b border-gray-100 bg-white/90 px-6 py-3 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Link href="/dashboard" className="hover:text-gray-800">
-              Dashboard
+              {S.dashboard}
             </Link>
             <span>/</span>
             <Link href="/dashboard/practice" className="hover:text-gray-800">
-              Practice
+              {S.practice}
             </Link>
             <span>/</span>
-            <span className="font-semibold text-gray-800">Strategic Report</span>
+            <span className="font-semibold text-gray-800">{S.strategicReport}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -231,13 +278,13 @@ export default function StrategicReportClient({ reportRow, learnerName, reportHi
               onClick={copyReportLink}
               className="rounded-xl border border-violet-200 bg-white px-4 py-2 text-sm font-semibold text-violet-700 hover:bg-violet-50"
             >
-              {copied ? 'Copied!' : 'Copy Link'}
+              {copied ? S.copied : S.copyLink}
             </button>
             <button
               onClick={() => window.print()}
               className="rounded-xl bg-[#1AB0A2] px-4 py-2 text-sm font-semibold text-white hover:bg-[#148F84]"
             >
-              Print / PDF
+              {S.print}
             </button>
           </div>
         </div>
@@ -266,9 +313,9 @@ export default function StrategicReportClient({ reportRow, learnerName, reportHi
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 {[
-                  { label: 'Learner', value: learnerName },
-                  { label: 'Date', value: reportDate },
-                  { label: 'Cycle Score', value: `${report.overall_score.correct}/${report.overall_score.total}` },
+                  { label: S.learner, value: learnerName },
+                  { label: S.date, value: reportDate },
+                  { label: S.cycleScore, value: `${report.overall_score.correct}/${report.overall_score.total}` },
                 ].map((item) => (
                   <InsightBubble
                     key={item.label}
@@ -280,7 +327,7 @@ export default function StrategicReportClient({ reportRow, learnerName, reportHi
                       </span>
                     }
                   >
-                    This report element is part of the saved strategic cycle snapshot and can be revisited from this direct link.
+                    {S.reportElementTip}
                   </InsightBubble>
                 ))}
               </div>
@@ -288,17 +335,17 @@ export default function StrategicReportClient({ reportRow, learnerName, reportHi
 
             <div className="rounded-[1.5rem] border border-white/80 bg-white/70 p-5 shadow-sm">
               <div className="flex items-center justify-center">
-                <ScoreGauge score={report.readiness_score} />
+                <ScoreGauge score={report.readiness_score} isAr={isAr} />
               </div>
               <p className="mt-3 text-center text-sm font-bold text-[#322057]">{report.readiness_label}</p>
               <InsightBubble
-                title="PMP Readiness Velocity"
-                label={<p className="mt-4 cursor-help text-center text-xs font-semibold text-[#5E6078] underline decoration-dotted">View readiness trend logic</p>}
+                title={S.velocityTitle}
+                label={<p className="mt-4 cursor-help text-center text-xs font-semibold text-[#5E6078] underline decoration-dotted">{S.viewTrendLogic}</p>}
               >
                 {report.growth_velocity.insight}
               </InsightBubble>
               <div className="mt-4">
-                <MiniTrend history={reportHistory} />
+                <MiniTrend history={reportHistory} isAr={isAr} />
               </div>
             </div>
           </div>
@@ -307,24 +354,24 @@ export default function StrategicReportClient({ reportRow, learnerName, reportHi
         <section className="grid gap-4 lg:grid-cols-4">
           {[
             {
-              label: 'Readiness Score',
+              label: S.readinessScore,
               value: `${report.readiness_score}%`,
-              hint: 'Overall strategic readiness across this 15-question cycle.',
+              hint: S.readinessScoreHint,
             },
             {
-              label: 'PMP Readiness Velocity',
+              label: S.velocityTitle,
               value: report.growth_velocity.value,
               hint: report.growth_velocity.insight,
             },
             {
-              label: 'PMP Mindset Gap',
+              label: S.mindsetGap,
               value: report.mindset_gap.label,
               hint: report.mindset_gap.insight,
             },
             {
-              label: 'PMP Contextual Judgment',
+              label: S.contextualJudgment,
               value: report.tailoring_decisiveness.score === null ? '—' : `${report.tailoring_decisiveness.score}%`,
-              hint: 'Measures how well you adapt PMP decisions to delivery approach, stakeholder context, risk, governance, and value impact.',
+              hint: S.contextualHint,
             },
           ].map((metric) => (
             <InsightBubble
@@ -344,7 +391,7 @@ export default function StrategicReportClient({ reportRow, learnerName, reportHi
 
         <section className="grid gap-5 lg:grid-cols-3">
           <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-2">
-            <h2 className="mb-5 text-lg font-black text-[#1A1430]">Domain Proficiency</h2>
+            <h2 className="mb-5 text-lg font-black text-[#1A1430]">{S.domainProficiency}</h2>
             <div className="space-y-5">
               {report.domain_proficiency.map((domain) => (
                 <InsightBubble
@@ -379,14 +426,14 @@ export default function StrategicReportClient({ reportRow, learnerName, reportHi
               {report.route_focus.items.map((item, index) => (
                 <InsightBubble
                   key={index}
-                  title={`Focus ${index + 1}`}
+                  title={`${S.focus} ${index + 1}`}
                   label={
                     <div className="cursor-help rounded-2xl bg-[#FAFAF9] px-4 py-3 text-sm font-medium text-gray-700">
                       {item}
                     </div>
                   }
                 >
-                  This focus item connects the saved report to your selected PMP pathway and should guide your next practice cycle.
+                  {S.focusTip}
                 </InsightBubble>
               ))}
             </div>
@@ -395,18 +442,18 @@ export default function StrategicReportClient({ reportRow, learnerName, reportHi
 
         {report.evidence.length > 0 && (
           <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-black text-[#1A1430]">Evidence From Weak Answers</h2>
+            <h2 className="mb-4 text-lg font-black text-[#1A1430]">{S.evidenceTitle}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               {report.evidence.map((item, index) => (
                 <InsightBubble
                   key={index}
-                  title={`${item.domain} Evidence`}
+                  title={`${item.domain} ${S.evidenceSuffix}`}
                   label={
                     <div className="h-full cursor-help rounded-2xl border border-gray-100 bg-[#FAFAF9] p-4">
                       <p className="mb-2 text-xs font-bold text-[#5B2D91]">{item.domain}</p>
                       <p className="line-clamp-3 text-sm font-semibold text-gray-900">{item.question}</p>
                       <p className="mt-2 text-xs text-gray-500">
-                        Selected: {item.selected} · Correct: {item.correct}
+                        {S.selected}: {item.selected} · {S.correctLbl}: {item.correct}
                       </p>
                       <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-gray-600">{item.lesson}</p>
                     </div>
@@ -422,9 +469,9 @@ export default function StrategicReportClient({ reportRow, learnerName, reportHi
         <section className="rounded-3xl border border-violet-100 bg-[#F0EAFA] p-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-black text-[#322057]">Recommended Action Path</h2>
+              <h2 className="text-lg font-black text-[#322057]">{S.actionPath}</h2>
               <p className="mt-1 text-sm text-violet-700">
-                These actions convert the report into targeted learning interventions.
+                {S.actionPathSub}
               </p>
             </div>
           </div>
@@ -433,19 +480,19 @@ export default function StrategicReportClient({ reportRow, learnerName, reportHi
             {report.next_actions.map((action, index) => (
               <InsightBubble
                 key={index}
-                title={`Action ${index + 1}`}
+                title={`${S.action} ${index + 1}`}
                 label={
                   <Link
                     href="/dashboard/practice"
                     className="block h-full rounded-2xl border border-violet-200 bg-white p-5 text-left shadow-sm hover:border-[#1AB0A2] hover:bg-white"
                   >
-                    <p className="text-xs font-bold uppercase tracking-wider text-[#1AB0A2]">Action {index + 1}</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#1AB0A2]">{S.action} {index + 1}</p>
                     <p className="mt-2 text-sm font-semibold leading-relaxed text-[#322057]">{action}</p>
-                    <p className="mt-4 text-xs font-bold text-violet-600">Start targeted practice →</p>
+                    <p className="mt-4 text-xs font-bold text-violet-600">{S.startPractice}</p>
                   </Link>
                 }
               >
-                This action is generated from your saved cycle evidence. Future versions will route directly to a pre-filtered drill.
+                {S.actionTip}
               </InsightBubble>
             ))}
           </div>

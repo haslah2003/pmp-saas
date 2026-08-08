@@ -2,6 +2,54 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n/language-context';
+
+// ─── Bilingual report chrome (labels/UI only; report body is already localized) ─
+const RC = {
+  en: {
+    dashboard: 'Dashboard', practice: 'Practice', guruReport: 'Guru Report', print: '🖨️ Print / PDF',
+    title: 'Guru Progress Report', persona: 'PMP Expert Tutor · Master Chen Wei',
+    learner: 'Learner', date: 'Date', session: 'Session', framework: 'Framework',
+    execSummary: 'Executive Summary', correct: 'correct', blocks: 'blocks', scoreTrend: 'Score Trend', overall: 'Overall',
+    benchDash: 'Strategic Benchmark Dashboard', howToRead: 'ℹ️ How to read',
+    howToReadTip: 'Hover over any marker on the bars for details about each benchmark.',
+    overallPerf: 'Overall Performance', yourScore: 'Your Score', commAvg: 'Community Average',
+    targetPro: 'Target Professional', eliteLevel: 'Elite Level',
+    you: 'You', comm: 'Comm.', target: 'Target', elite: 'Elite', toTarget: 'to target',
+    gapTitle: 'Gap Analysis — Path to Exam Ready', highPriority: 'High Priority', medPriority: 'Medium Priority',
+    gapToTarget: 'gap to target', sessions: 'session', sessionsPl: 'sessions', needed: 'needed',
+    strengths: '✅ Identified Strengths', growth: '🎯 Growth Areas & Recommendations', openInTutor: '→ Open in AiTuTorZ',
+    domainBreakdown: 'Domain Performance Breakdown', examReady: 'Exam Ready', almostThere: 'Almost There', needsFocus: 'Needs Focus',
+    nextSession: '📋 Next Session Recommendations', wisdom: "💡 Master's Wisdom",
+    persona2: '— Master Chen Wei, PMP Expert Tutor', reportId: 'Report ID', generated: 'Generated', platform: 'PMP Expert Tutor Platform',
+    backToPractice: '← Back to Practice',
+    priHigh: 'high', priMedium: 'medium', priLow: 'low',
+  },
+  ar: {
+    dashboard: 'لوحة التحكم', practice: 'التدريب', guruReport: 'تقرير المعلّم', print: '🖨️ طباعة / PDF',
+    title: 'تقرير التقدّم من المعلّم', persona: 'PMP Expert Tutor · المعلّم تشِن واي',
+    learner: 'المتعلّم', date: 'التاريخ', session: 'الجلسة', framework: 'الإطار',
+    execSummary: 'الملخّص التنفيذي', correct: 'صحيحة', blocks: 'مجموعات', scoreTrend: 'اتجاه النتيجة', overall: 'الإجمالي',
+    benchDash: 'لوحة المقارنة المرجعية الاستراتيجية', howToRead: 'ℹ️ كيفية القراءة',
+    howToReadTip: 'مرّر المؤشّر فوق أي علامة على الأشرطة لعرض تفاصيل كل معيار.',
+    overallPerf: 'الأداء الإجمالي', yourScore: 'نتيجتك', commAvg: 'متوسّط المجتمع',
+    targetPro: 'المستوى المهني المستهدف', eliteLevel: 'المستوى المتميّز',
+    you: 'أنت', comm: 'المجتمع', target: 'المستهدف', elite: 'متميّز', toTarget: 'للهدف',
+    gapTitle: 'تحليل الفجوات — الطريق إلى الجاهزية للاختبار', highPriority: 'أولوية عالية', medPriority: 'أولوية متوسّطة',
+    gapToTarget: 'الفجوة إلى الهدف', sessions: 'جلسة', sessionsPl: 'جلسات', needed: 'مطلوبة',
+    strengths: '✅ نقاط القوّة', growth: '🎯 مجالات التطوّر والتوصيات', openInTutor: 'افتح في AiTuTorZ ←',
+    domainBreakdown: 'تفصيل الأداء حسب المجال', examReady: 'جاهز للاختبار', almostThere: 'أوشكت', needsFocus: 'يحتاج تركيزًا',
+    nextSession: '📋 توصيات الجلسة القادمة', wisdom: '💡 حكمة المعلّم',
+    persona2: '— المعلّم تشِن واي، PMP Expert Tutor', reportId: 'معرّف التقرير', generated: 'تم الإنشاء', platform: 'منصّة PMP Expert Tutor',
+    backToPractice: 'العودة إلى التدريب →',
+    priHigh: 'عالية', priMedium: 'متوسّطة', priLow: 'منخفضة',
+  },
+};
+
+const DOMAIN_AR: Record<string, string> = {
+  'People': 'الأفراد', 'Process': 'العمليات', 'Business Environment': 'بيئة الأعمال',
+};
+const domainLabel = (name: string, isAr: boolean) => (isAr ? DOMAIN_AR[name] || name : name);
 
 // ─── Types ────────────────────────────────────────────────────────
 interface GuruReportData {
@@ -104,30 +152,34 @@ function Marker({ pct, color, label, emoji, tipText, position }: {
 }
 
 // ─── Benchmark Bar ────────────────────────────────────────────────
-function BenchmarkBar({ label, yourScore, communityAvg, targetPro, aspirational, domain }: {
-  label: string; yourScore: number; communityAvg: number; targetPro: number; aspirational: number; domain: string;
+function BenchmarkBar({ label, yourScore, communityAvg, targetPro, aspirational, domain, isAr }: {
+  label: string; yourScore: number; communityAvg: number; targetPro: number; aspirational: number; domain: string; isAr: boolean;
 }) {
+  const L = RC[isAr ? 'ar' : 'en'];
   const gap = targetPro - yourScore;
-  const sessionsNeeded = gap > 0 ? Math.ceil(gap / 5) : 0;
+  const n = gap > 0 ? Math.ceil(gap / 5) : 0;
+  const gapTip = gap > 0
+    ? (isAr
+        ? `تحتاج إلى ${gap}% إضافية للوصول إلى المستوى المهني المستهدف. حوالي ${n} جلسة تدريب مركّزة على ${domain} ستغلق هذه الفجوة.`
+        : `You need ${gap}% more to reach the Target Professional level. Approximately ${n} focused practice session${n > 1 ? 's' : ''} on ${domain} would close this gap.`)
+    : (isAr
+        ? `ممتاز! لقد تجاوزت المعيار المهني المستهدف في ${domain}.`
+        : `Excellent! You've exceeded the Target Professional benchmark in ${domain}.`);
 
   return (
     <div className="mb-10 last:mb-0">
       <div className="flex items-center justify-between mb-2">
         <h4 className="text-sm font-bold text-gray-800">{label}</h4>
-        <Tooltip content={
-          gap > 0
-            ? `You need ${gap}% more to reach the Target Professional level. Approximately ${sessionsNeeded} focused practice session${sessionsNeeded > 1 ? 's' : ''} on ${domain} would close this gap.`
-            : `Excellent! You've exceeded the Target Professional benchmark in ${domain}.`
-        }>
+        <Tooltip content={gapTip}>
           <span className={`text-sm font-bold ${yourScore >= targetPro ? 'text-emerald-600' : 'text-amber-600'}`}>
             {yourScore}%
-            {gap > 0 && <span className="text-xs font-normal text-gray-400 ml-1">({gap}% to target)</span>}
+            {gap > 0 && <span className="text-xs font-normal text-gray-400 mx-1">({gap}% {L.toTarget})</span>}
           </span>
         </Tooltip>
       </div>
 
-      {/* Bar container */}
-      <div className="relative h-8 bg-violet-50 rounded-full border border-violet-100">
+      {/* Bar container — forced LTR so the 0–100% chart never flips in Arabic */}
+      <div dir="ltr" className="relative h-8 bg-violet-50 rounded-full border border-violet-100">
         {/* Your Score fill */}
         <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out"
           style={{ width: `${Math.min(yourScore, 100)}%`, background: 'linear-gradient(90deg, #ede9fe, #c4b5fd)' }} />
@@ -136,41 +188,47 @@ function BenchmarkBar({ label, yourScore, communityAvg, targetPro, aspirational,
         <div className="absolute top-1/2 z-20"
           style={{ left: `${Math.min(Math.max(yourScore - 3, 3), 92)}%`, transform: 'translateY(-50%)' }}>
           <span className="text-[10px] font-bold text-violet-700 bg-white/90 px-2 py-0.5 rounded-full border border-violet-200 shadow-sm whitespace-nowrap">
-            You: {yourScore}%
+            {L.you}: {yourScore}%
           </span>
         </div>
 
         {/* Community Average */}
         {communityAvg > 0 && (
-          <Marker pct={communityAvg} color="#818cf8" label="Comm." emoji="👥"
-            tipText={`Community Average: ${communityAvg}%. This is the mean score of all learners on the PMP Expert Tutor Platform using the same study materials.`}
+          <Marker pct={communityAvg} color="#818cf8" label={L.comm} emoji="👥"
+            tipText={isAr
+              ? `متوسّط المجتمع: ${communityAvg}%. هذا هو متوسّط نتائج جميع المتعلّمين على منصّة PMP Expert Tutor باستخدام نفس المواد الدراسية.`
+              : `Community Average: ${communityAvg}%. This is the mean score of all learners on the PMP Expert Tutor Platform using the same study materials.`}
             position="top" />
         )}
 
         {/* Target Professional */}
-        <Marker pct={targetPro} color="#34d399" label="Target" emoji="🎯"
-          tipText={`Target Professional: ${targetPro}%. This benchmark represents the performance level statistically correlated with PMP exam success.`}
+        <Marker pct={targetPro} color="#34d399" label={L.target} emoji="🎯"
+          tipText={isAr
+            ? `المستوى المهني المستهدف: ${targetPro}%. يمثّل هذا المعيار مستوى الأداء المرتبط إحصائيًا بالنجاح في اختبار PMP.`
+            : `Target Professional: ${targetPro}%. This benchmark represents the performance level statistically correlated with PMP exam success.`}
           position="bottom" />
 
         {/* Aspirational */}
-        <Marker pct={aspirational} color="#a78bfa" label="Elite" emoji="⭐"
-          tipText={`Aspirational Level: ${aspirational}%. This elite benchmark represents mastery-level performance beyond exam requirements.`}
+        <Marker pct={aspirational} color="#a78bfa" label={L.elite} emoji="⭐"
+          tipText={isAr
+            ? `المستوى المتميّز: ${aspirational}%. يمثّل هذا المعيار أداءً على مستوى الإتقان يتجاوز متطلّبات الاختبار.`
+            : `Aspirational Level: ${aspirational}%. This elite benchmark represents mastery-level performance beyond exam requirements.`}
           position="top" />
       </div>
 
       {/* Print legend */}
-      <div className="hidden print:flex items-center gap-4 mt-1 text-[8px] text-gray-500">
-        <span>■ Your Score: {yourScore}%</span>
-        <span className="text-violet-600">│ Community: {communityAvg}%</span>
-        <span className="text-emerald-700">│ Target: {targetPro}%</span>
-        <span className="text-purple-600">│ Elite: {aspirational}%</span>
+      <div dir="ltr" className="hidden print:flex items-center gap-4 mt-1 text-[8px] text-gray-500">
+        <span>■ {L.yourScore}: {yourScore}%</span>
+        <span className="text-violet-600">│ {L.comm}: {communityAvg}%</span>
+        <span className="text-emerald-700">│ {L.target}: {targetPro}%</span>
+        <span className="text-purple-600">│ {L.elite}: {aspirational}%</span>
       </div>
     </div>
   );
 }
 
 // ─── Score Gauge ──────────────────────────────────────────────────
-function ScoreGauge({ score }: { score: number }) {
+function ScoreGauge({ score, isAr }: { score: number; isAr: boolean }) {
   const radius = 60;
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
@@ -186,14 +244,14 @@ function ScoreGauge({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-3xl font-black" style={{ color }}>{score}%</span>
-        <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Overall</span>
+        <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{RC[isAr ? 'ar' : 'en'].overall}</span>
       </div>
     </div>
   );
 }
 
 // ─── Trend Sparkline ─────────────────────────────────────────────
-function TrendSparkline({ scores }: { scores: { overall_score: number; created_at: string }[] }) {
+function TrendSparkline({ scores, isAr }: { scores: { overall_score: number; created_at: string }[]; isAr: boolean }) {
   if (scores.length < 2) return null;
   const max = Math.max(...scores.map(s => s.overall_score), 100);
   const min = Math.min(...scores.map(s => s.overall_score), 0);
@@ -206,9 +264,9 @@ function TrendSparkline({ scores }: { scores: { overall_score: number; created_a
   }).join(' ');
 
   return (
-    <Tooltip content={`Your score trend over ${scores.length} sessions. ${
-      scores[scores.length - 1].overall_score > scores[0].overall_score ? 'You are improving!' : 'Keep practicing to see improvement.'
-    }`}>
+    <Tooltip content={isAr
+      ? `اتجاه نتيجتك عبر ${scores.length} جلسات. ${scores[scores.length - 1].overall_score > scores[0].overall_score ? 'أنت تتحسّن!' : 'واصل التدريب لملاحظة التحسّن.'}`
+      : `Your score trend over ${scores.length} sessions. ${scores[scores.length - 1].overall_score > scores[0].overall_score ? 'You are improving!' : 'Keep practicing to see improvement.'}`}>
       <svg viewBox={`0 0 ${w} ${h}`} className="w-40 h-10">
         <polyline fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} />
         {scores.map((s, i) => {
@@ -223,10 +281,12 @@ function TrendSparkline({ scores }: { scores: { overall_score: number; created_a
 
 // ─── Main Report ─────────────────────────────────────────────────
 export default function ReportClient({ report, learnerName, sessionNumber, targetBenchmarks, aspirationalBenchmarks, historicalScores }: Props) {
+  const { isArabic: isAr, dir } = useLanguage();
+  const L = RC[isAr ? 'ar' : 'en'];
   const [expandedStrength, setExpandedStrength] = useState<number | null>(null);
   const [expandedGrowth, setExpandedGrowth] = useState<number | null>(null);
 
-  const reportDate = new Date(report.created_at).toLocaleDateString('en-US', {
+  const reportDate = new Date(report.created_at).toLocaleDateString(isAr ? 'ar' : 'en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
 
@@ -249,20 +309,20 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
         }
       `}</style>
 
-      <div id="guru-report" className="min-h-screen bg-gray-50">
+      <div id="guru-report" dir={dir} className="min-h-screen bg-gray-50">
         {/* Nav */}
         <div className="bg-white border-b border-gray-100 px-6 py-3 sticky top-0 z-20 no-print">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-gray-400">
-              <Link href="/dashboard" className="hover:text-gray-700">Dashboard</Link>
+              <Link href="/dashboard" className="hover:text-gray-700">{L.dashboard}</Link>
               <span>/</span>
-              <Link href="/dashboard/practice" className="hover:text-gray-700">Practice</Link>
+              <Link href="/dashboard/practice" className="hover:text-gray-700">{L.practice}</Link>
               <span>/</span>
-              <span className="text-gray-700 font-medium">Guru Report</span>
+              <span className="text-gray-700 font-medium">{L.guruReport}</span>
             </div>
             <button onClick={handlePrint}
               className="text-sm bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-xl font-semibold transition-all flex items-center gap-2">
-              🖨️ Print / PDF
+              {L.print}
             </button>
           </div>
         </div>
@@ -275,8 +335,8 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
               <div className="flex items-center gap-3 mb-1">
                 <span className="text-3xl">🧙‍♂️</span>
                 <div>
-                  <h1 className="text-2xl font-black tracking-tight">Guru Progress Report</h1>
-                  <p className="text-white/70 text-sm">PMP Expert Tutor · Master Chen Wei</p>
+                  <h1 className="text-2xl font-black tracking-tight">{L.title}</h1>
+                  <p className="text-white/70 text-sm">{L.persona}</p>
                 </div>
               </div>
               {report.badges && (
@@ -288,10 +348,10 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
             </div>
             <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
-                { label: 'Learner', value: learnerName },
-                { label: 'Date', value: reportDate.split(',').slice(0, 2).join(',') },
-                { label: 'Session', value: `#${sessionNumber}` },
-                { label: 'Framework', value: report.framework === 'pmbok8' ? 'PMBOK 8' : 'PMBOK 7' },
+                { label: L.learner, value: learnerName },
+                { label: L.date, value: reportDate.split(',').slice(0, 2).join(',') },
+                { label: L.session, value: `#${sessionNumber}` },
+                { label: L.framework, value: report.framework === 'pmbok8' ? 'PMBOK 8' : 'PMBOK 7' },
               ].map(item => (
                 <div key={item.label} className="bg-white/15 rounded-xl px-4 py-3 backdrop-blur-sm">
                   <p className="text-white/60 text-[10px] uppercase tracking-wider font-medium">{item.label}</p>
@@ -304,31 +364,35 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
           {/* 2. Executive Summary */}
           <div className="bg-white rounded-2xl border border-violet-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 bg-violet-50/50 border-b border-violet-100">
-              <h2 className="text-sm font-bold text-violet-800 uppercase tracking-wider">Executive Summary</h2>
+              <h2 className="text-sm font-bold text-violet-800 uppercase tracking-wider">{L.execSummary}</h2>
             </div>
             <div className="p-6">
               <div className="flex flex-col sm:flex-row items-center gap-8">
-                <ScoreGauge score={report.overall_score} />
+                <ScoreGauge score={report.overall_score} isAr={isAr} />
                 <div className="flex-1">
                   <div className="bg-amber-50/70 border border-amber-100 rounded-xl p-4 mb-4">
                     <p className="text-amber-800 text-sm leading-relaxed italic">&ldquo;{report.greeting}&rdquo;</p>
                   </div>
                   <p className="text-gray-600 text-sm leading-relaxed">{report.overall_assessment}</p>
                   <div className="flex items-center gap-4 mt-4">
-                    <Tooltip content={`You answered ${report.overall_correct} out of ${report.overall_total} questions correctly.`}>
+                    <Tooltip content={isAr
+                      ? `أجبت عن ${report.overall_correct} من أصل ${report.overall_total} سؤالًا بشكل صحيح.`
+                      : `You answered ${report.overall_correct} out of ${report.overall_total} questions correctly.`}>
                       <span className="text-xs bg-violet-50 text-violet-600 border border-violet-100 px-3 py-1.5 rounded-full font-medium cursor-help">
-                        📊 {report.overall_correct}/{report.overall_total} correct
+                        📊 {report.overall_correct}/{report.overall_total} {L.correct}
                       </span>
                     </Tooltip>
-                    <Tooltip content={`You have completed ${report.blocks_completed} practice blocks (${report.blocks_completed * 5} total questions).`}>
+                    <Tooltip content={isAr
+                      ? `لقد أكملت ${report.blocks_completed} مجموعة تدريب (${report.blocks_completed * 5} سؤالًا إجمالًا).`
+                      : `You have completed ${report.blocks_completed} practice blocks (${report.blocks_completed * 5} total questions).`}>
                       <span className="text-xs bg-violet-50 text-violet-600 border border-violet-100 px-3 py-1.5 rounded-full font-medium cursor-help">
-                        📝 {report.blocks_completed} blocks
+                        📝 {report.blocks_completed} {L.blocks}
                       </span>
                     </Tooltip>
                     {historicalScores.length >= 2 && (
                       <div className="ml-auto">
-                        <p className="text-[10px] text-gray-400 mb-1">Score Trend</p>
-                        <TrendSparkline scores={historicalScores} />
+                        <p className="text-[10px] text-gray-400 mb-1">{L.scoreTrend}</p>
+                        <TrendSparkline scores={historicalScores} isAr={isAr} />
                       </div>
                     )}
                   </div>
@@ -340,45 +404,45 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
           {/* 3. Benchmark Dashboard */}
           <div className="bg-white rounded-2xl border border-violet-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 bg-violet-50/50 border-b border-violet-100 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-violet-800 uppercase tracking-wider">Strategic Benchmark Dashboard</h2>
-              <Tooltip content="Hover over any marker on the bars for details about each benchmark.">
-                <span className="text-xs text-violet-500 font-medium cursor-help">ℹ️ How to read</span>
+              <h2 className="text-sm font-bold text-violet-800 uppercase tracking-wider">{L.benchDash}</h2>
+              <Tooltip content={L.howToReadTip}>
+                <span className="text-xs text-violet-500 font-medium cursor-help">{L.howToRead}</span>
               </Tooltip>
             </div>
             <div className="p-6 pt-12 pb-10">
-              <BenchmarkBar label="Overall Performance" yourScore={report.overall_score}
+              <BenchmarkBar label={L.overallPerf} yourScore={report.overall_score}
                 communityAvg={report.community_avg?.overall || 0}
                 targetPro={targetBenchmarks['overall'] || 80}
                 aspirational={aspirationalBenchmarks['overall'] || 95}
-                domain="all domains" />
+                domain={isAr ? 'جميع المجالات' : 'all domains'} isAr={isAr} />
 
               {domainEntries.map(([domain, vals]) => {
                 const score = vals.total > 0 ? Math.round((vals.correct / vals.total) * 100) : 0;
                 return (
-                  <BenchmarkBar key={domain} label={vals.displayName} yourScore={score}
+                  <BenchmarkBar key={domain} label={domainLabel(vals.displayName, isAr)} yourScore={score}
                     communityAvg={report.community_avg?.[domain] || report.community_avg?.[domain.toLowerCase()] || 0}
                     targetPro={targetBenchmarks[domain] || targetBenchmarks[domain.toLowerCase()] || 80}
                     aspirational={aspirationalBenchmarks[domain] || aspirationalBenchmarks[domain.toLowerCase()] || 95}
-                    domain={vals.displayName} />
+                    domain={domainLabel(vals.displayName, isAr)} isAr={isAr} />
                 );
               })}
 
               <div className="flex flex-wrap items-center gap-5 mt-4 pt-4 border-t border-violet-50 text-xs text-gray-500">
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded-sm bg-violet-200" />
-                  <span>Your Score</span>
+                  <span>{L.yourScore}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-violet-400" />
-                  <span>Community Average</span>
+                  <span>{L.commAvg}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-emerald-400" />
-                  <span>Target Professional</span>
+                  <span>{L.targetPro}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-purple-300" />
-                  <span>Elite Level</span>
+                  <span>{L.eliteLevel}</span>
                 </div>
               </div>
             </div>
@@ -391,7 +455,7 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
           }) && (
             <div className="bg-white rounded-2xl border border-amber-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-amber-50/50 border-b border-amber-100">
-                <h2 className="text-sm font-bold text-amber-800 uppercase tracking-wider">Gap Analysis — Path to Exam Ready</h2>
+                <h2 className="text-sm font-bold text-amber-800 uppercase tracking-wider">{L.gapTitle}</h2>
               </div>
               <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {domainEntries.map(([domain, vals]) => {
@@ -401,19 +465,21 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
                   if (gap <= 0) return null;
                   const sessions = Math.ceil(gap / 5);
                   return (
-                    <Tooltip key={domain} content={`Each session of 15 questions typically improves accuracy by 3-5%. At your current pace, ${sessions} targeted session${sessions > 1 ? 's' : ''} should close this gap.`}>
+                    <Tooltip key={domain} content={isAr
+                      ? `كل جلسة من 15 سؤالًا تُحسّن الدقة عادةً بنسبة 3-5%. بوتيرتك الحالية، ${sessions} جلسة مركّزة ينبغي أن تُغلق هذه الفجوة.`
+                      : `Each session of 15 questions typically improves accuracy by 3-5%. At your current pace, ${sessions} targeted session${sessions > 1 ? 's' : ''} should close this gap.`}>
                       <div className="border border-amber-100 bg-amber-50/50 rounded-xl p-4 cursor-help hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="text-sm font-bold text-gray-800">{vals.displayName}</h4>
+                          <h4 className="text-sm font-bold text-gray-800">{domainLabel(vals.displayName, isAr)}</h4>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
                             gap > 15 ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-amber-50 text-amber-600 border border-amber-100'
-                          }`}>{gap > 15 ? 'High Priority' : 'Medium Priority'}</span>
+                          }`}>{gap > 15 ? L.highPriority : L.medPriority}</span>
                         </div>
                         <div className="flex items-end gap-1">
                           <span className="text-2xl font-black text-amber-600">{gap}%</span>
-                          <span className="text-xs text-amber-500 mb-1">gap to target</span>
+                          <span className="text-xs text-amber-500 mb-1">{L.gapToTarget}</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">~{sessions} session{sessions > 1 ? 's' : ''} needed · {score}% → {target}%</p>
+                        <p className="text-xs text-gray-500 mt-2">~{sessions} {isAr ? L.sessions : (sessions > 1 ? L.sessionsPl : L.sessions)} {L.needed} · {score}% {isAr ? '←' : '→'} {target}%</p>
                       </div>
                     </Tooltip>
                   );
@@ -426,7 +492,7 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
           {report.strengths?.length > 0 && (
             <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-emerald-50/50 border-b border-emerald-100">
-                <h2 className="text-sm font-bold text-emerald-800 uppercase tracking-wider">✅ Identified Strengths</h2>
+                <h2 className="text-sm font-bold text-emerald-800 uppercase tracking-wider">{L.strengths}</h2>
               </div>
               <div className="p-6 space-y-3">
                 {report.strengths.map((s, i) => (
@@ -448,7 +514,7 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
           {report.growth_areas?.length > 0 && (
             <div className="bg-white rounded-2xl border border-amber-100 shadow-sm overflow-hidden print-break">
               <div className="px-6 py-4 bg-amber-50/50 border-b border-amber-100">
-                <h2 className="text-sm font-bold text-amber-800 uppercase tracking-wider">🎯 Growth Areas & Recommendations</h2>
+                <h2 className="text-sm font-bold text-amber-800 uppercase tracking-wider">{L.growth}</h2>
               </div>
               <div className="p-6 space-y-3">
                 {report.growth_areas.map((g, i) => (
@@ -459,7 +525,7 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
                       <div className="flex items-center gap-2">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
                           g.priority === 'high' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-orange-50 text-orange-600 border border-orange-100'
-                        }`}>{g.priority}</span>
+                        }`}>{isAr ? (g.priority === 'high' ? L.priHigh : g.priority === 'medium' ? L.priMedium : L.priLow) : g.priority}</span>
                         <span className="text-amber-400 text-xs">{expandedGrowth === i ? '▲' : '▼'}</span>
                       </div>
                     </div>
@@ -468,7 +534,7 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
                         <p className="text-sm text-amber-700 leading-relaxed">{g.guidance}</p>
                         <Link href={"/dashboard/tutor?q=" + encodeURIComponent("Help me improve in " + g.domain_link + " for the PMP exam")}
                           className="inline-flex items-center gap-1 text-xs text-violet-600 font-semibold mt-2 hover:underline no-print">
-                          → Open in AiTuTorZ
+                          {L.openInTutor}
                         </Link>
                       </div>
                     )}
@@ -484,24 +550,26 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
           {/* 7. Domain Breakdown */}
           <div className="bg-white rounded-2xl border border-violet-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 bg-violet-50/50 border-b border-violet-100">
-              <h2 className="text-sm font-bold text-violet-800 uppercase tracking-wider">Domain Performance Breakdown</h2>
+              <h2 className="text-sm font-bold text-violet-800 uppercase tracking-wider">{L.domainBreakdown}</h2>
             </div>
             <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
               {domainEntries.map(([domain, vals]) => {
                 const score = vals.total > 0 ? Math.round((vals.correct / vals.total) * 100) : 0;
                 const target = targetBenchmarks[domain] || targetBenchmarks[domain.toLowerCase()] || 80;
-                const status = score >= target ? 'Exam Ready' : score >= target - 10 ? 'Almost There' : 'Needs Focus';
+                const status = score >= target ? L.examReady : score >= target - 10 ? L.almostThere : L.needsFocus;
                 const statusColor = score >= target
                   ? 'text-emerald-600 bg-emerald-50/50 border-emerald-100'
                   : score >= target - 10
                   ? 'text-amber-600 bg-amber-50/50 border-amber-100'
                   : 'text-red-500 bg-red-50/50 border-red-100';
                 return (
-                  <Tooltip key={domain} content={`${vals.displayName}: ${vals.correct}/${vals.total} correct (${score}%). Target: ${target}%.`}>
+                  <Tooltip key={domain} content={isAr
+                    ? `${domainLabel(vals.displayName, isAr)}: ${vals.correct}/${vals.total} صحيحة (${score}%). الهدف: ${target}%.`
+                    : `${vals.displayName}: ${vals.correct}/${vals.total} correct (${score}%). Target: ${target}%.`}>
                     <div className={`rounded-xl border p-5 text-center cursor-help hover:shadow-md transition-shadow ${statusColor}`}>
-                      <p className="text-xs font-bold uppercase tracking-wider mb-2 opacity-70">{vals.displayName}</p>
+                      <p className="text-xs font-bold uppercase tracking-wider mb-2 opacity-70">{domainLabel(vals.displayName, isAr)}</p>
                       <p className="text-3xl font-black">{score}%</p>
-                      <p className="text-xs mt-1 opacity-60">{vals.correct}/{vals.total} correct</p>
+                      <p className="text-xs mt-1 opacity-60">{vals.correct}/{vals.total} {L.correct}</p>
                       <p className="text-xs font-bold mt-2 uppercase">{status}</p>
                     </div>
                   </Tooltip>
@@ -513,11 +581,11 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
           {/* 8. Next Steps & Wisdom */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl border border-violet-100 shadow-sm p-6">
-              <h3 className="text-sm font-bold text-violet-800 uppercase tracking-wider mb-3">📋 Next Session Recommendations</h3>
+              <h3 className="text-sm font-bold text-violet-800 uppercase tracking-wider mb-3">{L.nextSession}</h3>
               <p className="text-sm text-gray-600 leading-relaxed">{report.next_session_focus}</p>
             </div>
             <div className="bg-violet-50/50 rounded-2xl border border-violet-100 p-6">
-              <h3 className="text-sm font-bold text-violet-700 uppercase tracking-wider mb-3">💡 Master&apos;s Wisdom</h3>
+              <h3 className="text-sm font-bold text-violet-700 uppercase tracking-wider mb-3">{L.wisdom}</h3>
               <p className="text-sm text-violet-800 leading-relaxed italic">&ldquo;{report.wisdom_quote}&rdquo;</p>
             </div>
           </div>
@@ -525,14 +593,14 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
           {/* 9. Footer */}
           <div className="bg-gradient-to-r from-violet-300 to-purple-400 rounded-2xl p-6 text-center text-white">
             <p className="text-sm leading-relaxed mb-2">{report.confidence_message}</p>
-            <p className="text-white/70 text-xs">— Master Chen Wei, PMP Expert Tutor</p>
+            <p className="text-white/70 text-xs">{L.persona2}</p>
             <div className="mt-4 pt-4 border-t border-white/20 text-[10px] text-white/50">
-              Report ID: {report.id.slice(0, 8)} · Generated {reportDate} · PMP Expert Tutor Platform · pmpeco.com
+              {L.reportId}: {report.id.slice(0, 8)} · {L.generated} {reportDate} · {L.platform} · pmpeco.com
             </div>
           </div>
 
           <div className="text-center no-print">
-            <Link href="/dashboard/practice" className="text-sm text-violet-500 hover:underline font-medium">← Back to Practice</Link>
+            <Link href="/dashboard/practice" className="text-sm text-violet-500 hover:underline font-medium">{L.backToPractice}</Link>
           </div>
         </div>
       </div>
