@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const SITE_URL = "https://pmpeco.com";
 const TITLE = "PMP Expert Tutor — AI-Powered PMP Exam Prep";
@@ -48,7 +50,11 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: LOCALE_INIT }} />
       </head>
-      <body className="bg-gray-50 text-gray-900 antialiased">{children}</body>
+      <body className="bg-gray-50 text-gray-900 antialiased">
+        {children}
+        <Analytics />
+        <SpeedInsights />
+      </body>
     </html>
   );
 }
