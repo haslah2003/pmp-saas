@@ -305,6 +305,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
   const [annual, setAnnual] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
   const [heroImg, setHeroImg] = useState<string>("/hero.png");
+  const [promoPlaying, setPromoPlaying] = useState(false);
   useEffect(() => { const h = () => setScrolled(window.scrollY > 40); window.addEventListener("scroll", h); return () => window.removeEventListener("scroll", h); }, []);
   useEffect(() => {
     fetch("/api/branding", { cache: "no-store" })
@@ -492,18 +493,50 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
                 className="relative aspect-video overflow-hidden rounded-[1.5rem] border bg-white"
                 style={{ borderColor: C.tealLt }}
               >
-                <video
-                  key={isAr && PROMO_VIDEO_URL_AR ? "promo-ar" : "promo-en"}
-                  className="absolute inset-0 h-full w-full object-cover"
-                  controls
-                  preload="none"
-                  playsInline
-                  poster={isAr && PROMO_POSTER_AR ? PROMO_POSTER_AR : PROMO_POSTER_EN}
-                  aria-label={isAr ? "فيديو تعريفي لمنصة PMP AiTutorZ" : "PMP AiTutorZ platform intro video"}
-                >
-                  <source src={isAr && PROMO_VIDEO_URL_AR ? PROMO_VIDEO_URL_AR : PROMO_VIDEO_URL_EN} type="video/mp4" />
-                  {isAr ? "متصفحك لا يدعم تشغيل الفيديو." : "Your browser does not support the video tag."}
-                </video>
+                {promoPlaying ? (
+                  <video
+                    key={isAr && PROMO_VIDEO_URL_AR ? "promo-ar" : "promo-en"}
+                    className="absolute inset-0 h-full w-full object-cover"
+                    src={isAr && PROMO_VIDEO_URL_AR ? PROMO_VIDEO_URL_AR : PROMO_VIDEO_URL_EN}
+                    poster={isAr && PROMO_POSTER_AR ? PROMO_POSTER_AR : PROMO_POSTER_EN}
+                    controls
+                    autoPlay
+                    playsInline
+                    aria-label={isAr ? "فيديو تعريفي لمنصة PMP AiTutorZ" : "PMP AiTutorZ platform intro video"}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setPromoPlaying(true)}
+                    aria-label={isAr ? "تشغيل الفيديو التعريفي لمنصة PMP AiTutorZ" : "Play the PMP AiTutorZ intro video"}
+                    className="group absolute inset-0 h-full w-full cursor-pointer border-0 p-0"
+                    style={{
+                      backgroundImage: `url("${isAr && PROMO_POSTER_AR ? PROMO_POSTER_AR : PROMO_POSTER_EN}")`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  >
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <span
+                        className="transition-transform duration-200 group-hover:scale-110"
+                        style={{
+                          width: 78,
+                          height: 78,
+                          borderRadius: "50%",
+                          background: C.teal,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "0 10px 30px rgba(0,0,0,0.28)",
+                        }}
+                      >
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff" style={{ marginLeft: 4 }}>
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </span>
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
