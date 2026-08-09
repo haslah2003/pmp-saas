@@ -1,4 +1,4 @@
-# 🎯 PMP Expert Tutor — SaaS Platform
+# 🎯 PMPeco — SaaS Platform
 
 AI-powered PMP exam preparation grounded exclusively in **PMBOK Guide 7th Edition (2021)** and **PMP ECO January 2021**.
 
@@ -108,7 +108,7 @@ pmp-saas/
 ## Phases
 
 - **Phase 1** ✅ Foundation: Project setup, auth, DB, API routes, PayPal
-- **Phase 2**: Port full PMP Expert Tutor UI (Mind Map, Course, Practice, Exam, Tutor)
+- **Phase 2**: Port full PMPeco UI (Mind Map, Course, Practice, Exam, Tutor)
 - **Phase 3**: Study Studio (Notes, Flashcards, Quiz) + ElevenLabs audio
 - **Phase 4**: Paywall middleware, rate limiting, usage tracking
 - **Phase 5**: Landing page polish, SEO, analytics
@@ -116,4 +116,4 @@ pmp-saas/
 
 ## License
 
-Proprietary — Tamkeen Group / AiTutorZ
+Proprietary — PMPeco (Tamkeen Group)

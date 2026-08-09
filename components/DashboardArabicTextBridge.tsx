@@ -42,9 +42,9 @@ const EXACT: Record<string, string> = {
 
   // Tutor
   'Clear chat': 'مسح المحادثة',
-  'PMP AiTuTorZ': 'معلّم PMP الذكي',
+  'Zane': 'Zane',
   'Grounded in PMBOK 7 · ECO 2021 · Rita Mulcahy': 'مبني على PMBOK 7 · ECO 2021 · Rita Mulcahy',
-  'Welcome to your PMP AiTuTorZ 👋': 'مرحبًا بك في معلّم PMP الذكي 👋',
+  'Welcome to Zane 👋': 'مرحبًا بك مع Zane 👋',
   "I'm grounded in PMBOK 7 + ECO 2021 + Rita Mulcahy and ready to help you pass the PMP exam.": 'أنا مبني على PMBOK 7 + ECO 2021 + Rita Mulcahy وجاهز لمساعدتك على اجتياز اختبار PMP.',
   'I can help you': 'يمكنني مساعدتك في',
   'Understand concepts from all key exam sources 📚': 'فهم المفاهيم من جميع مصادر الاختبار الرئيسية 📚',

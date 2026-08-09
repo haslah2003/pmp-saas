@@ -8,7 +8,7 @@ import { useLanguage } from '@/lib/i18n/language-context';
 const RC = {
   en: {
     dashboard: 'Dashboard', practice: 'Practice', guruReport: 'Guru Report', print: '🖨️ Print / PDF',
-    title: 'Guru Progress Report', persona: 'PMP Expert Tutor · Master Chen Wei',
+    title: 'Guru Progress Report', persona: 'PMPeco · Zane',
     learner: 'Learner', date: 'Date', session: 'Session', framework: 'Framework',
     execSummary: 'Executive Summary', correct: 'correct', blocks: 'blocks', scoreTrend: 'Score Trend', overall: 'Overall',
     benchDash: 'Strategic Benchmark Dashboard', howToRead: 'ℹ️ How to read',
@@ -18,16 +18,16 @@ const RC = {
     you: 'You', comm: 'Comm.', target: 'Target', elite: 'Elite', toTarget: 'to target',
     gapTitle: 'Gap Analysis — Path to Exam Ready', highPriority: 'High Priority', medPriority: 'Medium Priority',
     gapToTarget: 'gap to target', sessions: 'session', sessionsPl: 'sessions', needed: 'needed',
-    strengths: '✅ Identified Strengths', growth: '🎯 Growth Areas & Recommendations', openInTutor: '→ Open in AiTuTorZ',
+    strengths: '✅ Identified Strengths', growth: '🎯 Growth Areas & Recommendations', openInTutor: '→ Open in Zane',
     domainBreakdown: 'Domain Performance Breakdown', examReady: 'Exam Ready', almostThere: 'Almost There', needsFocus: 'Needs Focus',
     nextSession: '📋 Next Session Recommendations', wisdom: "💡 Master's Wisdom",
-    persona2: '— Master Chen Wei, PMP Expert Tutor', reportId: 'Report ID', generated: 'Generated', platform: 'PMP Expert Tutor Platform',
+    persona2: '— Zane, PMPeco', reportId: 'Report ID', generated: 'Generated', platform: 'PMPeco Platform',
     backToPractice: '← Back to Practice',
     priHigh: 'high', priMedium: 'medium', priLow: 'low',
   },
   ar: {
     dashboard: 'لوحة التحكم', practice: 'التدريب', guruReport: 'تقرير المعلّم', print: '🖨️ طباعة / PDF',
-    title: 'تقرير التقدّم من المعلّم', persona: 'PMP Expert Tutor · المعلّم تشِن واي',
+    title: 'تقرير التقدّم من المعلّم', persona: 'PMPeco · Zane',
     learner: 'المتعلّم', date: 'التاريخ', session: 'الجلسة', framework: 'الإطار',
     execSummary: 'الملخّص التنفيذي', correct: 'صحيحة', blocks: 'مجموعات', scoreTrend: 'اتجاه النتيجة', overall: 'الإجمالي',
     benchDash: 'لوحة المقارنة المرجعية الاستراتيجية', howToRead: 'ℹ️ كيفية القراءة',
@@ -37,10 +37,10 @@ const RC = {
     you: 'أنت', comm: 'المجتمع', target: 'المستهدف', elite: 'متميّز', toTarget: 'للهدف',
     gapTitle: 'تحليل الفجوات — الطريق إلى الجاهزية للاختبار', highPriority: 'أولوية عالية', medPriority: 'أولوية متوسّطة',
     gapToTarget: 'الفجوة إلى الهدف', sessions: 'جلسة', sessionsPl: 'جلسات', needed: 'مطلوبة',
-    strengths: '✅ نقاط القوّة', growth: '🎯 مجالات التطوّر والتوصيات', openInTutor: 'افتح في AiTuTorZ ←',
+    strengths: '✅ نقاط القوّة', growth: '🎯 مجالات التطوّر والتوصيات', openInTutor: 'افتح في Zane ←',
     domainBreakdown: 'تفصيل الأداء حسب المجال', examReady: 'جاهز للاختبار', almostThere: 'أوشكت', needsFocus: 'يحتاج تركيزًا',
     nextSession: '📋 توصيات الجلسة القادمة', wisdom: '💡 حكمة المعلّم',
-    persona2: '— المعلّم تشِن واي، PMP Expert Tutor', reportId: 'معرّف التقرير', generated: 'تم الإنشاء', platform: 'منصّة PMP Expert Tutor',
+    persona2: '— Zane، PMPeco', reportId: 'معرّف التقرير', generated: 'تم الإنشاء', platform: 'منصّة PMPeco',
     backToPractice: 'العودة إلى التدريب →',
     priHigh: 'عالية', priMedium: 'متوسّطة', priLow: 'منخفضة',
   },
@@ -196,8 +196,8 @@ function BenchmarkBar({ label, yourScore, communityAvg, targetPro, aspirational,
         {communityAvg > 0 && (
           <Marker pct={communityAvg} color="#818cf8" label={L.comm} emoji="👥"
             tipText={isAr
-              ? `متوسّط المجتمع: ${communityAvg}%. هذا هو متوسّط نتائج جميع المتعلّمين على منصّة PMP Expert Tutor باستخدام نفس المواد الدراسية.`
-              : `Community Average: ${communityAvg}%. This is the mean score of all learners on the PMP Expert Tutor Platform using the same study materials.`}
+              ? `متوسّط المجتمع: ${communityAvg}%. هذا هو متوسّط نتائج جميع المتعلّمين على منصّة PMPeco باستخدام نفس المواد الدراسية.`
+              : `Community Average: ${communityAvg}%. This is the mean score of all learners on the PMPeco Platform using the same study materials.`}
             position="top" />
         )}
 

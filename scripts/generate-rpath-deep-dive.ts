@@ -248,7 +248,7 @@ function buildUserPrompt({
   const headings = requiredHeadings(framework, language).join('\n');
 
   if (language === 'ar') {
-    return `أنشئ محتوى Learn canonical عميق ومكتمل للدرس التالي في منصة PMP AiTutorZ.
+    return `أنشئ محتوى Learn canonical عميق ومكتمل للدرس التالي في منصة PMPeco.
 
 المسار: ${trackName}
 المرحلة: ${phaseTitle}
@@ -276,7 +276,7 @@ ${headings}
 [END_OF_DEEP_DIVE]`;
   }
 
-  return `Generate complete canonical Learn-step deep-dive content for this PMP AiTutorZ lesson.
+  return `Generate complete canonical Learn-step deep-dive content for this PMPeco lesson.
 
 Track: ${trackName}
 Phase: ${phaseTitle}

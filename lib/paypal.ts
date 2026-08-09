@@ -56,7 +56,7 @@ export async function createPayPalOrder(
       purchase_units: [
         {
           reference_id: `${planId}-${period}`,
-          description: `PMP Expert Tutor — ${planId} plan (${period})`,
+          description: `PMPeco — ${planId} plan (${period})`,
           custom_id: JSON.stringify({ userId, planId, period }),
           amount: {
             currency_code: 'USD',
@@ -65,7 +65,7 @@ export async function createPayPalOrder(
         },
       ],
       application_context: {
-        brand_name: 'PMP Expert Tutor',
+        brand_name: 'PMPeco',
         locale: 'en-US',
         user_action: 'PAY_NOW',
         return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/payment/success`,

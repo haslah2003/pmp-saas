@@ -53,7 +53,7 @@ export default function CompanionChat() {
     } else if (path.includes('/practice')) {
       ctx.page = 'practice'
     } else if (path.includes('/tutor')) {
-      ctx.page = 'AiTuTorZ'
+      ctx.page = 'Zane'
     } else if (path.includes('/progress')) {
       ctx.page = 'progress dashboard'
     } else if (path.includes('/mindmap')) {
@@ -156,7 +156,7 @@ export default function CompanionChat() {
 
   // Check if last assistant message suggests escalation
   const lastAssistantMsg = messages.filter(m => m.role === 'assistant').slice(-1)[0]
-  const showEscalate = lastAssistantMsg?.content?.includes('AiTuTorZ') || false
+  const showEscalate = lastAssistantMsg?.content?.includes('Zane') || false
 
   return (
     <>
@@ -242,7 +242,7 @@ export default function CompanionChat() {
                 onClick={() => escalateToTutor(messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '')}
                 className="w-full text-xs bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 py-2 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5"
               >
-                {isArabic ? '🚀 افتح في AiTuTorZ لإجابة مفصّلة' : '🚀 Open in AiTuTorZ for detailed answer'}
+                {isArabic ? '🚀 افتح في Zane لإجابة مفصّلة' : '🚀 Open in Zane for detailed answer'}
               </button>
             </div>
           )}
@@ -289,7 +289,7 @@ export default function CompanionChat() {
             </div>
             <p className="text-[9px] text-gray-400 text-center mt-1.5">
               {isArabic ? 'إجابات سريعة · للمساعدة المفصّلة استخدم ' : 'Quick answers · For detailed help, use '}
-              <a href="/dashboard/tutor" className="text-violet-500 hover:underline">AiTuTorZ</a>
+              <a href="/dashboard/tutor" className="text-violet-500 hover:underline">Zane</a>
             </p>
           </div>
         </div>

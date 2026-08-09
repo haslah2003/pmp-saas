@@ -1,5 +1,5 @@
 -- =============================================================================
--- PMP Expert Tutor — Phase 2 Database Schema
+-- PMPeco — Phase 2 Database Schema
 -- Supabase (PostgreSQL) Migration
 -- =============================================================================
 
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- ── Branding Config (singleton for admin) ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS branding_config (
   id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
-  site_name TEXT NOT NULL DEFAULT 'PMP Expert Tutor',
+  site_name TEXT NOT NULL DEFAULT 'PMPeco',
   logo_url TEXT DEFAULT '',
   favicon_url TEXT DEFAULT '',
   primary_color TEXT NOT NULL DEFAULT '#0F172A',

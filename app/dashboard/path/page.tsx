@@ -24,7 +24,7 @@ import { CrossSellPanel } from '@/components/path/CrossSellPanel';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'My PMP Path — AiTutorZ',
+  title: 'My PMP Path — PMPeco',
   description: 'Your personalized journey to PMP certification.',
 };
 

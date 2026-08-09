@@ -111,7 +111,7 @@ function welcomeMessage(framework: ExamPathId, isArabic: boolean) {
 ما أفضل إجراء تريد تحديده الآن؟`;
     }
 
-    return `👋 **مرحبًا بك في معلّم PMP الذكي!**
+    return `👋 **مرحبًا بك في Zane!**
 
 أنا مبني على **${grounding} + Rita Mulcahy** وجاهز لمساعدتك على اجتياز اختبار PMP.
 
@@ -138,7 +138,7 @@ I can help you:
 What is the best next action you want to clarify?`;
   }
 
-  return `👋 **Welcome to your PMP AiTuTorZ!**
+  return `👋 **Welcome to Zane — your PMP mentor!**
 
 I'm grounded in **${grounding} + Rita Mulcahy** and ready to help you pass the PMP exam.
 
@@ -403,7 +403,7 @@ useEffect(() => {
             AI
           </div>
           <div>
-            <h1 className="font-semibold text-gray-900 text-sm">{dt('PMP AiTuTorZ', isArabic)}</h1>
+            <h1 className="font-semibold text-gray-900 text-sm">{dt('Zane', isArabic)}</h1>
             <p className="text-xs text-gray-500">
               {dt('Grounded in', isArabic)} {frameworkGrounding(framework)} · Rita Mulcahy
             </p>

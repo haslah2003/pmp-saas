@@ -44,7 +44,7 @@ export default async function ReceiptPage({ params }: Props) {
       learnerName={profile?.full_name || profile?.email || 'Learner'}
       learnerEmail={profile?.email || ''}
       logoUrl={branding?.logo_url || null}
-      siteName={branding?.site_name || 'PMP Expert Tutor'}
+      siteName={branding?.site_name || 'PMPeco'}
     />
   )
 }

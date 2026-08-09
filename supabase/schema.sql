@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- PMP Expert Tutor — Database Schema
+-- PMPeco — Database Schema
 -- Run this in Supabase SQL Editor after creating your project
 -- ═══════════════════════════════════════════════════════════════
 

@@ -269,8 +269,8 @@ export default function DemoPage() {
               </h1>
               <p className="mt-4 max-w-3xl text-[15px] leading-7 text-slate-600">
                 {isAr
-                  ? "أجب عن ثلاثة أسئلة PMP واقعية، واحصل على نتيجة تشخيصية مصغرة، وعاين كيف يرشدك سباق PMP AiTutorZ الكامل نحو جاهزية الاختبار."
-                  : "Answer three realistic PMP questions, receive a mini diagnostic, and preview how the full PMP AiTutorZ sprint guides your exam readiness."}
+                  ? "أجب عن ثلاثة أسئلة PMP واقعية، واحصل على نتيجة تشخيصية مصغرة، وعاين كيف يرشدك سباق PMPeco الكامل نحو جاهزية الاختبار."
+                  : "Answer three realistic PMP questions, receive a mini diagnostic, and preview how the full PMPeco sprint guides your exam readiness."}
               </p>
             </div>
 

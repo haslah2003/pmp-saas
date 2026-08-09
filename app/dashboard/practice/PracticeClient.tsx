@@ -633,7 +633,7 @@ function GuruPanel({
           <div className="flex items-center gap-2">
             <span className="text-2xl">🧙‍♂️</span>
             <div>
-              <p className="text-white font-bold text-sm">Master Chen Wei</p>
+              <p className="text-white font-bold text-sm">Zane</p>
               <p className="text-amber-100 text-xs">
                 {isArabic ? 'مرشدك الشخصي لاختبار PMP' : 'Your Personal PMP Guru'}
               </p>
@@ -692,8 +692,8 @@ function GuruPanel({
             </p>
             <p className="text-xs text-gray-400 mb-2">
               {isArabic
-                ? 'اضغط على أي مجال لفتح تدريب موجّه في AiTuTorZ'
-                : 'Click any area to load targeted practice in AiTuTorZ'}
+                ? 'اضغط على أي مجال لفتح تدريب موجّه في Zane'
+                : 'Click any area to load targeted practice in Zane'}
             </p>
 
             <div className="space-y-2">
@@ -718,7 +718,7 @@ function GuruPanel({
 
                   <p className="text-red-700 text-xs mt-0.5">{area.guidance}</p>
                   <p className="text-violet-600 text-xs mt-1 group-hover:underline">
-                    {isArabic ? '← فتح في AiTuTorZ' : '→ Open in AiTuTorZ'}
+                    {isArabic ? '← فتح في Zane' : '→ Open in Zane'}
                   </p>
                 </button>
               ))}

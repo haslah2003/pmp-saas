@@ -1,13 +1,13 @@
 /**
  * lib/pmp-path/colors.ts
- * AiTutorZ brand palette + per-phase theme tokens for My PMP Path.
+ * PMPeco brand palette + per-phase theme tokens for My PMP Path.
  * All values are hex literals so the components work with any Tailwind config.
  */
 
 import type { PhaseId, TrackId } from './types';
 
 // ============================================================
-// AiTutorZ brand palette
+// PMPeco brand palette
 // ============================================================
 
 export const BRAND = {

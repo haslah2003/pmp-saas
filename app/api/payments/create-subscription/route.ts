@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
         email_address: user.email,
       },
       application_context: {
-        brand_name: "PMP Expert Tutor",
+        brand_name: "PMPeco",
         locale: "en-US",
         shipping_preference: "NO_SHIPPING",
         user_action: "SUBSCRIBE_NOW",

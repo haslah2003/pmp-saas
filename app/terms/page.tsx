@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import LegalShell from "@/components/LegalShell";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — PMP Expert Tutor",
-  description: "The terms governing your use of PMP Expert Tutor (pmpeco.com).",
+  title: "Terms of Service — PMPeco",
+  description: "The terms governing your use of PMPeco (pmpeco.com).",
   alternates: { canonical: "https://pmpeco.com/terms" },
 };
 
@@ -11,14 +11,14 @@ export default function TermsPage() {
   return (
     <LegalShell title="Terms of Service" updated="8 August 2026">
       <p>
-        These Terms of Service (&quot;Terms&quot;) govern your access to and use of PMP Expert Tutor,
+        These Terms of Service (&quot;Terms&quot;) govern your access to and use of PMPeco,
         available at <a href="https://pmpeco.com">pmpeco.com</a> (the &quot;Service&quot;). By creating
         an account or using the Service, you agree to these Terms. If you do not agree, do not use the Service.
       </p>
 
       <h2>1. The Service</h2>
       <p>
-        PMP Expert Tutor is an online, bilingual (English and Arabic) preparation platform for the Project
+        PMPeco is an online, bilingual (English and Arabic) preparation platform for the Project
         Management Professional (PMP)&reg; examination, aligned with the PMBOK&reg; Guide (8th Edition) and the
         PMP Examination Content Outline (ECO 2026). It provides study content, practice questions, an exam
         simulator, AI-assisted explanations, and readiness tracking.
@@ -27,7 +27,7 @@ export default function TermsPage() {
       <h2>2. No affiliation with PMI; no guarantee</h2>
       <p>
         PMP, PMBOK, and the PMI logo are registered marks of the Project Management Institute, Inc.
-        (&quot;PMI&quot;). PMP Expert Tutor is an independent study aid and is <strong>not affiliated with,
+        (&quot;PMI&quot;). PMPeco is an independent study aid and is <strong>not affiliated with,
         authorized, endorsed by, or sponsored by PMI</strong>. We do not guarantee that you will pass the PMP
         exam; outcomes depend on your own preparation and performance. AI-generated explanations are provided
         for study support and may contain errors — always verify against official sources.

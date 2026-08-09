@@ -35,14 +35,14 @@ const AR: Record<string, string> = {
   'ECO 2021 Tasks': 'مهام ECO 2021',
   'Export PDF': 'تصدير PDF',
   'Reset': 'إعادة ضبط',
-  'Click any node to expand the map and open the AiTutorZ explanation panel.': 'انقر على أي عقدة لتوسيع الخريطة وفتح لوحة شرح AiTutorZ.',
-  'AiTutorZ Explanation': 'شرح AiTutorZ',
+  'Click any node to expand the map and open the Zane explanation panel.': 'انقر على أي عقدة لتوسيع الخريطة وفتح لوحة شرح Zane.',
+  'Zane Explanation': 'شرح Zane',
   'Select a concept': 'اختر مفهومًا',
   'Choose any node in the map to see the intro, advanced analysis, and related frameworks.': 'اختر أي عقدة في الخريطة لعرض المقدمة والتحليل المتقدم والنماذج المرتبطة.',
   'Short intro': 'مقدمة قصيرة',
   'Advanced Analysis': 'تحليل متقدم',
   'Additional Frameworks & Models': 'أطر ونماذج إضافية',
-  'AiTutorZ Deep Dive': 'تحليل AiTutorZ المتعمق',
+  'Zane Deep Dive': 'تحليل Zane المتعمق',
   'Generating focused explanation...': 'جاري توليد شرح مركز...',
   'Ask a follow-up question...': 'اكتب سؤال متابعة...',
   'Ask': 'اسأل',
@@ -418,7 +418,7 @@ function RenderText({ text, isArabic }: { text: string; isArabic: boolean }) {
         const clean = line.replace(/^#+\s*/, '').trim();
         if (!clean) return null;
 
-        if (line.startsWith('#') || /^(Short intro|Advanced Analysis|Additional Frameworks|AiTutorZ)/i.test(clean)) {
+        if (line.startsWith('#') || /^(Short intro|Advanced Analysis|Additional Frameworks|AiTutorZ|PMPeco|Zane)/i.test(clean)) {
           return <h4 key={index} className="pt-2 text-sm font-bold text-[#2b2b2f]">{clean}</h4>;
         }
 
@@ -553,7 +553,7 @@ function ExplanationPanel({
   if (!selectedNode) {
     return (
       <aside className="rounded-[2rem] border border-[#eadff0] bg-white p-6 shadow-sm">
-        <p className={`text-xs font-bold uppercase text-[#4b164c] ${isArabic ? 'tracking-normal' : 'tracking-[0.2em]'}`}>{translate('AiTutorZ Explanation', isArabic)}</p>
+        <p className={`text-xs font-bold uppercase text-[#4b164c] ${isArabic ? 'tracking-normal' : 'tracking-[0.2em]'}`}>{translate('Zane Explanation', isArabic)}</p>
         <h2 className="mt-3 text-xl font-black text-[#2b2b2f]">{translate('Select a concept', isArabic)}</h2>
         <p className="mt-3 text-sm leading-7 text-[#5f6472]">{translate('Choose any node in the map to see the intro, advanced analysis, and related frameworks.', isArabic)}</p>
       </aside>
@@ -567,7 +567,7 @@ function ExplanationPanel({
   return (
     <aside className="rounded-[2rem] border border-[#eadff0] bg-white p-5 shadow-sm lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto" dir={isArabic ? 'rtl' : 'ltr'}>
       <div className={isArabic ? 'text-right' : 'text-left'}>
-        <p className={`text-xs font-bold uppercase text-[#4b164c] ${isArabic ? 'tracking-normal' : 'tracking-[0.2em]'}`}>{translate('AiTutorZ Explanation', isArabic)}</p>
+        <p className={`text-xs font-bold uppercase text-[#4b164c] ${isArabic ? 'tracking-normal' : 'tracking-[0.2em]'}`}>{translate('Zane Explanation', isArabic)}</p>
         <h2 className="mt-2 text-xl font-black text-[#2b2b2f]">{title}</h2>
         {description && <p className="mt-2 text-sm leading-6 text-[#5f6472]">{description}</p>}
       </div>
@@ -587,7 +587,7 @@ function ExplanationPanel({
         {(isLoading || safeAiContent) && (
           <section className="rounded-2xl border border-[#eadff0] bg-[#f4edf6] p-4">
             <h3 className={`text-sm font-black text-[#2b2b2f] ${isArabic ? 'text-right' : 'text-left'}`}>
-              {translate('AiTutorZ Deep Dive', isArabic)}
+              {translate('Zane Deep Dive', isArabic)}
             </h3>
             {isLoading && !safeAiContent && (
               <p className={`mt-3 text-sm text-[#4b164c] ${isArabic ? 'text-right' : 'text-left'}`}>
@@ -1047,7 +1047,7 @@ export default function MindMapClient() {
           <p className="mt-1 text-sm text-[#5f6472]">
             {translate('Visualize and explore PMP knowledge as an expandable concept map.', isArabic)}
           </p>
-          <p className="mt-1 text-xs text-gray-400">{nodeTotal} concepts · {translate('Click any node to expand the map and open the AiTutorZ explanation panel.', isArabic)}</p>
+          <p className="mt-1 text-xs text-gray-400">{nodeTotal} concepts · {translate('Click any node to expand the map and open the Zane explanation panel.', isArabic)}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

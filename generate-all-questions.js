@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * PMP Expert Tutor — Bulk Question Generator
+ * PMPeco — Bulk Question Generator
  * 
  * Runs locally on your Mac. No Vercel timeouts.
  * Generates questions across all domains × difficulties in one run.
@@ -184,7 +184,7 @@ async function main() {
   }
 
   const totalExpected = combos.length * questionsPerBatch
-  console.log(`\n🧠 PMP Expert Tutor — Bulk Question Generator`)
+  console.log(`\n🧠 PMPeco — Bulk Question Generator`)
   console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
   console.log(`📋 Combos: ${combos.length} (${combos.map(c => `${c.domain}/${c.ui}`).join(', ')})`)
   console.log(`📝 Questions per combo: ${questionsPerBatch}`)

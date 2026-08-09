@@ -62,7 +62,7 @@ export default function ResetPasswordPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
             <span className="text-3xl">🎯</span>
-            <span className="text-2xl font-bold text-gray-800">PMP Expert Tutor</span>
+            <span className="text-2xl font-bold text-gray-800">PMPeco</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{isAr ? "تعيين كلمة مرور جديدة" : "Set New Password"}</h1>
           <p className="text-gray-500 mt-1">{isAr ? "اختر كلمة مرور قوية لحسابك" : "Choose a strong password for your account"}</p>

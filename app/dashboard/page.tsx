@@ -301,8 +301,8 @@ export default async function DashboardPage() {
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
                 {isArabic
-                  ? "يعرض AiTuTorZ الآن مسار تعلمك كرحلة موجهة: تعلّم، طبّق، تدرّب، راجع، ثم عالج نقاط الضعف."
-                  : "AiTuTorZ now treats your study as a guided mastery journey: learn, apply, practice, review, then repair weak areas."}
+                  ? "يعرض PMPeco الآن مسار تعلمك كرحلة موجهة: تعلّم، طبّق، تدرّب، راجع، ثم عالج نقاط الضعف."
+                  : "PMPeco now treats your study as a guided mastery journey: learn, apply, practice, review, then repair weak areas."}
               </p>
             </div>
 

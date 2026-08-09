@@ -50,7 +50,7 @@ export default async function AdminLayout({
     { href: "/dashboard/study-studio", icon: "💡", label: "Study Studio" },
     { href: "/dashboard/practice", icon: "✏️", label: "Practice" },
     { href: "/dashboard/exam", icon: "⏱️", label: "Mock Exam" },
-    { href: "/dashboard/tutor", icon: "🤖", label: "AiTuTorZ" },
+    { href: "/dashboard/tutor", icon: "🤖", label: "Zane" },
   ];
 
   return (

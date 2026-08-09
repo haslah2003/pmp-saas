@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import LegalShell from "@/components/LegalShell";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — PMP Expert Tutor",
-  description: "How PMP Expert Tutor (pmpeco.com) collects, uses, and protects your data.",
+  title: "Privacy Policy — PMPeco",
+  description: "How PMPeco (pmpeco.com) collects, uses, and protects your data.",
   alternates: { canonical: "https://pmpeco.com/privacy" },
 };
 
@@ -11,7 +11,7 @@ export default function PrivacyPage() {
   return (
     <LegalShell title="Privacy Policy" updated="8 August 2026">
       <p>
-        This Privacy Policy explains how PMP Expert Tutor (<a href="https://pmpeco.com">pmpeco.com</a>) collects,
+        This Privacy Policy explains how PMPeco (<a href="https://pmpeco.com">pmpeco.com</a>) collects,
         uses, and safeguards your information when you use the Service.
       </p>
 

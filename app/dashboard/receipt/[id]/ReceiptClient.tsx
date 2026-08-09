@@ -48,25 +48,25 @@ const PLAN_ICONS: Record<string, string> = {
 const RECEIPT_STRINGS = {
   en: {
     dashboard: 'Dashboard', billing: 'Billing', receipt: 'Receipt', print: '🖨️ Print / Save PDF',
-    platform: 'AiTuTorZ Learning Platform', paymentReceipt: 'Payment Receipt', paid: 'PAID',
+    platform: 'PMPeco Learning Platform', paymentReceipt: 'Payment Receipt', paid: 'PAID',
     billedTo: 'Billed To', from: 'From', description: 'Description', period: 'Period', amount: 'Amount',
     totalPaid: 'Total Paid', transactionDetails: 'Transaction Details', paymentMethod: 'Payment Method',
     dateTime: 'Date & Time', orderId: 'Order ID', transactionId: 'Transaction ID',
     planIncludes: 'Your Plan Includes', sprint: '90-Day Sprint', monthly: 'Monthly',
     defaultTagline: 'PMP (ECO 2026) preparation access',
-    footer1: (siteName: string) => `This is an official receipt from ${siteName} (AiTuTorZ Platform) · pmpeco.com`,
+    footer1: (siteName: string) => `This is an official receipt from ${siteName} (PMPeco Platform) · pmpeco.com`,
     footer2: 'For billing inquiries, contact support@pmpeco.com',
     backBilling: '← Billing', toDashboard: 'Dashboard →',
   },
   ar: {
     dashboard: 'لوحة التحكم', billing: 'الفوترة', receipt: 'الإيصال', print: '🖨️ طباعة / حفظ PDF',
-    platform: 'منصة AiTuTorZ التعليمية', paymentReceipt: 'إيصال الدفع', paid: 'مدفوع',
+    platform: 'منصة PMPeco التعليمية', paymentReceipt: 'إيصال الدفع', paid: 'مدفوع',
     billedTo: 'فاتورة إلى', from: 'من', description: 'الوصف', period: 'الفترة', amount: 'المبلغ',
     totalPaid: 'إجمالي المدفوع', transactionDetails: 'تفاصيل المعاملة', paymentMethod: 'طريقة الدفع',
     dateTime: 'التاريخ والوقت', orderId: 'رقم الطلب', transactionId: 'رقم المعاملة',
     planIncludes: 'خطتك تشمل', sprint: 'سباق 90 يومًا', monthly: 'شهري',
     defaultTagline: 'وصول الاستعداد للسباق الأخير لاختبار PMP',
-    footer1: (siteName: string) => `هذا إيصال رسمي من ${siteName} (منصة AiTuTorZ) · pmpeco.com`,
+    footer1: (siteName: string) => `هذا إيصال رسمي من ${siteName} (منصة PMPeco) · pmpeco.com`,
     footer2: 'لاستفسارات الفوترة راسلنا على support@pmpeco.com',
     backBilling: '→ الفوترة', toDashboard: '← لوحة التحكم',
   },
@@ -89,8 +89,8 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
   const selectedPlan = PLANS.find((p) => p.id === receipt.plan)
   const planTagline = (isArabic ? selectedPlan?.taglineAr : selectedPlan?.tagline) || L.defaultTagline
   const includedFeatures = (isArabic ? selectedPlan?.featuresAr : selectedPlan?.features) || (isArabic
-    ? ['📖 مكتبة الدروس', '🤖 مدرّس AiTuTorZ الذكي', '🎯 محرّك التدريب', '📊 لوحة متابعة التقدم']
-    : ['📖 Course Library', '🤖 AiTuTorZ AI Tutor', '🎯 Practice Engine', '📊 Progress Dashboard'])
+    ? ['📖 مكتبة الدروس', '🤖 مدرّس Zane الذكي', '🎯 محرّك التدريب', '📊 لوحة متابعة التقدم']
+    : ['📖 Course Library', '🤖 Zane AI Tutor', '🎯 Practice Engine', '📊 Progress Dashboard'])
   const periodLabel = receipt.plan_period === 'annual' || receipt.plan_period === 'sprint90' ? L.sprint : L.monthly
 
   const handlePrint = () => window.print()
@@ -174,7 +174,7 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
               <div className="text-right">
                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">{L.from}</p>
                 <p className="text-sm font-bold text-gray-900">{siteName}</p>
-                <p className="text-xs text-gray-500">AiTuTorZ Platform</p>
+                <p className="text-xs text-gray-500">PMPeco Platform</p>
                 <p className="text-xs text-gray-500">pmpeco.com</p>
               </div>
             </div>

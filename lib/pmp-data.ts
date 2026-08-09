@@ -1,5 +1,5 @@
 // =============================================================================
-// PMP Expert Tutor — PMBOK 7 & ECO 2021 Reference Data
+// PMPeco — PMBOK 7 & ECO 2021 Reference Data
 // LOCKED SOURCES: PMBOK 7th Edition + ECO 2021 ONLY
 // =============================================================================
 

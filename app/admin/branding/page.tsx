@@ -19,7 +19,7 @@ interface BrandingConfig {
 }
 
 const DEFAULT: BrandingConfig = {
-  site_name: 'PMP Expert Tutor', logo_url: '', favicon_url: '',
+  site_name: 'PMPeco', logo_url: '', favicon_url: '',
   primary_color: '#0F172A', secondary_color: '#1E40AF', accent_color: '#F59E0B',
   dark_mode_primary: '#0F172A', font_heading: 'Plus Jakarta Sans', font_body: 'DM Sans',
   landing_hero_image_url: '/hero.png',

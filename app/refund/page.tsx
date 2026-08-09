@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import LegalShell from "@/components/LegalShell";
 
 export const metadata: Metadata = {
-  title: "Refund Policy — PMP Expert Tutor",
-  description: "The refund terms for PMP Expert Tutor (pmpeco.com) plans.",
+  title: "Refund Policy — PMPeco",
+  description: "The refund terms for PMPeco (pmpeco.com) plans.",
   alternates: { canonical: "https://pmpeco.com/refund" },
 };
 
@@ -12,7 +12,7 @@ export default function RefundPage() {
     <LegalShell title="Refund Policy" updated="8 August 2026">
       <p>
         We want you to be confident in your purchase. This policy explains when and how you can request a refund
-        for a PMP Expert Tutor plan.
+        for a PMPeco plan.
       </p>
 
       <h2>1. 7-day money-back guarantee</h2>

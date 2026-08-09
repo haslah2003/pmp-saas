@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const SITE_URL = "https://pmpeco.com";
-const TITLE = "PMP Expert Tutor — AI-Powered PMP Exam Prep";
+const TITLE = "PMPeco — AI-Powered PMP Exam Prep";
 const DESCRIPTION =
   "Master the new PMP exam with AI-powered tutoring grounded in PMBOK Guide 8th Edition and PMP ECO 2026 — with bilingual English & Arabic content. Study notes, mock exams, practice questions, mind maps, and more.";
 
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: TITLE,
   description: DESCRIPTION,
-  applicationName: "PMP Expert Tutor",
+  applicationName: "PMPeco",
   keywords:
     "PMP, PMP exam, PMBOK 8, ECO 2026, project management certification, PMP prep, PMP practice questions, PMP Arabic, PMP بالعربية",
   alternates: {
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: SITE_URL,
-    siteName: "PMP Expert Tutor",
+    siteName: "PMPeco",
     title: TITLE,
     description: DESCRIPTION,
     locale: "en_US",

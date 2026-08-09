@@ -327,7 +327,7 @@ export function dt(value: unknown, isArabic: boolean): string {
     'Compare to BAC to determine over/under budget forecast': 'قارِن مع BAC لتحديد ما إذا كان التوقع أعلى أو أقل من الميزانية',
     'Cost Performance Index — current cost efficiency': 'مؤشر أداء التكلفة — كفاءة التكلفة الحالية',
     'Critical path activities have ZERO float. If float = 0, the activity is on the critical path. This is a frequently tested concept.': 'أنشطة المسار الحرج لها هامش صفري. إذا كان الهامش = 0، فإن النشاط يقع على المسار الحرج. هذا مفهوم يتكرر كثيرًا في الاختبار.',
-    'Deep Dive in AiTuTorZ': 'شرح معمّق في AiTuTorZ',
+    'Deep Dive with Zane': 'شرح معمّق مع Zane',
     'E = (P + 4M + O) ÷ 6': 'E = (P + 4M + O) ÷ 6',
     'E = (P + M + O) ÷ 3': 'E = (P + M + O) ÷ 3',
     'EAC = $4,479, AC = $2,800': 'EAC = $4,479، AC = $2,800',
@@ -941,7 +941,7 @@ export function dt(value: unknown, isArabic: boolean): string {
     'Ask anything about the PMP exam… (Enter to send, Shift+Enter for new line)': 'اسأل أي شيء عن اختبار PMP… اضغط Enter للإرسال و Shift+Enter لسطر جديد',
     'Grounded in': 'مستند إلى',
     'Lesson complete! Keep the momentum going.': 'اكتمل الدرس! واصل التقدم.',
-    'PMP AiTuTorZ': 'PMP AiTuTorZ',
+    'Zane': 'Zane',
     'Sources:': 'المصادر:',
     'Suggested questions': 'أسئلة مقترحة',
 

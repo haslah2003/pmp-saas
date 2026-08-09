@@ -109,7 +109,7 @@ function ArtifactCard({
             )}`}
             className="block text-center text-xs bg-violet-600 hover:bg-violet-700 text-white py-2.5 rounded-xl font-semibold transition-all"
           >
-            🤖 {dt('Deep Dive in AiTuTorZ', isArabic)}
+            🤖 {dt('Deep Dive with Zane', isArabic)}
           </Link>
         </div>
       )}

@@ -19,9 +19,9 @@ const VIDEO_SCHEMA = {
   "@graph": [
     {
       "@type": "VideoObject",
-      name: "PMP Expert Tutor — AI-Powered PMP Exam Prep (PMBOK 8 · ECO 2026)",
+      name: "PMPeco — AI-Powered PMP Exam Prep (PMBOK 8 · ECO 2026)",
       description:
-        "A focused walkthrough of PMP Expert Tutor (pmpeco.com), the AI-powered platform for the new PMP exam based on PMBOK Guide 8th Edition and the 2026 Examination Content Outline (ECO 2026). See how it previews lessons, explains concepts like a personal mentor, drills 1,200+ bilingual practice questions across every PMP question format, and tracks your readiness — in English and Arabic — so you pass with confidence.",
+        "A focused walkthrough of PMPeco (pmpeco.com), the AI-powered platform for the new PMP exam based on PMBOK Guide 8th Edition and the 2026 Examination Content Outline (ECO 2026). See how it previews lessons, explains concepts like a personal mentor, drills 1,200+ bilingual practice questions across every PMP question format, and tracks your readiness — in English and Arabic — so you pass with confidence.",
       thumbnailUrl: PROMO_POSTER_EN,
       contentUrl: PROMO_VIDEO_URL_EN,
       uploadDate: "2026-08-08",
@@ -30,9 +30,9 @@ const VIDEO_SCHEMA = {
     },
     {
       "@type": "VideoObject",
-      name: "معلّم PMP الذكي — تحضير اختبار PMP بالذكاء الاصطناعي (PMBOK 8 · ECO 2026)",
+      name: "PMPeco — تحضير اختبار PMP بالذكاء الاصطناعي (PMBOK 8 · ECO 2026)",
       description:
-        "جولة مركزة في منصة معلّم PMP الذكي (pmpeco.com)، المنصة المدعومة بالذكاء الاصطناعي للتحضير لاختبار PMP الجديد المبني على دليل PMBOK الإصدار الثامن ومخطط محتوى الاختبار 2026 (ECO 2026). شاهد كيف تعاين الدروس، وتشرح المفاهيم كمعلّم شخصي، وتدرّبك على أكثر من 1200 سؤال ثنائي اللغة بمختلف صيغ أسئلة PMP، وتتابع جاهزيتك — بالعربية والإنجليزية — لتجتاز الاختبار بثقة.",
+        "جولة مركزة في منصة PMPeco (pmpeco.com)، المنصة المدعومة بالذكاء الاصطناعي للتحضير لاختبار PMP الجديد المبني على دليل PMBOK الإصدار الثامن ومخطط محتوى الاختبار 2026 (ECO 2026). شاهد كيف تعاين الدروس، وتشرح المفاهيم كمعلّم شخصي، وتدرّبك على أكثر من 1200 سؤال ثنائي اللغة بمختلف صيغ أسئلة PMP، وتتابع جاهزيتك — بالعربية والإنجليزية — لتجتاز الاختبار بثقة.",
       thumbnailUrl: PROMO_POSTER_AR,
       contentUrl: PROMO_VIDEO_URL_AR,
       uploadDate: "2026-08-08",
@@ -118,8 +118,8 @@ const copy = {
     },
     compare: {
       label: "Comparison",
-      title: "Why AiTutorZ fits your PMP prep",
-      cols: ["", "PMP Expert Tutor", "Bootcamps", "Video courses"],
+      title: "Why PMPeco fits your PMP prep",
+      cols: ["", "PMPeco", "Bootcamps", "Video courses"],
       rows: [
         ["Current PMP exam route", "PMBOK 8 + ECO 2026", "Varies", "Varies"],
         ["Bilingual question bank", "1,200+ questions", "Varies", "Varies"],
@@ -138,7 +138,7 @@ const copy = {
         { q: "Does this cover the new 2026 PMP exam?", a: "Yes. The platform is fully aligned with PMBOK 8 + ECO 2026, the exam in effect now." },
         { q: "How many questions are included?", a: "The PMBOK 8 + ECO 2026 bank includes 1,200+ bilingual practice questions with rationales and AI-supported explanations." },
         { q: "Is Arabic fully supported?", a: "Yes. The PMBOK 8 + ECO 2026 practice bank is available in Arabic and English, with bilingual explanations designed for exam preparation." },
-        { q: "Do you guarantee that I will pass?", a: "No ethical PMP preparation platform should guarantee a pass. AiTutorZ helps you practice, diagnose weak areas, and improve readiness, but final performance depends on your preparation and exam-day execution." },
+        { q: "Do you guarantee that I will pass?", a: "No ethical PMP preparation platform should guarantee a pass. PMPeco helps you practice, diagnose weak areas, and improve readiness, but final performance depends on your preparation and exam-day execution." },
         { q: "I studied the old PMBOK 7 exam, can this help?", a: "Yes. Bridge Mode focuses on what changed from PMBOK 7 to PMBOK 8 so you can convert your prep quickly." },
       ],
     },
@@ -150,7 +150,7 @@ const copy = {
     footer: {
       by: "by",
       refund: "Refund Policy",
-      line1: "© 2026 PMP Expert Tutor by AiTuTorZ. Content sourced exclusively from PMBOK® Guide 7th Edition (2021), PMBOK® Guide 8th Edition, PMP Examination Content Outline — January 2021 & 2026.",
+      line1: "© 2026 PMPeco. Content sourced exclusively from PMBOK® Guide 7th Edition (2021), PMBOK® Guide 8th Edition, PMP Examination Content Outline — January 2021 & 2026.",
       line2: "PMP® is a registered mark of Project Management Institute, Inc. This platform is not affiliated with or endorsed by PMI.",
       product: "Product",
       legal: "Legal",
@@ -234,8 +234,8 @@ const copy = {
     },
     compare: {
       label: "المقارنة",
-      title: "لماذا يناسب AiTutorZ تحضيرك لاختبار PMP",
-      cols: ["", "PMP Expert Tutor", "معسكرات تدريبية", "دورات فيديو"],
+      title: "لماذا يناسب PMPeco تحضيرك لاختبار PMP",
+      cols: ["", "PMPeco", "معسكرات تدريبية", "دورات فيديو"],
       rows: [
         ["مسار الاختبار الحالي", "PMBOK 8 + ECO 2026", "يختلف", "يختلف"],
         ["بنك أسئلة ثنائي اللغة", "1,200+ سؤالًا", "يختلف", "يختلف"],
@@ -254,7 +254,7 @@ const copy = {
         { q: "هل تغطي المنصة اختبار 2026 الجديد؟", a: "نعم. المنصة متوافقة بالكامل مع PMBOK 8 + ECO 2026، الاختبار الساري الآن." },
         { q: "كم عدد الأسئلة المتاحة؟", a: "يتضمن بنك PMBOK 8 + ECO 2026 أكثر من 1,200 سؤال ممارسة ثنائي اللغة مع تفسيرات وشروحات مدعومة بالذكاء الاصطناعي." },
         { q: "هل اللغة العربية مدعومة بالكامل؟", a: "نعم. بنك تمارين PMBOK 8 + ECO 2026 متاح بالعربية والإنجليزية مع شروحات ثنائية اللغة موجهة للتحضير للاختبار." },
-        { q: "هل تضمنون اجتياز الاختبار؟", a: "لا. لا ينبغي لأي منصة تحضير أخلاقية أن تضمن النجاح. يساعدك AiTutorZ على التدريب وتشخيص نقاط الضعف ورفع الجاهزية، لكن الأداء النهائي يعتمد على تحضيرك وتنفيذك يوم الاختبار." },
+        { q: "هل تضمنون اجتياز الاختبار؟", a: "لا. لا ينبغي لأي منصة تحضير أخلاقية أن تضمن النجاح. يساعدك PMPeco على التدريب وتشخيص نقاط الضعف ورفع الجاهزية، لكن الأداء النهائي يعتمد على تحضيرك وتنفيذك يوم الاختبار." },
         { q: "درست اختبار PMBOK 7 القديم، هل يفيدني هذا؟", a: "نعم. يركّز وضع الجسر (Bridge) على ما تغيّر من PMBOK 7 إلى PMBOK 8 لتحويل تحضيرك بسرعة." },
       ],
     },
@@ -266,7 +266,7 @@ const copy = {
     footer: {
       by: "بواسطة",
       refund: "سياسة الاسترداد",
-      line1: "© 2026 PMP Expert Tutor بواسطة AiTuTorZ. المحتوى مستمد حصريًا من دليل PMBOK® الإصدار السابع (2021)، دليل PMBOK® الإصدار الثامن، ومحتوى اختبار PMP — يناير 2021 و2026.",
+      line1: "© 2026 PMPeco. المحتوى مستمد حصريًا من دليل PMBOK® الإصدار السابع (2021)، دليل PMBOK® الإصدار الثامن، ومحتوى اختبار PMP — يناير 2021 و2026.",
       line2: "PMP® علامة تجارية مسجلة لمعهد إدارة المشاريع (PMI). هذه المنصة غير تابعة لـ PMI ولا معتمدة منه.",
       product: "المنتج",
       legal: "قانوني",
@@ -363,8 +363,8 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
       <nav style={{position:"sticky",top:0,zIndex:100,background:scrolled||mobileMenu?"rgba(255,255,255,0.96)":"transparent",backdropFilter:scrolled||mobileMenu?"blur(14px)":"none",borderBottom:scrolled?"1px solid #E8E8E4":"1px solid transparent",transition:"all 0.3s ease",padding:"0 clamp(1rem,4vw,3rem)"}}>
         <div style={{maxWidth:1140,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:64,position:"relative"}}>
           <Link href="/" style={{display:"flex",alignItems:"center",gap:10,textDecoration:"none"}}>
-            <Image src="/logo.png" alt="AiTutorZ" width={34} height={34} style={{borderRadius:8,objectFit:"contain"}} />
-            <span style={{fontSize:17,fontWeight:700,color:C.dark,letterSpacing:"-0.02em"}}>PMP Expert Tutor</span>
+            <Image src="/logo.png" alt="PMPeco" width={34} height={34} style={{borderRadius:8,objectFit:"contain"}} />
+            <span style={{fontSize:17,fontWeight:700,color:C.dark,letterSpacing:"-0.02em"}}>PMPeco</span>
           </Link>
           <div className="lp-nav-desktop">
             <a href="#features" style={{fontSize:14,color:C.muted,textDecoration:"none",fontWeight:500}}>{t.nav.pricing==="Pricing"?"Features":"\u0627\u0644\u0645\u0632\u0627\u064a\u0627"}</a>
@@ -437,7 +437,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
             >
               <img
                 src={heroImg || "/hero.png"}
-                alt="AiTutorZ PMP ECO 2026 hero"
+                alt="PMPeco PMP ECO 2026 hero"
                 style={{
                   width:"100%",
                   height:"100%",
@@ -459,11 +459,11 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
           >
             <div className="p-6 sm:p-8 lg:p-10">
               <h2 className="text-3xl font-black tracking-tight sm:text-4xl" style={{ color: C.dark }}>
-                {isAr ? "شاهد PMP AiTutorZ أثناء العمل" : "See PMP AiTutorZ in Action"}
+                {isAr ? "شاهد PMPeco أثناء العمل" : "See PMPeco in Action"}
               </h2>
 
               <p className="mt-4 max-w-2xl text-base leading-7 sm:text-lg" style={{ color: C.muted }}>
-                {isAr ? "شاهد عرضًا مركزًا يوضح رحلة المتعلم داخل المنصة: معاينة درس، استكشاف الشروحات ثنائية اللغة، فهم كيف تدعم التمارين منطق الاختبار، ومقارنة الخطط قبل اختيار سباقك التحضيري." : "Watch a focused walkthrough of the PMP AiTutorZ learner journey: preview a lesson, explore bilingual explanations, understand how practice supports exam reasoning, and compare plans before choosing your preparation sprint."}
+                {isAr ? "شاهد عرضًا مركزًا يوضح رحلة المتعلم داخل المنصة: معاينة درس، استكشاف الشروحات ثنائية اللغة، فهم كيف تدعم التمارين منطق الاختبار، ومقارنة الخطط قبل اختيار سباقك التحضيري." : "Watch a focused walkthrough of the PMPeco learner journey: preview a lesson, explore bilingual explanations, understand how practice supports exam reasoning, and compare plans before choosing your preparation sprint."}
               </p>
 
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -504,13 +504,13 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
                     controls
                     autoPlay
                     playsInline
-                    aria-label={isAr ? "فيديو تعريفي لمنصة PMP AiTutorZ" : "PMP AiTutorZ platform intro video"}
+                    aria-label={isAr ? "فيديو تعريفي لمنصة PMPeco" : "PMPeco platform intro video"}
                   />
                 ) : (
                   <button
                     type="button"
                     onClick={() => setPromoPlaying(true)}
-                    aria-label={isAr ? "تشغيل الفيديو التعريفي لمنصة PMP AiTutorZ" : "Play the PMP AiTutorZ intro video"}
+                    aria-label={isAr ? "تشغيل الفيديو التعريفي لمنصة PMPeco" : "Play the PMPeco intro video"}
                     className="group absolute inset-0 h-full w-full cursor-pointer border-0 p-0"
                     style={{
                       backgroundImage: `url("${isAr && PROMO_POSTER_AR ? PROMO_POSTER_AR : PROMO_POSTER_EN}")`,
@@ -670,10 +670,10 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
         <div style={{maxWidth:1140,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"start",flexWrap:"wrap",gap:24}}>
           <div>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-              <Image src="/logo.png" alt="AiTutorZ" width={28} height={28} style={{borderRadius:6,objectFit:"contain"}} />
-              <span style={{fontSize:15,fontWeight:700,color:C.dark}}>PMP Expert Tutor</span>
+              <Image src="/logo.png" alt="PMPeco" width={28} height={28} style={{borderRadius:6,objectFit:"contain"}} />
+              <span style={{fontSize:15,fontWeight:700,color:C.dark}}>PMPeco</span>
             </div>
-            <div style={{fontSize:13,color:C.muted}}>{t.footer.by} <span style={{color:C.teal,fontWeight:600}}>AiTutorZ</span> {"\u00b7"} {"\u00a9"} 2026</div>
+            <div style={{fontSize:13,color:C.muted}}>{"\u00a9"} 2026 {"\u00b7"} pmpeco.com</div>
           </div>
           <div style={{display:"flex",gap:40}}>
             <div>

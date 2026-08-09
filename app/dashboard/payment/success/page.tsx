@@ -47,8 +47,8 @@ const receiptId = params.get('receiptId')
     ? (isArabic ? selectedPlan.nameAr : selectedPlan.name)
     : plan.charAt(0).toUpperCase() + plan.slice(1)
   const includedFeatures = (isArabic ? selectedPlan?.featuresAr : selectedPlan?.features) || (isArabic
-    ? ['📖 مكتبة الدروس', '🤖 مدرّس AiTuTorZ الذكي', '🎯 محرّك التدريب', '📊 لوحة متابعة التقدم']
-    : ['📖 Course Library', '🤖 AiTuTorZ AI Tutor', '🎯 Practice Engine', '📊 Progress Dashboard'])
+    ? ['📖 مكتبة الدروس', '🤖 مدرّس Zane الذكي', '🎯 محرّك التدريب', '📊 لوحة متابعة التقدم']
+    : ['📖 Course Library', '🤖 Zane AI Tutor', '🎯 Practice Engine', '📊 Progress Dashboard'])
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6" dir={dir}>
@@ -83,7 +83,7 @@ const receiptId = params.get('receiptId')
             </div>
             <h1 className="text-2xl font-bold mb-1">{isArabic ? 'تم الدفع بنجاح!' : 'Payment Successful!'}</h1>
             <p className="text-white/80 text-sm">
-              {isArabic ? `مرحبًا بك في خطة ${planName} من PMP Expert Tutor` : `Welcome to PMP Expert Tutor ${planName}`}
+              {isArabic ? `مرحبًا بك في خطة ${planName} من PMPeco` : `Welcome to PMPeco ${planName}`}
             </p>
           </div>
 
