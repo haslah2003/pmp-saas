@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { PLANS } from '@/lib/plans'
 import { useLanguage } from '@/lib/i18n/language-context'
+import { trackPurchase } from '@/lib/analytics/track'
 
 const PLAN_ICONS: Record<string, string> = {
   basic: '🌱',
@@ -39,6 +40,20 @@ const receiptId = params.get('receiptId')
     const t = setTimeout(() => setShowConfetti(false), 4000)
     return () => clearTimeout(t)
   }, [])
+
+  // Fire the purchase conversion once per receipt (guard against reloads).
+  useEffect(() => {
+    const value = parseFloat(amount)
+    if (!value || Number.isNaN(value)) return
+    const dedupeKey = `pmp_purchase_tracked_${receiptId || `${plan}-${period}-${amount}`}`
+    try {
+      if (sessionStorage.getItem(dedupeKey)) return
+      sessionStorage.setItem(dedupeKey, '1')
+    } catch {
+      // sessionStorage unavailable — still fire once for this mount.
+    }
+    trackPurchase({ transactionId: receiptId || undefined, plan, period, value })
+  }, [plan, period, amount, receiptId])
 
   const icon = PLAN_ICONS[plan] ?? '⭐'
   const gradient = PLAN_GRADIENTS[plan] ?? 'from-violet-500 to-violet-700'

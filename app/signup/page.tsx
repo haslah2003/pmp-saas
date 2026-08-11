@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getPlanById } from "@/lib/plans";
 import type { Period, PlanId } from "@/lib/plans";
+import { trackSignup } from "@/lib/analytics/track";
 
 const VALID_PLAN_IDS: PlanId[] = ["basic", "standard", "professional"];
 const VALID_PERIODS: Period[] = ["monthly", "annual"];
@@ -80,6 +81,7 @@ function SignupForm() {
         })
         .eq("id", data.user.id);
 
+      trackSignup({ plan: planId, demo: isDemoMode });
       setSuccess(true);
       setTimeout(() => router.push(isDemoMode ? `/dashboard/demo?lang=${lang}` : checkoutPath), 1200);
     }

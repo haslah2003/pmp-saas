@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { PlanId, Period } from '@/lib/plans'
+import { trackBeginCheckout } from '@/lib/analytics/track'
 
 interface PayPalButtonProps {
   planId: PlanId
@@ -133,6 +134,7 @@ export default function PayPalButton({
         createOrder: async () => {
           setProcessing(true)
           setError('')
+          trackBeginCheckout({ plan: planId, period, value: amount })
 
           try {
             const res = await fetch('/api/paypal/create-order', {
