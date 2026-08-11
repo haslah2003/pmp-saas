@@ -1,15 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { SYS_NOTES } from "@/lib/constants";
+import { getAccess } from "@/lib/auth/access";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: sub } = await supabase
-    .from("subscriptions").select("plan, status").eq("user_id", user.id).single();
-  const isPremium = sub && sub.plan !== "free" && sub.status === "active";
+  const { isPremium } = await getAccess();
   if (!isPremium) {
     return NextResponse.json({ error: "Premium feature", message: "Study notes require a Premium subscription.", upgrade: true }, { status: 403 });
   }

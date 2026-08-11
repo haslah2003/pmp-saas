@@ -2,26 +2,15 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import MindMapClient from "./MindMapClient";
 import Link from "next/link";
+import { getAccess } from "@/lib/auth/access";
 
 export default async function MindMapPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .single();
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  const isAdmin = profile?.role === "admin";
-  const isPremium = isAdmin || (sub && sub.plan !== "free" && sub.status === "active");
+  // Route layout already gates this to premium; this is defense-in-depth.
+  const { isPremium } = await getAccess();
 
   if (!isPremium) {
     return (

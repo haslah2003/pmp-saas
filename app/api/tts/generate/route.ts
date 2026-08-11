@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getAccess } from "@/lib/auth/access";
 import { NextRequest, NextResponse } from "next/server";
 import { SYS_AUDIO_SCRIPT } from "@/lib/constants";
 
@@ -68,21 +69,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  const isAdmin = profile?.role === "admin";
-
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .single();
-
-  const isPremium = isAdmin || (sub && sub.plan !== "free" && sub.status === "active");
+  const { isPremium, isAdmin } = await getAccess();
 
   if (!isPremium) {
     return NextResponse.json(

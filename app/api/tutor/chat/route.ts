@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js';
 import { normalizeExamPath, type ExamPathId } from '@/lib/pmp/exam-paths';
 import { formatResourceEvidenceForPrompt, retrieveResourceEvidence, type RetrievedResourceChunk } from '@/lib/rag/resource-retrieval';
+import { getAccess } from '@/lib/auth/access';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -293,6 +294,15 @@ function answerQualityRules() {
 
 export async function POST(req: NextRequest) {
   try {
+    // Zane is a premium feature — block free users hitting the API directly.
+    const { isPremium } = await getAccess();
+    if (!isPremium) {
+      return new Response(
+        JSON.stringify({ error: 'Premium feature', message: 'Zane requires a plan.', upgrade: true }),
+        { status: 403 },
+      );
+    }
+
     const body = await req.json();
     const { messages, framework = 'pmbok7', language = 'en', debugEvidence = false } = body;
     const activeFramework = normalizeExamPath(framework);

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { SYS_TUTOR, FREE_LIMITS } from "@/lib/constants";
+import { getAccess } from "@/lib/auth/access";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -10,14 +11,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Check subscription
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .single();
-
-  const isPremium = sub && sub.plan !== "free" && sub.status === "active";
+  // Premium = admin or an active paid plan (profiles.plan + plan_expires_at).
+  const { isPremium } = await getAccess();
 
   // Check rate limits for free users
   if (!isPremium) {

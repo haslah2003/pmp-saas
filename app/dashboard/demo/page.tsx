@@ -394,7 +394,7 @@ export default function DemoPage() {
                     </p>
                     <p className="mt-3 rounded-2xl bg-white p-3 text-sm leading-7 text-slate-700 shadow-sm">
                       <span className="font-bold text-emerald-800">
-                        {isAr ? "ملاحظة المدرب الذكي:" : "AI Tutor note:"}
+                        {isAr ? "ملاحظة من Zane:" : "Zane's note:"}
                       </span>{" "}
                       {textOf(question.aiTip, isAr)}
                     </p>

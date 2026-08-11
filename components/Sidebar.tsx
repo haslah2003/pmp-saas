@@ -51,6 +51,9 @@ const NAV_SECTIONS = [
   },
 ]
 
+// Routes that stay open on the free tier. Everything else is locked for non-premium users.
+const FREE_HREFS = new Set(['/dashboard', '/dashboard/practice', '/dashboard/billing'])
+
 const ADMIN_ITEMS = [
   { href: '/admin/branding', icon: '🎨', key: 'nav.branding' as const },
   { href: '/admin/analytics', icon: '📊', key: 'nav.analytics' as const },
@@ -102,21 +105,27 @@ export default function Sidebar({
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-2">
               {t(section.sectionKey)}
             </p>
-            {section.items.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all group"
-              >
-                <span
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-base group-hover:scale-110 transition-transform"
-                  style={{ backgroundColor: primaryColor + '15' }}
+            {section.items.map((item) => {
+              const locked = !isPremium && !FREE_HREFS.has(item.href)
+              return (
+                <Link
+                  key={item.href}
+                  href={locked ? '/dashboard/pricing' : item.href}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all group"
                 >
-                  {item.icon}
-                </span>
-                <span>{t(item.key)}</span>
-              </Link>
-            ))}
+                  <span
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-base group-hover:scale-110 transition-transform"
+                    style={{ backgroundColor: primaryColor + '15' }}
+                  >
+                    {item.icon}
+                  </span>
+                  <span className={locked ? 'text-gray-400' : ''}>{t(item.key)}</span>
+                  {locked && (
+                    <span className="ml-auto rtl:ml-0 rtl:mr-auto text-xs text-gray-300" aria-label="Premium feature">🔒</span>
+                  )}
+                </Link>
+              )
+            })}
           </div>
         ))}
 

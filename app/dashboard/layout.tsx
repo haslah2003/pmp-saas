@@ -5,6 +5,7 @@ import React from "react";
 import { DashboardLanguageWrapper } from "@/components/DashboardLanguageWrapper";
 import Sidebar from "@/components/Sidebar";
 import CompanionChat from "@/components/CompanionChat";
+import { getAccess } from "@/lib/auth/access";
 import type { Locale } from "@/lib/i18n/translations";
 import { normalizeExamPath } from "@/lib/pmp/exam-paths";
 
@@ -38,18 +39,12 @@ export default async function DashboardLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, email, role, language, active_framework")
+    .select("full_name, email, language, active_framework")
     .eq("id", user.id)
     .single();
 
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .single();
-
-  const isAdmin = profile?.role === "admin";
-  const isPremium = isAdmin || (sub && sub.plan !== "free" && sub.status === "active");
+  // Source of truth for access = profiles.plan + plan_expires_at (see lib/auth/access).
+  const { isAdmin, isPremium } = await getAccess();
   const branding = await getBranding();
 
   const headerStore = await headers();

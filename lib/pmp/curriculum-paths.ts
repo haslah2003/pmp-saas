@@ -793,8 +793,8 @@ const bridgeReadinessModules: DashboardCurriculumModule[] = [
     id: 403,
     numberLabel: 'G3',
     title: {
-      en: 'AI Coach Next Action',
-      ar: 'الإجراء التالي من المدرب الذكي',
+      en: 'Zane Next Action',
+      ar: 'الإجراء التالي من Zane',
       fr: 'Prochaine action du coach IA',
     },
     description: {
