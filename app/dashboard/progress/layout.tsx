@@ -1,6 +1,6 @@
-import { requirePremium } from '@/lib/auth/access';
+import { requireTier } from '@/lib/auth/access';
 
-export default async function PaidLayout({ children }: { children: React.ReactNode }) {
-  await requirePremium();
+export default async function GatedLayout({ children }: { children: React.ReactNode }) {
+  await requireTier('standard');
   return <>{children}</>;
 }

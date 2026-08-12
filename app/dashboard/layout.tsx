@@ -44,7 +44,7 @@ export default async function DashboardLayout({
     .single();
 
   // Source of truth for access = profiles.plan + plan_expires_at (see lib/auth/access).
-  const { isAdmin, isPremium } = await getAccess();
+  const { isAdmin, tier } = await getAccess();
   const branding = await getBranding();
 
   const headerStore = await headers();
@@ -69,7 +69,7 @@ export default async function DashboardLayout({
         profileName={profileName}
         profileInitial={profileInitial}
         isAdmin={isAdmin}
-        isPremium={!!isPremium}
+        tier={tier}
         activeFramework={activeFramework}
       />
 

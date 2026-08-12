@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { LanguageSwitcher } from '@/components/DashboardLanguageWrapper'
 import { getExamPathCopy, type ExamPathId } from '@/lib/pmp/exam-paths'
+import { TIER_RANK, type Tier } from '@/lib/auth/tiers'
 
 interface SidebarProps {
   logoUrl: string | null
@@ -12,47 +13,45 @@ interface SidebarProps {
   profileName: string
   profileInitial: string
   isAdmin: boolean
-  isPremium: boolean
+  tier: Tier
   activeFramework: ExamPathId
 }
 
+// `tier` = minimum plan required to open the item. 'free' items are always open.
 const NAV_SECTIONS = [
   {
     sectionKey: 'nav.learning' as const,
     items: [
-      { href: '/dashboard', icon: '🎯', key: 'nav.today' as const },
-      { href: '/dashboard/path', icon: '🧭', key: 'nav.pmp_path' as const },
-      { href: '/dashboard/practice', icon: '✏️', key: 'nav.practice_lab' as const },
-      { href: '/dashboard/exam', icon: '⏱️', key: 'nav.exam_simulator' as const },
-      { href: '/dashboard/tutor', icon: '🤖', key: 'nav.ai_coach' as const },
+      { href: '/dashboard', icon: '🎯', key: 'nav.today' as const, tier: 'free' as Tier },
+      { href: '/dashboard/path', icon: '🧭', key: 'nav.pmp_path' as const, tier: 'basic' as Tier },
+      { href: '/dashboard/practice', icon: '✏️', key: 'nav.practice_lab' as const, tier: 'free' as Tier },
+      { href: '/dashboard/exam', icon: '⏱️', key: 'nav.exam_simulator' as const, tier: 'standard' as Tier },
+      { href: '/dashboard/tutor', icon: '🤖', key: 'nav.ai_coach' as const, tier: 'basic' as Tier },
     ],
   },
   {
     sectionKey: 'nav.tools' as const,
     items: [
-      { href: '/dashboard/mindmap', icon: '🧠', key: 'nav.mindmap' as const },
-      { href: '/dashboard/processes', icon: '🔄', key: 'nav.processes' as const },
-      { href: '/dashboard/artifacts', icon: '📋', key: 'nav.artifacts' as const },
-      { href: '/dashboard/formulas', icon: '📐', key: 'nav.formulas' as const },
-      { href: '/dashboard/study-studio', icon: '💡', key: 'nav.study_studio' as const },
+      { href: '/dashboard/mindmap', icon: '🧠', key: 'nav.mindmap' as const, tier: 'basic' as Tier },
+      { href: '/dashboard/processes', icon: '🔄', key: 'nav.processes' as const, tier: 'basic' as Tier },
+      { href: '/dashboard/artifacts', icon: '📋', key: 'nav.artifacts' as const, tier: 'basic' as Tier },
+      { href: '/dashboard/formulas', icon: '📐', key: 'nav.formulas' as const, tier: 'basic' as Tier },
+      { href: '/dashboard/study-studio', icon: '💡', key: 'nav.study_studio' as const, tier: 'professional' as Tier },
     ],
   },
   {
     sectionKey: 'nav.progress' as const,
     items: [
-      { href: '/dashboard/progress', icon: '📈', key: 'nav.readiness_report' as const },
+      { href: '/dashboard/progress', icon: '📈', key: 'nav.readiness_report' as const, tier: 'standard' as Tier },
     ],
   },
   {
     sectionKey: 'nav.account' as const,
     items: [
-      { href: '/dashboard/billing', icon: '💳', key: 'nav.billing' as const },
+      { href: '/dashboard/billing', icon: '💳', key: 'nav.billing' as const, tier: 'free' as Tier },
     ],
   },
 ]
-
-// Routes that stay open on the free tier. Everything else is locked for non-premium users.
-const FREE_HREFS = new Set(['/dashboard', '/dashboard/practice', '/dashboard/billing'])
 
 const ADMIN_ITEMS = [
   { href: '/admin/branding', icon: '🎨', key: 'nav.branding' as const },
@@ -64,10 +63,11 @@ const ADMIN_ITEMS = [
 ]
 
 export default function Sidebar({
-  logoUrl, siteName, primaryColor, profileName, profileInitial, isAdmin, isPremium, activeFramework,
+  logoUrl, siteName, primaryColor, profileName, profileInitial, isAdmin, tier, activeFramework,
 }: SidebarProps) {
   const { t, isArabic } = useLanguage()
   const examPathCopy = getExamPathCopy(activeFramework, isArabic ? 'ar' : 'en')
+  const isPremium = TIER_RANK[tier] >= TIER_RANK.basic
 
   return (
     <aside className="w-60 bg-white flex flex-col shrink-0 border-r border-gray-100 rtl:border-r-0 rtl:border-l rtl:border-gray-100">
@@ -106,7 +106,7 @@ export default function Sidebar({
               {t(section.sectionKey)}
             </p>
             {section.items.map((item) => {
-              const locked = !isPremium && !FREE_HREFS.has(item.href)
+              const locked = TIER_RANK[tier] < TIER_RANK[item.tier]
               return (
                 <Link
                   key={item.href}
@@ -176,7 +176,7 @@ export default function Sidebar({
                 color: isAdmin ? '#991b1b' : isPremium ? '#166534' : '#854d0e',
               }}
             >
-              {isAdmin ? 'ADMIN' : isPremium ? 'PREMIUM' : 'FREE'}
+              {isAdmin ? 'ADMIN' : tier.toUpperCase()}
             </span>
           </div>
         </div>
