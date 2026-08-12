@@ -120,6 +120,7 @@ export default function MockExamPage() {
           domain: 'all',
           lang: isArabic ? 'ar' : 'en',
           count: '10',
+          mode: 'exam',
         });
 
         const response = await fetch(`/api/practice/questions?${params.toString()}`, {

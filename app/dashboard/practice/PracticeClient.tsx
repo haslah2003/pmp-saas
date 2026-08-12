@@ -1270,6 +1270,14 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
           throw new Error(data.error || 'Could not load questions');
         }
 
+        if (data.quotaExhausted) {
+          setError(isArabic
+            ? 'لقد بلغت حدّ التدريب المجاني (3 أسئلة لكل نوع). قم بالترقية لمواصلة التدريب بلا حدود.'
+            : "You've used your free practice questions (3 per question type). Upgrade to unlock unlimited practice.");
+          setMode('setup');
+          return;
+        }
+
         setQuestions(data.questions || []);
         setQuestionBankStatus(data.questionBankStatus || null);
         setCurrentQ(0);

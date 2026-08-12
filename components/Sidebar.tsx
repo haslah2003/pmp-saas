@@ -33,9 +33,9 @@ const NAV_SECTIONS = [
     sectionKey: 'nav.tools' as const,
     items: [
       { href: '/dashboard/mindmap', icon: '🧠', key: 'nav.mindmap' as const, tier: 'basic' as Tier },
-      { href: '/dashboard/processes', icon: '🔄', key: 'nav.processes' as const, tier: 'basic' as Tier },
-      { href: '/dashboard/artifacts', icon: '📋', key: 'nav.artifacts' as const, tier: 'basic' as Tier },
-      { href: '/dashboard/formulas', icon: '📐', key: 'nav.formulas' as const, tier: 'basic' as Tier },
+      { href: '/dashboard/processes', icon: '🔄', key: 'nav.processes' as const, tier: 'standard' as Tier },
+      { href: '/dashboard/artifacts', icon: '📋', key: 'nav.artifacts' as const, tier: 'standard' as Tier },
+      { href: '/dashboard/formulas', icon: '📐', key: 'nav.formulas' as const, tier: 'standard' as Tier },
       { href: '/dashboard/study-studio', icon: '💡', key: 'nav.study_studio' as const, tier: 'professional' as Tier },
     ],
   },

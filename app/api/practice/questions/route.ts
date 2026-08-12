@@ -1,7 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { getAccess, TIER_RANK } from '@/lib/auth/access';
 
 type QuestionRow = Record<string, unknown>;
+type SbClient = Awaited<ReturnType<typeof createClient>>;
+
+const ECO_QUESTION_TYPES = ['single_response', 'multiple_response', 'pull_down', 'matching', 'ordering'];
+const FREE_PRACTICE_PER_TYPE = 3;
 
 function pickLocalizedText(row: QuestionRow, arKey: string, enKey: string) {
   const ar = row[arKey];
@@ -204,6 +209,71 @@ async function fetchQuestionsForFrameworks({
 }
 
 
+// Free tier gets a lifetime taste: 3 questions per ECO type (15 total). Returns
+// a JSON Response, or null if the quota table is missing (fail open -> no cap).
+async function serveFreePracticeSample(
+  supabase: SbClient,
+  userId: string,
+  frameworks: string[],
+  requestedCount: number,
+  useArabic: boolean,
+) {
+  const { data: usageRows, error: usageError } = await supabase
+    .from('free_practice_usage')
+    .select('question_type, count')
+    .eq('user_id', userId);
+  if (usageError) return null; // quota table not migrated yet -> don't block practice
+
+  const used = new Map((usageRows || []).map((r) => [String(r.question_type), Number(r.count) || 0]));
+  const remainingByType: Record<string, number> = {};
+  let totalRemaining = 0;
+  for (const t of ECO_QUESTION_TYPES) {
+    const rem = Math.max(0, FREE_PRACTICE_PER_TYPE - (used.get(t) || 0));
+    remainingByType[t] = rem;
+    totalRemaining += rem;
+  }
+  if (totalRemaining <= 0) {
+    return NextResponse.json({ questions: [], quotaExhausted: true, freeSample: true });
+  }
+
+  const pool: QuestionRow[] = [];
+  for (const t of ECO_QUESTION_TYPES) {
+    if (remainingByType[t] <= 0) continue;
+    const { data: rows } = await supabase
+      .from('questions')
+      .select('*')
+      .in('framework', frameworks)
+      .eq('question_type', t)
+      .eq('is_active', true)
+      .limit(remainingByType[t] * 4);
+    pool.push(...shuffleQuestions((rows || []) as QuestionRow[]).slice(0, remainingByType[t]));
+  }
+
+  const block = shuffleQuestions(pool).slice(0, Math.max(1, Math.min(requestedCount, pool.length)));
+
+  const servedByType: Record<string, number> = {};
+  for (const q of block) {
+    const t = String(q.question_type || 'single_response');
+    servedByType[t] = (servedByType[t] || 0) + 1;
+  }
+  const upserts = Object.entries(servedByType).map(([t, n]) => ({
+    user_id: userId,
+    question_type: t,
+    count: (used.get(t) || 0) + n,
+    updated_at: new Date().toISOString(),
+  }));
+  if (upserts.length > 0) {
+    await supabase.from('free_practice_usage').upsert(upserts, { onConflict: 'user_id,question_type' });
+  }
+
+  return NextResponse.json({
+    questions: block.map((q) => localizeQuestion(q, useArabic)),
+    quotaExhausted: false,
+    freeSample: true,
+    freeRemaining: Math.max(0, totalRemaining - block.length),
+  });
+}
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -220,9 +290,33 @@ export async function GET(req: NextRequest) {
     const excludeIds = searchParams.get('exclude')?.split(',').filter(Boolean) || [];
     const debugQuestionId = searchParams.get('debugQuestionId')?.trim() || '';
     const rawCount = Number.parseInt(searchParams.get('count') || '5', 10);
-    const requestedCount = Number.isFinite(rawCount)
+    let requestedCount = Number.isFinite(rawCount)
       ? Math.min(Math.max(rawCount, 1), 180)
       : 5;
+
+    const { tier } = await getAccess();
+    const mode = searchParams.get('mode') || 'practice';
+
+    // Free tier: capped Practice Lab sample (3 per ECO type, lifetime).
+    if (mode !== 'exam' && tier === 'free') {
+      const freeResp = await serveFreePracticeSample(supabase, user.id, frameworkCandidates, requestedCount, useArabic);
+      if (freeResp) return freeResp;
+      // quota table not migrated -> fall through to normal serving
+    }
+
+    // Exam mode: Standard gets 50% of the mock exam; Professional gets it in full.
+    if (mode === 'exam') {
+      if (TIER_RANK[tier] < TIER_RANK.standard) {
+        return NextResponse.json(
+          { error: 'Premium feature', message: 'Mock exams require Standard or Professional.', upgrade: true },
+          { status: 403 },
+        );
+      }
+      if (tier !== 'professional') {
+        requestedCount = Math.max(1, Math.ceil(requestedCount / 2));
+      }
+    }
+
     const queryLimit = Math.max(20, requestedCount * 2);
 
     // Candidate order is reported for transparency.
