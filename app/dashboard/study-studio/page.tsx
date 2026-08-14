@@ -7,6 +7,7 @@ import { SAMPLE_QUESTIONS } from '@/lib/pmp-data';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { createClient } from '@/lib/supabase/client';
 import { normalizeExamPath } from '@/lib/pmp/exam-paths';
+import { AUDIO_TOPICS_BY_FRAMEWORK, getAudioDomainLabel, type AudioTopic } from '@/lib/study-studio/audio-topics';
 import type { StudyTab } from '@/types';
 
 // Learner-facing label for the active exam pathway.
@@ -121,823 +122,233 @@ function NotesTab() {
   );
 }
 
-// ── Synced Slide Player (McKinsey/BCG Style) ─────────────────────────────────
-
-interface Slide {
-  title: string;
-  points: string[];
-  type: 'intro' | 'concept' | 'framework' | 'example' | 'summary';
-  highlight?: string;
-}
-
-const SLIDE_ICONS: Record<string, string> = {
-  intro: '🎯', concept: '📐', framework: '🔷', example: '💡', summary: '✅',
-};
-
-// PMPeco brand palette (from the logo): indigo #5B2D91, teal #1AB0A2, gold #F5A623.
-const SLIDE_ACCENTS: Record<string, string> = {
-  intro: '#5B2D91', concept: '#1AB0A2', framework: '#5B2D91', example: '#1AB0A2', summary: '#5B2D91',
-};
-
-function SlidePlayer({
-  script, topic, audioRef, isPlaying, duration, currentTime, framework,
-}: {
-  script: string; topic: string;
-  audioRef: React.RefObject<HTMLAudioElement | null>;
-  isPlaying: boolean; duration: number; currentTime: number; framework: string;
-}) {
-  const { isArabic } = useLanguage();
-  const [slides, setSlides] = React.useState<Slide[]>([]);
-  const [currentSlide, setCurrentSlide] = React.useState(0);
-  const [isGenerating, setIsGenerating] = React.useState(true);
-  const [transition, setTransition] = React.useState(true);
-  const hasLoaded = React.useRef(false);
-
-  React.useEffect(() => {
-    if (hasLoaded.current) return;
-    hasLoaded.current = true;
-    generateSlides();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Auto-advance slides synced to audio
-  React.useEffect(() => {
-    if (slides.length === 0 || duration === 0) return;
-    const slideInterval = duration / slides.length;
-    const newSlide = Math.min(Math.floor(currentTime / slideInterval), slides.length - 1);
-    if (newSlide !== currentSlide) {
-      setTransition(false);
-      setTimeout(() => { setCurrentSlide(newSlide); setTransition(true); }, 150);
-    }
-  }, [currentTime, duration, slides.length, currentSlide]);
-
-  async function generateSlides() {
-    setIsGenerating(true);
-    try {
-      const res = await fetch('/api/deeper', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sectionType: 'tip',
-          content: `You must create exactly 6 presentation slides. Each slide MUST start with SLIDE: on its own line.
-
-RULES:
-- Each slide has EXACTLY 3 bullet points (no more)
-- Bullet points are SHORT (under 15 words each)
-- Remove all ** markers
-- Title should be 3-6 words
-- This is for a PMP training presentation about: ${topic}
-
-Based on this script: ${script.slice(0, 1200)}
-
-FORMAT EXACTLY LIKE THIS:
-
-SLIDE:intro
-TITLE: ${topic}
-- Learning objective one here
-- Learning objective two here
-- What you will master today
-HIGHLIGHT: Your path to PMP excellence
-
-SLIDE:concept
-TITLE: Core Principles
-- First key principle explained briefly
-- Second key principle explained briefly
-- Third key principle explained briefly
-HIGHLIGHT: Why this matters for the exam
-
-SLIDE:framework
-TITLE: The Framework
-- Framework element one
-- Framework element two
-- Framework element three
-HIGHLIGHT: How it connects to the exam content outline
-
-SLIDE:example
-TITLE: Real-World Application
-- Practical scenario one
-- Practical scenario two
-- How PMP tests this concept
-HIGHLIGHT: Think like a project manager
-
-SLIDE:concept
-TITLE: Advanced Insights
-- Expert-level insight one
-- Expert-level insight two
-- Common misconception to avoid
-HIGHLIGHT: What separates good PMs from great ones
-
-SLIDE:summary
-TITLE: Key Takeaways
-- Most important point to remember
-- Action item for your PMP prep
-- Connect this to your experience
-HIGHLIGHT: You are building real expertise`,
-          lessonTitle: topic,
-          domain: 'all',
-          framework,
-        }),
-      });
-      if (!res.body) throw new Error('No body');
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let acc = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value, { stream: true });
-      }
-      const parsed = parseSlides(acc);
-      setSlides(parsed.length >= 3 ? parsed : buildFallbackSlides());
-    } catch {
-      setSlides(buildFallbackSlides());
-    } finally {
-      setIsGenerating(false);
-    }
-  }
-
-  function parseSlides(text: string): Slide[] {
-    const result: Slide[] = [];
-    const blocks = text.split('SLIDE:').filter(Boolean);
-    for (const block of blocks) {
-      const lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      if (lines.length < 2) continue;
-      const typeLine = lines[0].toLowerCase().replace(/[^a-z]/g, '');
-      const type = (['intro','concept','framework','example','summary'].includes(typeLine) ? typeLine : 'concept') as Slide['type'];
-      const titleLine = lines.find(l => l.toUpperCase().startsWith('TITLE:'));
-      const title = titleLine ? titleLine.replace(/^TITLE:\s*/i, '').replace(/\*\*/g, '').trim() : 'Slide';
-      const points = lines.filter(l => l.startsWith('- ')).map(l => l.replace(/^- /, '').replace(/\*\*/g, '').trim()).slice(0, 3);
-      const hlLine = lines.find(l => l.toUpperCase().startsWith('HIGHLIGHT:'));
-      const highlight = hlLine ? hlLine.replace(/^HIGHLIGHT:\s*/i, '').replace(/\*\*/g, '').trim() : undefined;
-      if (title !== 'Slide' || points.length > 0) {
-        result.push({ title, points, type, highlight });
-      }
-    }
-    return result;
-  }
-
-  function buildFallbackSlides(): Slide[] {
-    const paragraphs = script.split('\n\n').filter(p => p.trim().length > 40);
-    const slides: Slide[] = [
-      { title: topic, points: isArabic ? [frameworkLabel(framework), 'تحليل على مستوى خبير'] : [frameworkLabel(framework), 'Expert-level analysis'], type: 'intro', highlight: isArabic ? 'بوابتك إلى إتقان PMP' : 'Your gateway to PMP mastery' },
-    ];
-    paragraphs.slice(0, 4).forEach((p, i) => {
-      const sentences = p.split('. ').filter(s => s.length > 15 && s.length < 120).slice(0, 3);
-      if (sentences.length > 0) {
-        slides.push({
-          title: i === 0 ? (isArabic ? 'المفاهيم الأساسية' : 'Core Concepts') : i === 1 ? (isArabic ? 'الإطار الرئيسي' : 'Key Framework') : i === 2 ? (isArabic ? 'في الممارسة' : 'In Practice') : (isArabic ? 'رؤية عميقة' : 'Deep Insight'),
-          points: sentences.map(s => s.trim().replace(/\.$/, '')),
-          type: i === 0 ? 'concept' : i === 1 ? 'framework' : 'example',
-        });
-      }
-    });
-    slides.push({ title: isArabic ? 'النقاط الرئيسية' : 'Key Takeaways', points: isArabic ? ['راجع وتأمل', 'طبّق على أسئلة الممارسة', 'ربط بتجربتك في إدارة المشاريع'] : ['Review and reflect', 'Apply to practice questions', 'Connect to your PM experience'], type: 'summary', highlight: isArabic ? 'أنت تبني خبرة حقيقية في إدارة المشاريع هنا' : 'You are building real PM expertise here' });
-    return slides;
-  }
-
-  function goToSlide(idx: number) {
-    if (slides.length === 0 || !audioRef.current || !duration) return;
-    setTransition(false);
-    setTimeout(() => {
-      setCurrentSlide(idx);
-      setTransition(true);
-      if (audioRef.current && duration > 0) {
-        audioRef.current.currentTime = (idx / slides.length) * duration;
-      }
-    }, 150);
-  }
-
-  if (isGenerating) {
-    return (
-      <div className="rounded-2xl overflow-hidden border border-gray-200 bg-[#5B2D91] max-w-3xl mx-auto" style={{ aspectRatio: '16/10' }}>
-        <div className="h-full flex flex-col items-center justify-center p-8 animate-pulse">
-          <div className="w-16 h-1 bg-[#F5A623] rounded-full mb-8 opacity-50" />
-          <div className="h-6 bg-white/10 rounded w-2/3 mb-4" />
-          <div className="h-4 bg-white/5 rounded w-1/2 mb-8" />
-          <div className="space-y-3 w-full max-w-md">
-            <div className="h-3 bg-white/10 rounded w-full" />
-            <div className="h-3 bg-white/5 rounded w-5/6" />
-            <div className="h-3 bg-white/10 rounded w-4/5" />
-          </div>
-          <p className="text-white/30 text-xs mt-8">{isArabic ? 'تحضير شرائح العرض التقديمي...' : 'Preparing presentation slides...'}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (slides.length === 0) return null;
-
-  const slide = slides[currentSlide];
-  const accent = SLIDE_ACCENTS[slide.type] || '#5B2D91';
-  const brandGradient = 'linear-gradient(135deg,#1AB0A2,#5B2D91)';
-  const icon = SLIDE_ICONS[slide.type] || '📌';
-  const prog = slides.length > 1 ? (currentSlide / (slides.length - 1)) * 100 : 100;
-
-  return (
-    <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-lg max-w-3xl mx-auto">
-      <div className="relative bg-white" style={{ aspectRatio: '16/10' }}>
-        <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: brandGradient }} />
-        <div className="absolute top-5 left-6 flex items-center gap-3">
-          <span className="text-xs font-bold text-white px-2.5 py-1 rounded-md" style={{ backgroundColor: accent }}>{currentSlide + 1} / {slides.length}</span>
-          <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">{slide.type}</span>
-        </div>
-        <div className="absolute top-5 right-6">
-          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{topic}</span>
-        </div>
-        <div className={`h-full flex flex-col justify-center px-8 pt-12 pb-6 transition-all duration-300 ${transition ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
-          <div className="w-12 h-1 rounded-full mb-5" style={{ backgroundColor: '#F5A623' }} />
-          <h2 className="text-3xl font-bold text-[#472272] leading-tight mb-8">
-            <span className="mr-2">{icon}</span>{slide.title}
-          </h2>
-          <div className="space-y-4 flex-1">
-            {slide.points.map((point, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ backgroundColor: accent }} />
-                <p className="text-base text-gray-700 leading-relaxed">{point.replace(/\*\*/g, '')}</p>
-              </div>
-            ))}
-          </div>
-          {slide.highlight && (
-            <div className="mt-5 p-4 rounded-xl border-l-4 bg-gray-50" style={{ borderColor: '#F5A623' }}>
-              <p className="text-base font-semibold text-[#472272] italic">{slide.highlight}</p>
-            </div>
-          )}
-        </div>
-        <div className="absolute bottom-0 left-0 right-0">
-          <div className="h-1 bg-gray-100">
-            <div className="h-full transition-all duration-700 ease-out" style={{ width: prog + '%', background: brandGradient }} />
-          </div>
-        </div>
-        {isPlaying && (
-          <div className="absolute bottom-3 right-4 flex items-center gap-1.5">
-            <div className="flex items-end gap-0.5 h-3">
-              <div className="w-0.5 bg-red-500 rounded-full animate-pulse" style={{ height: '40%' }} />
-              <div className="w-0.5 bg-red-500 rounded-full animate-pulse" style={{ height: '100%', animationDelay: '0.2s' }} />
-              <div className="w-0.5 bg-red-500 rounded-full animate-pulse" style={{ height: '60%', animationDelay: '0.4s' }} />
-            </div>
-            <span className="text-[10px] text-red-500 font-semibold">{isArabic ? 'مباشر' : 'LIVE'}</span>
-          </div>
-        )}
-      </div>
-      <div className="bg-[#5B2D91] px-4 py-3 flex items-center gap-2 overflow-x-auto">
-        {slides.map((s, i) => (
-          <button key={i} onClick={() => goToSlide(i)}
-            className={cn('flex-shrink-0 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-              i === currentSlide ? 'bg-white text-[#5B2D91]' : 'text-white/50 hover:text-white hover:bg-white/10'
-            )}>
-            <span className="mr-1">{SLIDE_ICONS[s.type]}</span>{i + 1}
-          </button>
-        ))}
-        <div className="ml-auto flex items-center gap-3 flex-shrink-0">
-          <span className="text-[11px] font-extrabold tracking-tight text-white">PMP<span className="text-[#F5A623]">eco</span></span>
-          <span className="text-[10px] text-[#F5A623] font-medium">{frameworkLabel(framework)}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Learning Companion Panel ─────────────────────────────────────────────────
-
-function LearningCompanion({ script, topic, domain, framework }: { script: string; topic: string; domain: string; framework: string }) {
-  const { isArabic } = useLanguage();
-  const [activeSection, setActiveSection] = React.useState<'takeaways' | 'terms' | 'quiz'>('takeaways');
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [takeaways, setTakeaways] = React.useState<string[]>([]);
-  const [terms, setTerms] = React.useState<{ term: string; definition: string }[]>([]);
-  const [quiz, setQuiz] = React.useState<{ question: string; options: string[]; correct: number; rationale: string }[]>([]);
-  const [selectedAnswers, setSelectedAnswers] = React.useState<Record<number, number>>({});
-  const hasLoaded = React.useRef(false);
-
-  React.useEffect(() => {
-    if (hasLoaded.current) return;
-    hasLoaded.current = true;
-    loadMaterials();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function loadMaterials() {
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/deeper', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sectionType: 'tip',
-          content: `Based on this audio lesson about "${topic}", generate learning materials.
-
-Script excerpt: ${script.slice(0, 1200)}
-
-Respond with EXACTLY this format:
-
-TAKEAWAY: First key insight from the lesson
-TAKEAWAY: Second key insight from the lesson
-TAKEAWAY: Third key insight from the lesson
-TAKEAWAY: Fourth key insight from the lesson
-
-TERM: [Term Name] | [Short definition in one sentence]
-TERM: [Term Name] | [Short definition in one sentence]
-TERM: [Term Name] | [Short definition in one sentence]
-TERM: [Term Name] | [Short definition in one sentence]
-
-QUESTION: [Question text]
-A) [Option A]
-B) [Option B]
-C) [Option C]
-D) [Option D]
-ANSWER: [A/B/C/D]
-WHY: [Brief rationale]
-
-QUESTION: [Question text]
-A) [Option A]
-B) [Option B]
-C) [Option C]
-D) [Option D]
-ANSWER: [A/B/C/D]
-WHY: [Brief rationale]
-
-QUESTION: [Question text]
-A) [Option A]
-B) [Option B]
-C) [Option C]
-D) [Option D]
-ANSWER: [A/B/C/D]
-WHY: [Brief rationale]`,
-          lessonTitle: topic,
-          domain: domain,
-          framework,
-        }),
-      });
-      if (!res.body) throw new Error('No body');
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let acc = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value, { stream: true });
-      }
-      parseMaterials(acc);
-    } catch {
-      setTakeaways([isArabic ? 'راجع درس الصوت للحصول على المفاهيم الأساسية.' : 'Review the audio lesson for key concepts.']);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  function parseMaterials(text: string) {
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    const t: string[] = [];
-    const tr: { term: string; definition: string }[] = [];
-    const q: { question: string; options: string[]; correct: number; rationale: string }[] = [];
-
-    let currentQ = '';
-    let currentOpts: string[] = [];
-    let currentAnswer = -1;
-    let currentWhy = '';
-
-    for (const line of lines) {
-      if (line.startsWith('TAKEAWAY:')) {
-        t.push(line.replace('TAKEAWAY:', '').trim());
-      } else if (line.startsWith('TERM:')) {
-        const parts = line.replace('TERM:', '').split('|');
-        if (parts.length >= 2) {
-          tr.push({ term: parts[0].trim(), definition: parts.slice(1).join('|').trim() });
-        }
-      } else if (line.startsWith('QUESTION:')) {
-        if (currentQ && currentOpts.length >= 4) {
-          q.push({ question: currentQ, options: currentOpts, correct: currentAnswer, rationale: currentWhy });
-        }
-        currentQ = line.replace('QUESTION:', '').trim();
-        currentOpts = [];
-        currentAnswer = -1;
-        currentWhy = '';
-      } else if (line.match(/^[A-D]\)/)) {
-        currentOpts.push(line.replace(/^[A-D]\)\s*/, '').trim());
-      } else if (line.startsWith('ANSWER:')) {
-        const letter = line.replace('ANSWER:', '').trim().charAt(0);
-        currentAnswer = 'ABCD'.indexOf(letter);
-      } else if (line.startsWith('WHY:')) {
-        currentWhy = line.replace('WHY:', '').trim();
-      }
-    }
-    if (currentQ && currentOpts.length >= 4) {
-      q.push({ question: currentQ, options: currentOpts, correct: currentAnswer >= 0 ? currentAnswer : 0, rationale: currentWhy });
-    }
-
-    setTakeaways(t.length > 0 ? t : [isArabic ? 'راجع درس الصوت للحصول على المفاهيم الأساسية.' : 'Review the audio lesson for key concepts.']);
-    setTerms(tr);
-    setQuiz(q);
-  }
-
-  const sections = [
-    { id: 'takeaways' as const, label: isArabic ? 'الوجبات الجاهزة الرئيسية' : 'Key Takeaways', icon: '💡', count: takeaways.length },
-    { id: 'terms' as const, label: isArabic ? 'المصطلحات الرئيسية' : 'Key Terms', icon: '📖', count: terms.length },
-    { id: 'quiz' as const, label: isArabic ? 'اختبر فهمك' : 'Check Understanding', icon: '✅', count: quiz.length },
-  ];
-
-  const score = quiz.reduce((s, q, i) => s + (selectedAnswers[i] === q.correct ? 1 : 0), 0);
-  const totalAnswered = Object.keys(selectedAnswers).length;
-
-  return (
-    <Card padding="none">
-      <div className="border-b border-gray-100 px-5 py-3 flex items-center gap-2">
-        <span className="text-base">🎓</span>
-        <h3 className="font-bold text-sm text-gray-900">{isArabic ? 'الرفيق التعليمي' : 'Learning Companion'}</h3>
-        <span className="text-xs text-gray-400 ml-1">— {isArabic ? 'عزز ما سمعته للتو' : 'Reinforce what you just heard'}</span>
-      </div>
-      <div className="flex border-b border-gray-100">
-        {sections.map(sec => (
-          <button key={sec.id} onClick={() => setActiveSection(sec.id)}
-            className={cn('flex-1 flex items-center justify-center gap-2 py-3 text-xs font-semibold transition-colors',
-              activeSection === sec.id ? 'text-violet-700 border-b-2 border-violet-600 bg-violet-50/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-            )}>
-            <span>{sec.icon}</span><span>{sec.label}</span>
-            {sec.count > 0 && <span className="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">{sec.count}</span>}
-          </button>
-        ))}
-      </div>
-      <div className="p-5">
-        {isLoading ? (
-          <div className="space-y-3 animate-pulse py-4">
-            <div className="h-4 bg-gray-200 rounded-md w-3/4" />
-            <div className="h-3 bg-gray-100 rounded-md w-full" />
-            <div className="h-3 bg-gray-200 rounded-md w-5/6" />
-            <p className="text-xs text-gray-400 text-center pt-2">{isArabic ? 'إنشاء مواد التعلم...' : 'Generating learning materials...'}</p>
-          </div>
-        ) : (
-          <>
-            {activeSection === 'takeaways' && (
-              <div className="space-y-3">
-                {takeaways.map((t, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
-                    <span className="w-6 h-6 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{i + 1}</span>
-                    <p className="text-sm text-gray-800 leading-relaxed">{t}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-            {activeSection === 'terms' && (
-              <div className="space-y-3">
-                {terms.length > 0 ? terms.map((t, i) => (
-                  <div key={i} className="p-3 rounded-xl border border-gray-100 hover:border-violet-200 transition-colors">
-                    <p className="text-sm font-bold text-violet-700">{t.term}</p>
-                    <p className="text-sm text-gray-600 leading-relaxed mt-1">{t.definition}</p>
-                  </div>
-                )) : <p className="text-sm text-gray-500 text-center py-4">{isArabic ? 'لم يتم إنشاء مصطلحات.' : 'No terms generated.'}</p>}
-              </div>
-            )}
-            {activeSection === 'quiz' && (
-              <div className="space-y-6">
-                {quiz.length > 0 ? quiz.map((q, qIdx) => {
-                  const answered = selectedAnswers[qIdx] !== undefined;
-                  const isCorrect = selectedAnswers[qIdx] === q.correct;
-                  return (
-                    <div key={qIdx} className="space-y-2">
-                      <p className="text-sm font-semibold text-gray-900">Q{qIdx + 1}. {q.question}</p>
-                      <div className="space-y-1.5">
-                        {q.options.map((opt, oIdx) => (
-                          <button key={oIdx}
-                            onClick={() => !answered && setSelectedAnswers(prev => ({ ...prev, [qIdx]: oIdx }))}
-                            disabled={answered}
-                            className={cn('w-full text-left p-3 rounded-xl text-sm transition-all border',
-                              !answered && 'hover:bg-violet-50 hover:border-violet-200 border-gray-200',
-                              answered && oIdx === selectedAnswers[qIdx] && oIdx === q.correct && 'bg-emerald-50 border-emerald-300',
-                              answered && oIdx === selectedAnswers[qIdx] && oIdx !== q.correct && 'bg-red-50 border-red-300',
-                              answered && oIdx !== selectedAnswers[qIdx] && oIdx === q.correct && 'bg-emerald-50 border-emerald-200',
-                              answered && oIdx !== selectedAnswers[qIdx] && oIdx !== q.correct && 'border-gray-100 opacity-50',
-                            )}>
-                            <span className="font-semibold mr-2">{'ABCD'[oIdx]})</span>{opt}
-                            {answered && oIdx === q.correct && <span className="ml-2">✓</span>}
-                            {answered && oIdx === selectedAnswers[qIdx] && oIdx !== q.correct && <span className="ml-2">✗</span>}
-                          </button>
-                        ))}
-                      </div>
-                      {answered && q.rationale && (
-                        <div className={cn('p-3 rounded-xl text-xs leading-relaxed mt-2', isCorrect ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800')}>
-                          <span className="font-bold">{isCorrect ? (isArabic ? '✓ صحيح!' : '✓ Correct!') : (isArabic ? '✗ ليس تماماً.' : '✗ Not quite.')}</span> {q.rationale}
-                        </div>
-                      )}
-                    </div>
-                  );
-                }) : <p className="text-sm text-gray-500 text-center py-4">{isArabic ? 'لم يتم إنشاء اختبار.' : 'No quiz generated.'}</p>}
-                {quiz.length > 0 && totalAnswered === quiz.length && (
-                  <div className={cn('p-4 rounded-xl text-center', score === quiz.length ? 'bg-emerald-50 border border-emerald-200' : 'bg-blue-50 border border-blue-200')}>
-                    <p className="text-lg font-bold">{score === quiz.length ? (isArabic ? '🎉 درجة مثالية!' : '🎉 Perfect Score!') : (isArabic ? `📊 النتيجة: ${score}/${quiz.length}` : `📊 Score: ${score}/${quiz.length}`)}</p>
-                    <p className="text-xs text-gray-500 mt-1">{score === quiz.length ? (isArabic ? 'لقد أتقنت هذا المفهوم!' : 'You have mastered this concept!') : (isArabic ? 'راجع الأساس المنطقي واستمع مرة أخرى لتقوية الفهم.' : 'Review the rationale and listen again to strengthen understanding.')}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </Card>
-  );
-}
-
-// ── Audio Loading Messages ────────────────────────────────────────────────────
-
-const AUDIO_LOADING_MESSAGES_EN = [
-  { text: "Our AI narrator is preparing your lesson...", sub: "Creating a focused PMP audio experience" },
-  { text: "Writing the narration script...", sub: "Every word grounded in official PMI sources" },
-  { text: "Converting knowledge into an audio experience...", sub: "Listen, learn, and absorb at your own pace" },
-  { text: "Crafting a personalized audio lesson...", sub: "The best PMs learn through multiple channels" },
-];
-
-const AUDIO_LOADING_MESSAGES_AR = [
-  { text: "راويك الذكي يحضر درسك...", sub: "إنشاء تجربة صوتية مركزة لاختبار PMP" },
-  { text: "كتابة نص السرد...", sub: "كل كلمة مستندة إلى مصادر PMI الرسمية" },
-  { text: "تحويل المعرفة إلى تجربة صوتية...", sub: "استمع وتعلم واستوعب بسرعتك الخاصة" },
-  { text: "صياغة درس صوتي شخصي...", sub: "أفضل مديري المشاريع يتعلمون عبر قنوات متعددة" },
-];
-
-function AudioLoadingMessage() {
-  const { isArabic } = useLanguage();
-  const [index, setIndex] = React.useState(0);
-  const [fade, setFade] = React.useState(true);
-  const messages = isArabic ? AUDIO_LOADING_MESSAGES_AR : AUDIO_LOADING_MESSAGES_EN;
-  
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setFade(false);
-      setTimeout(() => { setIndex(prev => (prev + 1) % messages.length); setFade(true); }, 300);
-    }, 3500);
-    return () => clearInterval(interval);
-  }, [messages.length]);
-  
-  const msg = messages[index];
-  return (
-    <div className={`text-center transition-opacity duration-300 ${fade ? 'opacity-100' : 'opacity-0'}`}>
-      <p className="text-sm font-semibold text-gray-800">{msg.text}</p>
-      <p className="text-xs mt-1.5 font-medium text-violet-600">{msg.sub}</p>
-    </div>
-  );
-}
-
 // ── Audio Tab ────────────────────────────────────────────────────────────────
 
-type AudioTopic = { id: string; title_en: string; title_ar: string; domain: string; icon: string };
-
-// Audio topics per exam pathway. pmbok8 + bridge grounded in the verified PMBOK 8
-// (7 performance domains, 6 principles) and ECO 2026 (People 33 / Process 41 / BE 26,
-// with governance/compliance/change/risk moved into Business Environment) structures.
-const AUDIO_TOPICS_BY_FRAMEWORK: Record<string, AudioTopic[]> = {
-  pmbok7: [
-    { id: '1', title_en: 'PMBOK 7 Overview — Principles & Domains', title_ar: 'نظرة عامة على PMBOK 7 — المبادئ والمجالات', domain: 'all', icon: '📘' },
-    { id: '2', title_en: 'Stakeholder Engagement Strategies', title_ar: 'استراتيجيات تفاعل أصحاب المصلحة', domain: 'stakeholders', icon: '🤝' },
-    { id: '3', title_en: 'Agile vs Predictive — When to Use What', title_ar: 'أجايل مقابل التنبؤي — متى تستخدم أي', domain: 'development-approach', icon: '🔄' },
-    { id: '4', title_en: 'Earned Value Management Deep Dive', title_ar: 'غوص عميق في إدارة القيمة المكتسبة', domain: 'measurement', icon: '📊' },
-    { id: '5', title_en: 'ECO People Domain — Task Walkthrough', title_ar: 'مجال الأشخاص ECO — شرح المهام', domain: 'people', icon: '👥' },
-    { id: '6', title_en: 'Risk Management & Uncertainty', title_ar: 'إدارة المخاطر وعدم اليقين', domain: 'uncertainty', icon: '⚡' },
-    { id: '7', title_en: 'Team Performance & Servant Leadership', title_ar: 'أداء الفريق والقيادة الخادمة', domain: 'team', icon: '👤' },
-    { id: '8', title_en: 'Planning: Scope, Schedule & Budget', title_ar: 'التخطيط: النطاق والجدول الزمني والميزانية', domain: 'planning', icon: '📋' },
-  ],
-  pmbok8: [
-    { id: '1', title_en: 'PMBOK 8 Overview — 6 Principles & 7 Performance Domains', title_ar: 'نظرة عامة على PMBOK 8 — 6 مبادئ و7 مجالات أداء', domain: 'all', icon: '📘' },
-    { id: '2', title_en: 'Stakeholder Engagement & Alignment', title_ar: 'إشراك المعنيين ومواءمة التوقعات', domain: 'stakeholders', icon: '🤝' },
-    { id: '3', title_en: 'Predictive, Agile & Hybrid — Tailoring the Approach', title_ar: 'التنبؤي والرشيق والهجين — تكييف المنهج', domain: 'development-approach', icon: '🔄' },
-    { id: '4', title_en: 'Finance Fluency — EVM, NPV & Business Value', title_ar: 'الطلاقة المالية — القيمة المكتسبة وصافي القيمة الحالية وقيمة الأعمال', domain: 'finance', icon: '💰' },
-    { id: '5', title_en: 'ECO 2026 People Domain — Leading & Empowering Teams', title_ar: 'مجال الأفراد ECO 2026 — قيادة الفرق وتمكينها', domain: 'people', icon: '👥' },
-    { id: '6', title_en: 'Risk & Uncertainty in the Business Environment', title_ar: 'المخاطر وعدم اليقين في بيئة الأعمال', domain: 'risk', icon: '⚡' },
-    { id: '7', title_en: 'Governance, Compliance & Integrated Change Control', title_ar: 'الحوكمة والامتثال والتحكم المتكامل في التغيير', domain: 'governance', icon: '⚖️' },
-    { id: '8', title_en: 'AI-Augmented Delivery & Sustainability', title_ar: 'التسليم المعزّز بالذكاء الاصطناعي والاستدامة', domain: 'business-environment', icon: '🌱' },
-  ],
-  bridge: [
-    { id: '1', title_en: 'What Changed — PMBOK 7→8 & ECO 2021→2026', title_ar: 'ما الذي تغيّر — PMBOK 7→8 و ECO 2021→2026', domain: 'all', icon: '🔀' },
-    { id: '2', title_en: 'Performance Domains Restructured (8 → 7)', title_ar: 'إعادة هيكلة مجالات الأداء (8 → 7)', domain: 'all', icon: '📘' },
-    { id: '3', title_en: 'Business Environment Rises: 8% → 26%', title_ar: 'صعود بيئة الأعمال: 8% → 26%', domain: 'business-environment', icon: '📈' },
-    { id: '4', title_en: 'New Emphasis — Finance Fluency & Business Value', title_ar: 'تركيز جديد — الطلاقة المالية وقيمة الأعمال', domain: 'finance', icon: '💰' },
-    { id: '5', title_en: 'New Emphasis — AI-Augmented Delivery', title_ar: 'تركيز جديد — التسليم المعزّز بالذكاء الاصطناعي', domain: 'process', icon: '🤖' },
-    { id: '6', title_en: 'New Emphasis — Sustainability & ESG', title_ar: 'تركيز جديد — الاستدامة والحوكمة البيئية والاجتماعية', domain: 'business-environment', icon: '🌱' },
-    { id: '7', title_en: 'ECO Domain Weights & Task Renumbering', title_ar: 'أوزان مجالات ECO وإعادة ترقيم المهام', domain: 'all', icon: '🔢' },
-    { id: '8', title_en: 'Bridge Strategy — What to Re-study', title_ar: 'استراتيجية الجسر — ما الذي يجب إعادة دراسته', domain: 'all', icon: '🎯' },
-  ],
-};
-
-const AUDIO_DOMAIN_LABELS: Record<string, { en: string; ar: string }> = {
-  all: { en: 'all', ar: 'عام' },
-  stakeholders: { en: 'stakeholders', ar: 'المعنيون' },
-  'development-approach': { en: 'development approach', ar: 'منهج التطوير' },
-  measurement: { en: 'measurement', ar: 'القياس' },
-  people: { en: 'people', ar: 'الأشخاص' },
-  uncertainty: { en: 'uncertainty', ar: 'عدم اليقين' },
-  team: { en: 'team', ar: 'الفريق' },
-  planning: { en: 'planning', ar: 'التخطيط' },
-};
-
-function getAudioDomainLabel(domain: string, isArabic: boolean) {
-  const label = AUDIO_DOMAIN_LABELS[domain];
-  if (!label) return domain;
-  return isArabic ? label.ar : label.en;
-}
+// Topic list + domain labels are shared with the admin media-mapping page.
+// See lib/study-studio/audio-topics.ts (imported at the top of this file).
 
 
 function AudioTab() {
-  const { isArabic, t } = useLanguage();
+  const { isArabic } = useLanguage();
   const framework = useActiveFramework();
+  const language = isArabic ? 'ar' : 'en';
   const topics = AUDIO_TOPICS_BY_FRAMEWORK[framework] ?? AUDIO_TOPICS_BY_FRAMEWORK.pmbok7;
-  const [activeId, setActiveId] = React.useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = React.useState(false);
-  const [script, setScript] = React.useState('');
-  const [audioSrc, setAudioSrc] = React.useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = React.useState(false);
-  const [progress, setProgress] = React.useState(0);
-  const [currentTime, setCurrentTime] = React.useState(0);
-  const [duration, setDuration] = React.useState(0);
-  const [showScript, setShowScript] = React.useState(false);
-  const [error, setError] = React.useState('');
-  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const supabase = React.useMemo(() => createClient(), []);
 
-  async function generateAudio(topic: AudioTopic) {
-    const topicTitle = isArabic ? topic.title_ar : topic.title_en;
-    if (activeId === topic.id && audioSrc) { togglePlay(); return; }
-    setActiveId(topic.id);
-    setIsGenerating(true);
-    setScript(''); setAudioSrc(null); setError('');
-    setProgress(0); setCurrentTime(0); setDuration(0);
-    setIsPlaying(false); setShowScript(false);
-    try {
-      const res = await fetch('/api/tts/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: topicTitle, topicId: topic.id, language: isArabic ? 'ar' : 'en', scriptOnly: false, framework }),
+  // Which topics have published media (for badges) — read straight from the
+  // mapping table (RLS lets any signed-in learner read it). The playable URL
+  // (signed, for private video) is fetched per-topic from /api/study-media.
+  const [available, setAvailable] = React.useState<Record<string, 'audio' | 'video'>>({});
+  const [activeId, setActiveId] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [media, setMedia] = React.useState<
+    { mediaType: 'audio' | 'video'; url: string; title: string | null; posterUrl: string | null } | null
+  >(null);
+  const [status, setStatus] = React.useState<'idle' | 'ready' | 'coming-soon'>('idle');
+  const [error, setError] = React.useState('');
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('topic_media')
+        .select('topic_id, media_type')
+        .eq('framework', framework)
+        .eq('language', language);
+      if (cancelled) return;
+      const map: Record<string, 'audio' | 'video'> = {};
+      (data as { topic_id: string; media_type: 'audio' | 'video' }[] | null)?.forEach((r) => {
+        map[r.topic_id] = r.media_type;
       });
-      if (!res.ok) {
-        const err = await res.json();
-        setError(err.upgrade ? (isArabic ? 'يتطلب السرد الصوتي اشتراكًا مميزًا.' : 'Audio narration requires a premium subscription.') : (isArabic ? 'الصوت غير متاح مؤقتًا. يمكنك متابعة الدراسة من خلال الملاحظات أو البطاقات التعليمية.' : 'Audio is temporarily unavailable. You can continue with notes or flashcards.'));
-        setIsGenerating(false); return;
+      setAvailable(map);
+      setActiveId(null);
+      setMedia(null);
+      setStatus('idle');
+      setError('');
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [framework, language, supabase]);
+
+  async function openTopic(topic: AudioTopic) {
+    setActiveId(topic.id);
+    setMedia(null);
+    setError('');
+    setStatus('idle');
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `/api/study-media?framework=${framework}&topicId=${topic.id}&language=${language}`
+      );
+      if (res.status === 403) {
+        setError(isArabic ? 'يتطلب هذا المحتوى اشتراكًا مميزًا.' : 'This content requires a premium subscription.');
+        setLoading(false);
+        return;
       }
       const data = await res.json();
-      setScript(data.script || '');
-      if (data.audio) {
-        const src = `data:audio/mpeg;base64,${data.audio}`;
-        setAudioSrc(src);
-        setTimeout(() => { audioRef.current?.play().then(() => setIsPlaying(true)).catch(() => {}); }, 200);
-      } else if (data.script) {
-        setShowScript(true);
-        setError(isArabic ? 'تحويل الصوت غير متاح. يتم عرض النص أدناه.' : isArabic ? 'تحويل الصوت غير متاح حاليًا. تم عرض النص أدناه.' : 'Audio conversion unavailable. Script is shown below.');
+      if (!data?.found || !data?.url) {
+        setStatus('coming-soon');
+        setLoading(false);
+        return;
       }
-    } catch { setError(isArabic ? 'خطأ في الشبكة. يرجى المحاولة مجدداً.' : isArabic ? 'خطأ في الشبكة. يرجى المحاولة مرة أخرى.' : 'Network error. Please try again.'); }
-    finally { setIsGenerating(false); }
+      setMedia({
+        mediaType: data.mediaType,
+        url: data.url,
+        title: data.title ?? null,
+        posterUrl: data.posterUrl ?? null,
+      });
+      setStatus('ready');
+    } catch {
+      setError(isArabic ? 'تعذّر تحميل الوسائط. حاول مرة أخرى.' : 'Could not load the media. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function togglePlay() {
-    if (!audioRef.current) return;
-    if (isPlaying) { audioRef.current.pause(); setIsPlaying(false); }
-    else { audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {}); }
-  }
-
-  function handleTimeUpdate() {
-    if (!audioRef.current) return;
-    setCurrentTime(audioRef.current.currentTime);
-    setDuration(audioRef.current.duration || 0);
-    setProgress(audioRef.current.duration ? (audioRef.current.currentTime / audioRef.current.duration) * 100 : 0);
-  }
-
-  function handleSeek(e: React.MouseEvent<HTMLDivElement>) {
-    if (!audioRef.current || !audioRef.current.duration) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    audioRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * audioRef.current.duration;
-  }
-
-  function formatTime(s: number) {
-    if (!s || isNaN(s)) return '0:00';
-    return Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '0' : '') + Math.floor(s % 60);
-  }
-
-  const activeTopic = topics.find(t => t.id === activeId);
+  const activeTopic = topics.find((t) => t.id === activeId);
   const activeTopicTitle = activeTopic ? (isArabic ? activeTopic.title_ar : activeTopic.title_en) : '';
 
   return (
     <div className="space-y-4">
-      {audioSrc && (
-        <audio ref={audioRef} src={audioSrc}
-          onTimeUpdate={handleTimeUpdate}
-          onEnded={() => { setIsPlaying(false); setProgress(100); }}
-          onLoadedMetadata={() => { if (audioRef.current) setDuration(audioRef.current.duration); }}
-        />
-      )}
-
-      {/* Slide Player */}
-      {activeId && !isGenerating && script && (
-        <SlidePlayer script={script} topic={activeTopicTitle} audioRef={audioRef} isPlaying={isPlaying} duration={duration} currentTime={currentTime} framework={framework} />
-      )}
-
-      {/* Audio Controls */}
-      {activeId && !isGenerating && (audioSrc || script) && (
+      {/* Player */}
+      {activeId && !loading && status === 'ready' && media && (
         <Card padding="none">
-          <div className="p-5">
-            <div className="flex items-center gap-4 mb-4">
-              <button onClick={togglePlay} disabled={!audioSrc}
-                className="w-12 h-12 rounded-full bg-[#5B2D91] hover:bg-[#472272] text-white flex items-center justify-center flex-shrink-0 transition-colors shadow-md disabled:opacity-50">
-                {isPlaying ? (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
-                ) : (
-                  <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                )}
-              </button>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-gray-900 truncate">{activeTopicTitle}</p>
-                <p className="text-xs text-gray-400">{isArabic ? `السرد الذكي — ${frameworkLabel(framework)}` : `AI Narration — ${frameworkLabel(framework)}`}</p>
-              </div>
-              <button onClick={() => setShowScript(!showScript)}
-                className={cn('text-xs font-medium px-3 py-1.5 rounded-lg transition-colors', showScript ? 'bg-violet-100 text-violet-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')}>
-                {showScript ? (isArabic ? 'إخفاء النص' : 'Hide Script') : (isArabic ? 'عرض النص' : 'Show Script')}
-              </button>
+          {media.mediaType === 'video' ? (
+            <div className="overflow-hidden rounded-t-2xl bg-black">
+              <video
+                key={media.url}
+                src={media.url}
+                poster={media.posterUrl ?? undefined}
+                controls
+                autoPlay
+                playsInline
+                className="w-full max-h-[70vh] bg-black"
+              />
             </div>
-            {audioSrc && (
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-gray-400 w-10 text-right font-mono">{formatTime(currentTime)}</span>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full cursor-pointer group" onClick={handleSeek}>
-                  <div className="h-full bg-[#5B2D91] rounded-full relative transition-all" style={{ width: progress + '%' }}>
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-[#5B2D91] rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
+          ) : (
+            <div className="p-6 rounded-t-2xl" style={{ background: 'linear-gradient(135deg,#1AB0A2,#5B2D91)' }}>
+              <div className="flex items-center gap-3 text-white">
+                <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center text-2xl">🎧</div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/70">
+                    PMP<span className="font-bold">eco</span> · {frameworkLabel(framework)}
+                  </p>
+                  <p className="text-base font-bold truncate">{activeTopicTitle}</p>
                 </div>
-                <span className="text-xs text-gray-400 w-10 font-mono">{formatTime(duration)}</span>
               </div>
-            )}
-          </div>
-          {showScript && script && (
-            <div className="border-t border-gray-100 px-5 py-4 bg-gray-50 max-h-60 overflow-y-auto">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{isArabic ? 'نص السرد' : 'Narration Script'}</p>
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{script}</p>
             </div>
           )}
-        </Card>
-      )}
-
-      {/* Learning Companion */}
-      {activeId && !isGenerating && script && (
-        <LearningCompanion script={script} topic={activeTopicTitle} domain={activeTopic?.domain || ''} framework={framework} />
-      )}
-
-      {/* Loading state */}
-      {isGenerating && (
-        <Card padding="lg">
-          <div className="flex flex-col items-center justify-center py-8">
-            <div className="relative w-16 h-16 mb-5">
-              <svg viewBox="0 0 64 64" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="32" cy="32" r="28" fill="none" stroke="#e0e7ff" strokeWidth="4" />
-                <circle cx="32" cy="32" r="28" fill="none" stroke="#6366f1" strokeWidth="4" strokeLinecap="round"
-                  strokeDasharray="50 126" className="animate-spin" style={{ transformOrigin: 'center', animationDuration: '2s' }} />
-                <g className="animate-pulse">
-                  <rect x="20" y="24" width="3" height="16" rx="1.5" fill="#6366f1" opacity="0.6" />
-                  <rect x="26" y="20" width="3" height="24" rx="1.5" fill="#6366f1" opacity="0.8" />
-                  <rect x="32" y="22" width="3" height="20" rx="1.5" fill="#6366f1" opacity="0.5" />
-                  <rect x="38" y="18" width="3" height="28" rx="1.5" fill="#6366f1" opacity="0.7" />
-                  <rect x="44" y="26" width="3" height="12" rx="1.5" fill="#6366f1" opacity="0.6" />
-                </g>
-              </svg>
+          <div className="p-5">
+            <div className="flex items-center justify-between mb-3 gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-gray-900 truncate">{activeTopicTitle}</p>
+                <p className="text-xs text-gray-400">
+                  {isArabic
+                    ? `${media.mediaType === 'video' ? 'فيديو' : 'صوت'} — ${frameworkLabel(framework)}`
+                    : `${media.mediaType === 'video' ? 'Video' : 'Audio'} lesson — ${frameworkLabel(framework)}`}
+                </p>
+              </div>
+              <Badge variant="info">{getAudioDomainLabel(activeTopic?.domain || '', isArabic)}</Badge>
             </div>
-            <AudioLoadingMessage />
+            {media.mediaType === 'audio' && (
+              <audio key={media.url} src={media.url} controls autoPlay className="w-full" />
+            )}
           </div>
         </Card>
       )}
 
-      {error && !isGenerating && (
-        <Card padding="sm"><p className="text-sm text-red-600 text-center py-2">{error}</p></Card>
+      {/* Loading */}
+      {activeId && loading && (
+        <Card padding="lg">
+          <div className="flex flex-col items-center justify-center py-8 gap-3">
+            <div className="w-10 h-10 rounded-full border-2 border-gray-200 border-t-[#5B2D91] animate-spin" />
+            <p className="text-sm text-gray-500">{isArabic ? 'جارٍ تحميل الوسائط…' : 'Loading media…'}</p>
+          </div>
+        </Card>
       )}
 
-      {/* Lesson List */}
+      {/* Coming soon */}
+      {activeId && !loading && status === 'coming-soon' && (
+        <Card padding="lg">
+          <div className="text-center py-6">
+            <div className="text-3xl mb-2">🎬</div>
+            <p className="text-sm font-semibold text-gray-900">{isArabic ? 'قريبًا' : 'Coming soon'}</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {isArabic ? 'لم يتم نشر وسائط هذا الدرس بعد.' : 'Media for this lesson hasn’t been published yet.'}
+            </p>
+          </div>
+        </Card>
+      )}
+
+      {error && !loading && (
+        <Card padding="sm">
+          <p className="text-sm text-red-600 text-center py-2">{error}</p>
+        </Card>
+      )}
+
+      {/* Lesson list */}
       <Card padding="lg">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold">{isArabic ? 'دروس صوتية' : 'Audio Lessons'}</h3>
-          <Badge variant="info">{isArabic ? 'تجربة صوتية ذكية' : 'AI audio experience'}</Badge>
+          <h3 className="font-bold">{isArabic ? 'دروس الوسائط' : 'Media Lessons'}</h3>
+          <Badge variant="info">{frameworkLabel(framework)}</Badge>
         </div>
-        <p className="text-sm text-brand-900/50 mb-6">{isArabic ? 'انقر على أي درس لإنشاء تجربة صوتية مروية بالذكاء الاصطناعي.' : 'Click any lesson to generate an AI-narrated audio experience.'}</p>
+        <p className="text-sm text-brand-900/50 mb-6">
+          {isArabic
+            ? 'انقر على أي درس لمشاهدة الفيديو أو الاستماع إلى الصوت.'
+            : 'Click any lesson to watch the video or listen to the audio.'}
+        </p>
         <div className="space-y-1">
-          {topics.map(topic => {
+          {topics.map((topic) => {
             const topicTitle = isArabic ? topic.title_ar : topic.title_en;
             const isActive = activeId === topic.id;
-            const isCurrentlyPlaying = isActive && isPlaying;
+            const kind = available[topic.id];
             return (
-              <button key={topic.id} onClick={() => generateAudio(topic)}
-                disabled={isGenerating && activeId !== topic.id}
-                className={cn('w-full flex items-center gap-4 p-4 rounded-xl transition-all', isArabic ? 'text-right' : 'text-left',
-                  isActive ? 'bg-violet-50 border border-violet-200' : 'hover:bg-gray-50 border border-transparent',
-                  isGenerating && activeId !== topic.id && 'opacity-50',
-                )}>
-                <div className={cn('w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-colors shadow-sm',
-                  isActive ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-500')}>
-                  {isCurrentlyPlaying ? (
-                    <div className="flex items-end gap-0.5 h-4">
-                      <div className="w-1 bg-white rounded-full animate-pulse" style={{ height: '60%' }} />
-                      <div className="w-1 bg-white rounded-full animate-pulse" style={{ height: '100%', animationDelay: '0.2s' }} />
-                      <div className="w-1 bg-white rounded-full animate-pulse" style={{ height: '40%', animationDelay: '0.4s' }} />
-                      <div className="w-1 bg-white rounded-full animate-pulse" style={{ height: '80%', animationDelay: '0.1s' }} />
-                    </div>
-                  ) : isActive && audioSrc ? (
-                    <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                  ) : (
-                    <span className="text-lg">{topic.icon}</span>
+              <button
+                key={topic.id}
+                onClick={() => openTopic(topic)}
+                className={cn(
+                  'w-full flex items-center gap-4 p-4 rounded-xl transition-all',
+                  isArabic ? 'text-right' : 'text-left',
+                  isActive ? 'bg-violet-50 border border-violet-200' : 'hover:bg-gray-50 border border-transparent'
+                )}
+              >
+                <div
+                  className={cn(
+                    'w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm',
+                    isActive ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-500'
                   )}
+                >
+                  <span className="text-lg">{topic.icon}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={cn('text-sm font-semibold truncate', isActive ? 'text-violet-700' : 'text-gray-900')}>{topicTitle}</p>
-                  <p className="text-xs text-gray-400">{isArabic ? 'سرد مُنشأ بالذكاء الاصطناعي' : 'AI-generated narration'}</p>
+                  <p className={cn('text-sm font-semibold truncate', isActive ? 'text-violet-700' : 'text-gray-900')}>
+                    {topicTitle}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {kind === 'video'
+                      ? isArabic
+                        ? 'درس فيديو'
+                        : 'Video lesson'
+                      : kind === 'audio'
+                        ? isArabic
+                          ? 'درس صوتي'
+                          : 'Audio lesson'
+                        : isArabic
+                          ? 'قريبًا'
+                          : 'Coming soon'}
+                  </p>
                 </div>
-                <Badge variant="default">{getAudioDomainLabel(topic.domain, isArabic)}</Badge>
+                {kind ? (
+                  <span
+                    className="text-[10px] px-2 py-0.5 rounded-full text-white font-medium"
+                    style={{ background: kind === 'video' ? '#5B2D91' : '#1AB0A2' }}
+                  >
+                    {kind === 'video' ? (isArabic ? 'فيديو' : 'Video') : isArabic ? 'صوت' : 'Audio'}
+                  </span>
+                ) : (
+                  <Badge variant="default">{getAudioDomainLabel(topic.domain, isArabic)}</Badge>
+                )}
               </button>
             );
           })}
