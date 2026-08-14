@@ -649,7 +649,7 @@ export default function StudyStudioPage() {
       <Tabs
         tabs={[
           { id: 'notes', label: t('studio.notes'), icon: <span>📝</span> },
-          { id: 'audio', label: t('studio.audio'), icon: <span>🎧</span> },
+          { id: 'audio', label: t('studio.audio'), icon: <span>🎬</span> },
           { id: 'flashcards', label: t('studio.flashcards'), icon: <span>🃏</span> },
           { id: 'quiz', label: t('studio.quiz'), icon: <span>❓</span> },
         ]}
