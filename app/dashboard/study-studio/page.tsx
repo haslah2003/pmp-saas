@@ -640,14 +640,14 @@ WHY: [Brief rationale]`,
 
 const AUDIO_LOADING_MESSAGES_EN = [
   { text: "Our AI narrator is preparing your lesson...", sub: "Creating a focused PMP audio experience" },
-  { text: "Writing the narration script from PMBOK 7...", sub: "Every word grounded in official PMI sources" },
+  { text: "Writing the narration script...", sub: "Every word grounded in official PMI sources" },
   { text: "Converting knowledge into an audio experience...", sub: "Listen, learn, and absorb at your own pace" },
   { text: "Crafting a personalized audio lesson...", sub: "The best PMs learn through multiple channels" },
 ];
 
 const AUDIO_LOADING_MESSAGES_AR = [
   { text: "راويك الذكي يحضر درسك...", sub: "إنشاء تجربة صوتية مركزة لاختبار PMP" },
-  { text: "كتابة نص السرد من PMBOK 7...", sub: "كل كلمة مستندة إلى مصادر PMI الرسمية" },
+  { text: "كتابة نص السرد...", sub: "كل كلمة مستندة إلى مصادر PMI الرسمية" },
   { text: "تحويل المعرفة إلى تجربة صوتية...", sub: "استمع وتعلم واستوعب بسرعتك الخاصة" },
   { text: "صياغة درس صوتي شخصي...", sub: "أفضل مديري المشاريع يتعلمون عبر قنوات متعددة" },
 ];
