@@ -677,16 +677,43 @@ function AudioLoadingMessage() {
 
 // ── Audio Tab ────────────────────────────────────────────────────────────────
 
-const AUDIO_TOPICS = [
-  { id: '1', title_en: 'PMBOK 7 Overview — Principles & Domains', title_ar: 'نظرة عامة على PMBOK 7 — المبادئ والمجالات', domain: 'all', icon: '📘' },
-  { id: '2', title_en: 'Stakeholder Engagement Strategies', title_ar: 'استراتيجيات تفاعل أصحاب المصلحة', domain: 'stakeholders', icon: '🤝' },
-  { id: '3', title_en: 'Agile vs Predictive — When to Use What', title_ar: 'أجايل مقابل التنبؤي — متى تستخدم أي', domain: 'development-approach', icon: '🔄' },
-  { id: '4', title_en: 'Earned Value Management Deep Dive', title_ar: 'غوص عميق في إدارة القيمة المكتسبة', domain: 'measurement', icon: '📊' },
-  { id: '5', title_en: 'ECO People Domain — Task Walkthrough', title_ar: 'مجال الأشخاص ECO — شرح المهام', domain: 'people', icon: '👥' },
-  { id: '6', title_en: 'Risk Management & Uncertainty', title_ar: 'إدارة المخاطر وعدم اليقين', domain: 'uncertainty', icon: '⚡' },
-  { id: '7', title_en: 'Team Performance & Servant Leadership', title_ar: 'أداء الفريق والقيادة الخادمة', domain: 'team', icon: '👤' },
-  { id: '8', title_en: 'Planning: Scope, Schedule & Budget', title_ar: 'التخطيط: النطاق والجدول الزمني والميزانية', domain: 'planning', icon: '📋' },
-];
+type AudioTopic = { id: string; title_en: string; title_ar: string; domain: string; icon: string };
+
+// Audio topics per exam pathway. pmbok8 + bridge grounded in the verified PMBOK 8
+// (7 performance domains, 6 principles) and ECO 2026 (People 33 / Process 41 / BE 26,
+// with governance/compliance/change/risk moved into Business Environment) structures.
+const AUDIO_TOPICS_BY_FRAMEWORK: Record<string, AudioTopic[]> = {
+  pmbok7: [
+    { id: '1', title_en: 'PMBOK 7 Overview — Principles & Domains', title_ar: 'نظرة عامة على PMBOK 7 — المبادئ والمجالات', domain: 'all', icon: '📘' },
+    { id: '2', title_en: 'Stakeholder Engagement Strategies', title_ar: 'استراتيجيات تفاعل أصحاب المصلحة', domain: 'stakeholders', icon: '🤝' },
+    { id: '3', title_en: 'Agile vs Predictive — When to Use What', title_ar: 'أجايل مقابل التنبؤي — متى تستخدم أي', domain: 'development-approach', icon: '🔄' },
+    { id: '4', title_en: 'Earned Value Management Deep Dive', title_ar: 'غوص عميق في إدارة القيمة المكتسبة', domain: 'measurement', icon: '📊' },
+    { id: '5', title_en: 'ECO People Domain — Task Walkthrough', title_ar: 'مجال الأشخاص ECO — شرح المهام', domain: 'people', icon: '👥' },
+    { id: '6', title_en: 'Risk Management & Uncertainty', title_ar: 'إدارة المخاطر وعدم اليقين', domain: 'uncertainty', icon: '⚡' },
+    { id: '7', title_en: 'Team Performance & Servant Leadership', title_ar: 'أداء الفريق والقيادة الخادمة', domain: 'team', icon: '👤' },
+    { id: '8', title_en: 'Planning: Scope, Schedule & Budget', title_ar: 'التخطيط: النطاق والجدول الزمني والميزانية', domain: 'planning', icon: '📋' },
+  ],
+  pmbok8: [
+    { id: '1', title_en: 'PMBOK 8 Overview — 6 Principles & 7 Performance Domains', title_ar: 'نظرة عامة على PMBOK 8 — 6 مبادئ و7 مجالات أداء', domain: 'all', icon: '📘' },
+    { id: '2', title_en: 'Stakeholder Engagement & Alignment', title_ar: 'إشراك المعنيين ومواءمة التوقعات', domain: 'stakeholders', icon: '🤝' },
+    { id: '3', title_en: 'Predictive, Agile & Hybrid — Tailoring the Approach', title_ar: 'التنبؤي والرشيق والهجين — تكييف المنهج', domain: 'development-approach', icon: '🔄' },
+    { id: '4', title_en: 'Finance Fluency — EVM, NPV & Business Value', title_ar: 'الطلاقة المالية — القيمة المكتسبة وصافي القيمة الحالية وقيمة الأعمال', domain: 'finance', icon: '💰' },
+    { id: '5', title_en: 'ECO 2026 People Domain — Leading & Empowering Teams', title_ar: 'مجال الأفراد ECO 2026 — قيادة الفرق وتمكينها', domain: 'people', icon: '👥' },
+    { id: '6', title_en: 'Risk & Uncertainty in the Business Environment', title_ar: 'المخاطر وعدم اليقين في بيئة الأعمال', domain: 'risk', icon: '⚡' },
+    { id: '7', title_en: 'Governance, Compliance & Integrated Change Control', title_ar: 'الحوكمة والامتثال والتحكم المتكامل في التغيير', domain: 'governance', icon: '⚖️' },
+    { id: '8', title_en: 'AI-Augmented Delivery & Sustainability', title_ar: 'التسليم المعزّز بالذكاء الاصطناعي والاستدامة', domain: 'business-environment', icon: '🌱' },
+  ],
+  bridge: [
+    { id: '1', title_en: 'What Changed — PMBOK 7→8 & ECO 2021→2026', title_ar: 'ما الذي تغيّر — PMBOK 7→8 و ECO 2021→2026', domain: 'all', icon: '🔀' },
+    { id: '2', title_en: 'Performance Domains Restructured (8 → 7)', title_ar: 'إعادة هيكلة مجالات الأداء (8 → 7)', domain: 'all', icon: '📘' },
+    { id: '3', title_en: 'Business Environment Rises: 8% → 26%', title_ar: 'صعود بيئة الأعمال: 8% → 26%', domain: 'business-environment', icon: '📈' },
+    { id: '4', title_en: 'New Emphasis — Finance Fluency & Business Value', title_ar: 'تركيز جديد — الطلاقة المالية وقيمة الأعمال', domain: 'finance', icon: '💰' },
+    { id: '5', title_en: 'New Emphasis — AI-Augmented Delivery', title_ar: 'تركيز جديد — التسليم المعزّز بالذكاء الاصطناعي', domain: 'process', icon: '🤖' },
+    { id: '6', title_en: 'New Emphasis — Sustainability & ESG', title_ar: 'تركيز جديد — الاستدامة والحوكمة البيئية والاجتماعية', domain: 'business-environment', icon: '🌱' },
+    { id: '7', title_en: 'ECO Domain Weights & Task Renumbering', title_ar: 'أوزان مجالات ECO وإعادة ترقيم المهام', domain: 'all', icon: '🔢' },
+    { id: '8', title_en: 'Bridge Strategy — What to Re-study', title_ar: 'استراتيجية الجسر — ما الذي يجب إعادة دراسته', domain: 'all', icon: '🎯' },
+  ],
+};
 
 const AUDIO_DOMAIN_LABELS: Record<string, { en: string; ar: string }> = {
   all: { en: 'all', ar: 'عام' },
@@ -709,6 +736,7 @@ function getAudioDomainLabel(domain: string, isArabic: boolean) {
 function AudioTab() {
   const { isArabic, t } = useLanguage();
   const framework = useActiveFramework();
+  const topics = AUDIO_TOPICS_BY_FRAMEWORK[framework] ?? AUDIO_TOPICS_BY_FRAMEWORK.pmbok7;
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [script, setScript] = React.useState('');
@@ -721,7 +749,7 @@ function AudioTab() {
   const [error, setError] = React.useState('');
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
-  async function generateAudio(topic: typeof AUDIO_TOPICS[0]) {
+  async function generateAudio(topic: AudioTopic) {
     const topicTitle = isArabic ? topic.title_ar : topic.title_en;
     if (activeId === topic.id && audioSrc) { togglePlay(); return; }
     setActiveId(topic.id);
@@ -778,7 +806,7 @@ function AudioTab() {
     return Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '0' : '') + Math.floor(s % 60);
   }
 
-  const activeTopic = AUDIO_TOPICS.find(t => t.id === activeId);
+  const activeTopic = topics.find(t => t.id === activeId);
   const activeTopicTitle = activeTopic ? (isArabic ? activeTopic.title_ar : activeTopic.title_en) : '';
 
   return (
@@ -879,7 +907,7 @@ function AudioTab() {
         </div>
         <p className="text-sm text-brand-900/50 mb-6">{isArabic ? 'انقر على أي درس لإنشاء تجربة صوتية مروية بالذكاء الاصطناعي.' : 'Click any lesson to generate an AI-narrated audio experience.'}</p>
         <div className="space-y-1">
-          {AUDIO_TOPICS.map(topic => {
+          {topics.map(topic => {
             const topicTitle = isArabic ? topic.title_ar : topic.title_en;
             const isActive = activeId === topic.id;
             const isCurrentlyPlaying = isActive && isPlaying;
@@ -920,17 +948,48 @@ function AudioTab() {
 }
 
 // ── Flashcards Tab ──────────────────────────────────────────────────────────
-function FlashcardsTab() {
-  const { isArabic } = useLanguage();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const cards = [
+type Flashcard = { front: string; back: string };
+
+// Framework-aware flashcards. pmbok8 + bridge grounded in verified PMBOK 8 (7 domains,
+// 6 principles) and ECO 2026 (People 33 / Process 41 / BE 26) facts. CPI and conflict
+// modes carry over unchanged across pathways.
+function getFlashcards(framework: string, isArabic: boolean): Flashcard[] {
+  const cpi: Flashcard = { front: isArabic ? 'عرّف CPI في إدارة القيمة المكتسبة' : 'Define CPI in Earned Value Management', back: isArabic ? 'مؤشر الأداء في الكلفة = EV / AC. CPI > 1.0 يعني أقل من الميزانية، CPI < 1.0 يعني أكثر من الميزانية.' : 'Cost Performance Index = EV / AC. CPI > 1.0 means under budget, CPI < 1.0 means over budget.' };
+  const conflict: Flashcard = { front: isArabic ? 'اذكر 3 تقنيات لحل النزاعات' : 'Name 3 conflict resolution techniques', back: isArabic ? 'التعاون/حل المشاكل (الأفضل)، التسوية/المصالحة، الانسحاب/التجنب، التنعيم/الاستيعاب، الإجبار/التوجيه المباشر' : 'Collaborate/Problem Solve (best), Compromise/Reconcile, Withdraw/Avoid, Smooth/Accommodate, Force/Direct' };
+
+  if (framework === 'pmbok8') {
+    return [
+      { front: isArabic ? 'ما مجالات الأداء السبعة في PMBOK 8؟' : 'What are the 7 Performance Domains in PMBOK 8?', back: isArabic ? 'الحوكمة، النطاق، الجدول الزمني، المالية، أصحاب المصلحة، الموارد، المخاطر' : 'Governance, Scope, Schedule, Finance, Stakeholders, Resources, Risk' },
+      { front: isArabic ? 'ما أوزان مجالات امتحان ECO 2026؟' : 'What are the ECO 2026 exam domain weights?', back: isArabic ? 'الأفراد 33٪، العمليات 41٪، بيئة الأعمال 26٪' : 'People 33%, Process 41%, Business Environment 26%' },
+      cpi,
+      { front: isArabic ? 'اذكر مبادئ PMBOK 8 الستة' : 'Name the 6 PMBOK 8 principles', back: isArabic ? 'تبنّي نظرة شمولية؛ التركيز على القيمة؛ ترسيخ الجودة في العمليات والمخرجات؛ كن قائداً مسؤولاً؛ دمج الاستدامة في جميع مجالات المشروع؛ بناء ثقافة تمكينية' : 'Adopt a Holistic View; Focus on Value; Embed Quality Into Processes and Deliverables; Be an Accountable Leader; Integrate Sustainability Within All Project Areas; Build an Empowered Culture' },
+      conflict,
+    ];
+  }
+  if (framework === 'bridge') {
+    return [
+      { front: isArabic ? 'كان لدى PMBOK 7 ثمانية مجالات أداء — كم عددها في PMBOK 8؟' : 'PMBOK 7 had 8 performance domains — how many in PMBOK 8?', back: isArabic ? '7: الحوكمة، النطاق، الجدول الزمني، المالية، أصحاب المصلحة، الموارد، المخاطر. أُعيدت هيكلة الفريق والتخطيط وعمل المشروع والتسليم والقياس وعدم اليقين ونهج التطوير.' : '7: Governance, Scope, Schedule, Finance, Stakeholders, Resources, Risk. Team, Planning, Project Work, Delivery, Measurement, Uncertainty & Development Approach were restructured.' },
+      { front: isArabic ? 'كيف تغيّر وزن بيئة الأعمال (2021 → 2026)؟' : 'How did the Business Environment weight change (2021 → 2026)?', back: isArabic ? '8٪ → 26٪. انتقلت الحوكمة والامتثال والتحكم في التغيير والعوائق والمخاطر إلى بيئة الأعمال.' : '8% → 26%. Governance, compliance, change control, impediments/issues and risk moved into Business Environment.' },
+      { front: isArabic ? 'أوزان مجالات ECO 2026 مقابل 2021؟' : 'ECO 2026 domain weights vs ECO 2021?', back: isArabic ? '2026: الأفراد 33٪ / العمليات 41٪ / بيئة الأعمال 26٪. 2021: الأفراد 42٪ / العمليات 50٪ / بيئة الأعمال 8٪.' : '2026: People 33% / Process 41% / BE 26%. 2021 was People 42% / Process 50% / BE 8%.' },
+      { front: isArabic ? 'ما التركيزات الجديدة التي أضافها ECO 2026؟' : 'What new emphases did ECO 2026 add?', back: isArabic ? 'الطلاقة المالية وقيمة الأعمال، والتسليم المعزّز بالذكاء الاصطناعي، والاستدامة والحوكمة البيئية والاجتماعية.' : 'Finance fluency & business value, AI-augmented delivery, and sustainability/ESG.' },
+      { front: isArabic ? 'أي أساسيات تبقى دون تغيير من PMBOK 7 إلى 8؟' : 'Which fundamentals carry over unchanged from PMBOK 7 to 8?', back: isArabic ? 'صيغ القيمة المكتسبة (CPI/SPI/EAC)، وأنماط حل النزاعات، والقيادة الخادمة، ومراحل تطور الفريق (تاكمان).' : 'EVM formulas (CPI/SPI/EAC), conflict-resolution modes, servant leadership, and Tuckman team-development stages.' },
+    ];
+  }
+  return [
     { front: isArabic ? 'ما هي المجالات الأداء الثمانية في PMBOK 7؟' : 'What are the 8 Performance Domains in PMBOK 7?', back: isArabic ? 'أصحاب المصلحة، الفريق، نهج التطوير ودورة الحياة، التخطيط، عمل المشروع، التسليم، القياس، عدم اليقين' : 'Stakeholders, Team, Development Approach & Life Cycle, Planning, Project Work, Delivery, Measurement, Uncertainty' },
     { front: isArabic ? 'ما نسبة امتحان PMP التي تغطي مجال الأشخاص (ECO 2021)؟' : 'What percentage of the PMP exam covers the People domain (ECO 2021)?', back: isArabic ? '42٪ — 14 مهمة تغطي القيادة وإدارة الفريق وحل النزاعات والتعاون مع أصحاب المصلحة' : '42% — 14 tasks covering leadership, team management, conflict resolution, and stakeholder collaboration' },
-    { front: isArabic ? 'عرّف CPI في إدارة القيمة المكتسبة' : 'Define CPI in Earned Value Management', back: isArabic ? 'مؤشر الأداء في الكلفة = EV / AC. CPI > 1.0 يعني أقل من الميزانية، CPI < 1.0 يعني أكثر من الميزانية.' : 'Cost Performance Index = EV / AC. CPI > 1.0 means under budget, CPI < 1.0 means over budget.' },
+    cpi,
     { front: isArabic ? 'ما هي القيادة الخادمة؟' : 'What is Servant Leadership?', back: isArabic ? 'فلسفة قيادية حيث يكون الهدف الأساسي للقائد هو خدمة الفريق. التركيز على إزالة العقبات والتدريب وتمكين أعضاء الفريق.' : 'A leadership philosophy where the leader\'s primary goal is to serve the team. Focus on removing impediments, coaching, and empowering team members.' },
-    { front: isArabic ? 'اذكر 3 تقنيات لحل النزاعات' : 'Name 3 conflict resolution techniques', back: isArabic ? 'التعاون/حل المشاكل (الأفضل)، التسوية/المصالحة، الانسحاب/التجنب، التنعيم/الاستيعاب، الإجبار/التوجيه المباشر' : 'Collaborate/Problem Solve (best), Compromise/Reconcile, Withdraw/Avoid, Smooth/Accommodate, Force/Direct' },
+    conflict,
   ];
+}
+
+function FlashcardsTab() {
+  const { isArabic } = useLanguage();
+  const framework = useActiveFramework();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const cards = getFlashcards(framework, isArabic);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
