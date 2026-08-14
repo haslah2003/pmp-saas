@@ -4,6 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { buildAudioScript } from "@/lib/constants";
 import { normalizeExamPath } from "@/lib/pmp/exam-paths";
 
+// Audio generation (Anthropic script + ElevenLabs TTS + cache write) can take 20-40s.
+// Without a raised maxDuration the function hits Vercel's short default timeout and the
+// client sees "Network error". 120s returns as soon as generation completes.
+export const maxDuration = 120;
+
 const VOICES = [
   { id: "TxGEqnHWrfWFTfGW9XjX", name: "Josh", gender: "male" as const },
   { id: "21m00Tcm4TlvDq8ikWAM", name: "Rachel", gender: "female" as const },
