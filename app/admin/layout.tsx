@@ -40,6 +40,7 @@ export default async function AdminLayout({
     { href: "/admin/content-manager", icon: "⚡", label: "Content Manager" },
     { href: "/admin/branding", icon: "🎨", label: "Branding" },
     { href: "/admin/media", icon: "🖼️", label: "Media Library" },
+    { href: "/admin/study-media", icon: "🎧", label: "Study Studio Media" },
     { href: "/admin/resources", icon: "📚", label: "Resource Library" },
   ];
 
