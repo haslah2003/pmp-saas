@@ -5,7 +5,39 @@ import { Card, Tabs, Button, Badge, Progress } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { SAMPLE_QUESTIONS } from '@/lib/pmp-data';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { createClient } from '@/lib/supabase/client';
+import { normalizeExamPath } from '@/lib/pmp/exam-paths';
 import type { StudyTab } from '@/types';
+
+// Learner-facing label for the active exam pathway.
+function frameworkLabel(framework: string): string {
+  if (framework === 'pmbok8') return 'PMBOK 8 + ECO 2026';
+  if (framework === 'bridge') return 'PMBOK 7→8 · ECO 2021→2026';
+  return 'PMBOK 7 + ECO 2021';
+}
+
+// Resolves the learner's active exam pathway (same source of truth as Zane/dashboard).
+function useActiveFramework(): string {
+  const [framework, setFramework] = React.useState<string>('pmbok7');
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('active_framework')
+          .eq('id', user.id)
+          .single();
+        setFramework(normalizeExamPath(profile?.active_framework));
+      } catch {
+        /* keep default */
+      }
+    })();
+  }, []);
+  return framework;
+}
 
 // ── Notes Tab ───────────────────────────────────────────────────────────────
 function NotesTab() {
@@ -102,16 +134,17 @@ const SLIDE_ICONS: Record<string, string> = {
   intro: '🎯', concept: '📐', framework: '🔷', example: '💡', summary: '✅',
 };
 
+// PMPeco brand palette (from the logo): indigo #5B2D91, teal #1AB0A2, gold #F5A623.
 const SLIDE_ACCENTS: Record<string, string> = {
-  intro: '#1B2A4A', concept: '#2563EB', framework: '#7C3AED', example: '#059669', summary: '#C5A572',
+  intro: '#5B2D91', concept: '#1AB0A2', framework: '#5B2D91', example: '#1AB0A2', summary: '#5B2D91',
 };
 
 function SlidePlayer({
-  script, topic, audioRef, isPlaying, duration, currentTime,
+  script, topic, audioRef, isPlaying, duration, currentTime, framework,
 }: {
   script: string; topic: string;
   audioRef: React.RefObject<HTMLAudioElement | null>;
-  isPlaying: boolean; duration: number; currentTime: number;
+  isPlaying: boolean; duration: number; currentTime: number; framework: string;
 }) {
   const { isArabic } = useLanguage();
   const [slides, setSlides] = React.useState<Slide[]>([]);
@@ -171,14 +204,14 @@ TITLE: Core Principles
 - First key principle explained briefly
 - Second key principle explained briefly
 - Third key principle explained briefly
-HIGHLIGHT: Foundation of PMBOK 7
+HIGHLIGHT: Why this matters for the exam
 
 SLIDE:framework
 TITLE: The Framework
 - Framework element one
 - Framework element two
 - Framework element three
-HIGHLIGHT: How it connects to ECO 2021
+HIGHLIGHT: How it connects to the exam content outline
 
 SLIDE:example
 TITLE: Real-World Application
@@ -202,7 +235,7 @@ TITLE: Key Takeaways
 HIGHLIGHT: You are building real expertise`,
           lessonTitle: topic,
           domain: 'all',
-          framework: 'pmbok7',
+          framework,
         }),
       });
       if (!res.body) throw new Error('No body');
@@ -246,7 +279,7 @@ HIGHLIGHT: You are building real expertise`,
   function buildFallbackSlides(): Slide[] {
     const paragraphs = script.split('\n\n').filter(p => p.trim().length > 40);
     const slides: Slide[] = [
-      { title: topic, points: isArabic ? ['دليل PMBOK الطبعة السابعة 2021', 'PMP ECO يناير 2021', 'تحليل على مستوى خبير'] : ['PMBOK Guide 7th Edition 2021', 'PMP ECO January 2021', 'Expert-level analysis'], type: 'intro', highlight: isArabic ? 'بوابتك إلى إتقان PMP' : 'Your gateway to PMP mastery' },
+      { title: topic, points: isArabic ? [frameworkLabel(framework), 'تحليل على مستوى خبير'] : [frameworkLabel(framework), 'Expert-level analysis'], type: 'intro', highlight: isArabic ? 'بوابتك إلى إتقان PMP' : 'Your gateway to PMP mastery' },
     ];
     paragraphs.slice(0, 4).forEach((p, i) => {
       const sentences = p.split('. ').filter(s => s.length > 15 && s.length < 120).slice(0, 3);
@@ -276,9 +309,9 @@ HIGHLIGHT: You are building real expertise`,
 
   if (isGenerating) {
     return (
-      <div className="rounded-2xl overflow-hidden border border-gray-200 bg-[#1B2A4A] max-w-3xl mx-auto" style={{ aspectRatio: '16/10' }}>
+      <div className="rounded-2xl overflow-hidden border border-gray-200 bg-[#5B2D91] max-w-3xl mx-auto" style={{ aspectRatio: '16/10' }}>
         <div className="h-full flex flex-col items-center justify-center p-8 animate-pulse">
-          <div className="w-16 h-1 bg-[#C5A572] rounded-full mb-8 opacity-50" />
+          <div className="w-16 h-1 bg-[#F5A623] rounded-full mb-8 opacity-50" />
           <div className="h-6 bg-white/10 rounded w-2/3 mb-4" />
           <div className="h-4 bg-white/5 rounded w-1/2 mb-8" />
           <div className="space-y-3 w-full max-w-md">
@@ -295,14 +328,15 @@ HIGHLIGHT: You are building real expertise`,
   if (slides.length === 0) return null;
 
   const slide = slides[currentSlide];
-  const accent = SLIDE_ACCENTS[slide.type] || '#1B2A4A';
+  const accent = SLIDE_ACCENTS[slide.type] || '#5B2D91';
+  const brandGradient = 'linear-gradient(135deg,#1AB0A2,#5B2D91)';
   const icon = SLIDE_ICONS[slide.type] || '📌';
   const prog = slides.length > 1 ? (currentSlide / (slides.length - 1)) * 100 : 100;
 
   return (
     <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-lg max-w-3xl mx-auto">
       <div className="relative bg-white" style={{ aspectRatio: '16/10' }}>
-        <div className="absolute top-0 left-0 right-0 h-1.5" style={{ backgroundColor: accent }} />
+        <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: brandGradient }} />
         <div className="absolute top-5 left-6 flex items-center gap-3">
           <span className="text-xs font-bold text-white px-2.5 py-1 rounded-md" style={{ backgroundColor: accent }}>{currentSlide + 1} / {slides.length}</span>
           <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">{slide.type}</span>
@@ -311,8 +345,8 @@ HIGHLIGHT: You are building real expertise`,
           <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{topic}</span>
         </div>
         <div className={`h-full flex flex-col justify-center px-8 pt-12 pb-6 transition-all duration-300 ${transition ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
-          <div className="w-12 h-1 rounded-full mb-5" style={{ backgroundColor: '#C5A572' }} />
-          <h2 className="text-3xl font-bold text-[#1B2A4A] leading-tight mb-8">
+          <div className="w-12 h-1 rounded-full mb-5" style={{ backgroundColor: '#F5A623' }} />
+          <h2 className="text-3xl font-bold text-[#472272] leading-tight mb-8">
             <span className="mr-2">{icon}</span>{slide.title}
           </h2>
           <div className="space-y-4 flex-1">
@@ -324,14 +358,14 @@ HIGHLIGHT: You are building real expertise`,
             ))}
           </div>
           {slide.highlight && (
-            <div className="mt-5 p-4 rounded-xl border-l-4 bg-gray-50" style={{ borderColor: '#C5A572' }}>
-              <p className="text-base font-semibold text-[#1B2A4A] italic">{slide.highlight}</p>
+            <div className="mt-5 p-4 rounded-xl border-l-4 bg-gray-50" style={{ borderColor: '#F5A623' }}>
+              <p className="text-base font-semibold text-[#472272] italic">{slide.highlight}</p>
             </div>
           )}
         </div>
         <div className="absolute bottom-0 left-0 right-0">
           <div className="h-1 bg-gray-100">
-            <div className="h-full transition-all duration-700 ease-out" style={{ width: prog + '%', backgroundColor: accent }} />
+            <div className="h-full transition-all duration-700 ease-out" style={{ width: prog + '%', background: brandGradient }} />
           </div>
         </div>
         {isPlaying && (
@@ -345,16 +379,19 @@ HIGHLIGHT: You are building real expertise`,
           </div>
         )}
       </div>
-      <div className="bg-[#1B2A4A] px-4 py-3 flex items-center gap-2 overflow-x-auto">
+      <div className="bg-[#5B2D91] px-4 py-3 flex items-center gap-2 overflow-x-auto">
         {slides.map((s, i) => (
           <button key={i} onClick={() => goToSlide(i)}
             className={cn('flex-shrink-0 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-              i === currentSlide ? 'bg-white text-[#1B2A4A]' : 'text-white/50 hover:text-white hover:bg-white/10'
+              i === currentSlide ? 'bg-white text-[#5B2D91]' : 'text-white/50 hover:text-white hover:bg-white/10'
             )}>
             <span className="mr-1">{SLIDE_ICONS[s.type]}</span>{i + 1}
           </button>
         ))}
-        <span className="ml-auto text-[10px] text-[#C5A572] font-medium flex-shrink-0">{isArabic ? 'PMBOK 7 + ECO 2021' : 'PMBOK 7 + ECO 2021'}</span>
+        <div className="ml-auto flex items-center gap-3 flex-shrink-0">
+          <span className="text-[11px] font-extrabold tracking-tight text-white">PMP<span className="text-[#F5A623]">eco</span></span>
+          <span className="text-[10px] text-[#F5A623] font-medium">{frameworkLabel(framework)}</span>
+        </div>
       </div>
     </div>
   );
@@ -362,7 +399,7 @@ HIGHLIGHT: You are building real expertise`,
 
 // ── Learning Companion Panel ─────────────────────────────────────────────────
 
-function LearningCompanion({ script, topic, domain }: { script: string; topic: string; domain: string }) {
+function LearningCompanion({ script, topic, domain, framework }: { script: string; topic: string; domain: string; framework: string }) {
   const { isArabic } = useLanguage();
   const [activeSection, setActiveSection] = React.useState<'takeaways' | 'terms' | 'quiz'>('takeaways');
   const [isLoading, setIsLoading] = React.useState(false);
@@ -428,7 +465,7 @@ ANSWER: [A/B/C/D]
 WHY: [Brief rationale]`,
           lessonTitle: topic,
           domain: domain,
-          framework: 'pmbok7',
+          framework,
         }),
       });
       if (!res.body) throw new Error('No body');
@@ -671,6 +708,7 @@ function getAudioDomainLabel(domain: string, isArabic: boolean) {
 
 function AudioTab() {
   const { isArabic, t } = useLanguage();
+  const framework = useActiveFramework();
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [script, setScript] = React.useState('');
@@ -695,7 +733,7 @@ function AudioTab() {
       const res = await fetch('/api/tts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: topicTitle, topicId: topic.id, language: isArabic ? 'ar' : 'en', scriptOnly: false }),
+        body: JSON.stringify({ topic: topicTitle, topicId: topic.id, language: isArabic ? 'ar' : 'en', scriptOnly: false, framework }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -755,7 +793,7 @@ function AudioTab() {
 
       {/* Slide Player */}
       {activeId && !isGenerating && script && (
-        <SlidePlayer script={script} topic={activeTopicTitle} audioRef={audioRef} isPlaying={isPlaying} duration={duration} currentTime={currentTime} />
+        <SlidePlayer script={script} topic={activeTopicTitle} audioRef={audioRef} isPlaying={isPlaying} duration={duration} currentTime={currentTime} framework={framework} />
       )}
 
       {/* Audio Controls */}
@@ -764,7 +802,7 @@ function AudioTab() {
           <div className="p-5">
             <div className="flex items-center gap-4 mb-4">
               <button onClick={togglePlay} disabled={!audioSrc}
-                className="w-12 h-12 rounded-full bg-[#1B2A4A] hover:bg-[#2a3f6e] text-white flex items-center justify-center flex-shrink-0 transition-colors shadow-md disabled:opacity-50">
+                className="w-12 h-12 rounded-full bg-[#5B2D91] hover:bg-[#472272] text-white flex items-center justify-center flex-shrink-0 transition-colors shadow-md disabled:opacity-50">
                 {isPlaying ? (
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
                 ) : (
@@ -773,7 +811,7 @@ function AudioTab() {
               </button>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-gray-900 truncate">{activeTopicTitle}</p>
-                <p className="text-xs text-gray-400">{isArabic ? 'السرد الذكي — PMBOK 7 + ECO 2021' : 'AI Narration — PMBOK 7 + ECO 2021'}</p>
+                <p className="text-xs text-gray-400">{isArabic ? `السرد الذكي — ${frameworkLabel(framework)}` : `AI Narration — ${frameworkLabel(framework)}`}</p>
               </div>
               <button onClick={() => setShowScript(!showScript)}
                 className={cn('text-xs font-medium px-3 py-1.5 rounded-lg transition-colors', showScript ? 'bg-violet-100 text-violet-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')}>
@@ -784,8 +822,8 @@ function AudioTab() {
               <div className="flex items-center gap-3">
                 <span className="text-xs text-gray-400 w-10 text-right font-mono">{formatTime(currentTime)}</span>
                 <div className="flex-1 h-2 bg-gray-100 rounded-full cursor-pointer group" onClick={handleSeek}>
-                  <div className="h-full bg-[#1B2A4A] rounded-full relative transition-all" style={{ width: progress + '%' }}>
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-[#1B2A4A] rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="h-full bg-[#5B2D91] rounded-full relative transition-all" style={{ width: progress + '%' }}>
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-[#5B2D91] rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </div>
                 <span className="text-xs text-gray-400 w-10 font-mono">{formatTime(duration)}</span>
@@ -803,7 +841,7 @@ function AudioTab() {
 
       {/* Learning Companion */}
       {activeId && !isGenerating && script && (
-        <LearningCompanion script={script} topic={activeTopicTitle} domain={activeTopic?.domain || ''} />
+        <LearningCompanion script={script} topic={activeTopicTitle} domain={activeTopic?.domain || ''} framework={framework} />
       )}
 
       {/* Loading state */}

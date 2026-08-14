@@ -75,7 +75,7 @@ export default async function DashboardLayout({
 
       <main className="flex-1 overflow-y-auto p-8">{children}</main>
 
-      <CompanionChat />
+      <CompanionChat activeFramework={activeFramework} />
     </DashboardLanguageWrapper>
   );
 }
