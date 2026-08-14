@@ -13,6 +13,7 @@ interface CompanionContext {
   lesson?: string
   domain?: string
   question?: string
+  framework?: string
 }
 
 const QUICK_ACTIONS = {
@@ -30,7 +31,7 @@ const QUICK_ACTIONS = {
   ],
 } as const
 
-export default function CompanionChat() {
+export default function CompanionChat({ activeFramework }: { activeFramework?: string }) {
   const { locale, isArabic } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
@@ -42,9 +43,9 @@ export default function CompanionChat() {
 
   // Detect current page context
   const getContext = useCallback((): CompanionContext => {
-    if (typeof window === 'undefined') return { page: 'dashboard' }
+    if (typeof window === 'undefined') return { page: 'dashboard', framework: activeFramework }
     const path = window.location.pathname
-    const ctx: CompanionContext = { page: path }
+    const ctx: CompanionContext = { page: path, framework: activeFramework }
 
     if (path.includes('/course/')) {
       const parts = path.split('/')
@@ -63,7 +64,7 @@ export default function CompanionChat() {
     }
 
     return ctx
-  }, [])
+  }, [activeFramework])
 
   // Auto-scroll to bottom
   useEffect(() => {

@@ -480,7 +480,7 @@ function ExplanationPanel({
               'Use these sections: Short intro, Advanced Analysis, Additional Frameworks & Models.',
             ].join('\n'),
             domain: node.id,
-            framework: mode === 'pmbok7' ? 'pmbok7' : 'eco2021',
+            framework: 'pmbok7',
             locale: isArabic ? 'ar' : 'en',
           }),
         });

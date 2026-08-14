@@ -386,6 +386,7 @@ export default async function LessonStepPage({ params, searchParams }: PageProps
               locale={locale}
               videos={lessonVideos}
               canonicalContentMarkdown={canonicalLearnContent?.contentMarkdown ?? null}
+              framework={framework}
             />
           ) : currentStep === 'visualize' ? (
             <VisualizeStep lesson={foundLesson} phaseId={foundModule.phaseId} locale={locale} />

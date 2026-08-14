@@ -5,7 +5,39 @@ import { Card, Tabs, Button, Badge, Progress } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { SAMPLE_QUESTIONS } from '@/lib/pmp-data';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { createClient } from '@/lib/supabase/client';
+import { normalizeExamPath } from '@/lib/pmp/exam-paths';
 import type { StudyTab } from '@/types';
+
+// Learner-facing label for the active exam pathway.
+function frameworkLabel(framework: string): string {
+  if (framework === 'pmbok8') return 'PMBOK 8 + ECO 2026';
+  if (framework === 'bridge') return 'PMBOK 7→8 · ECO 2021→2026';
+  return 'PMBOK 7 + ECO 2021';
+}
+
+// Resolves the learner's active exam pathway (same source of truth as Zane/dashboard).
+function useActiveFramework(): string {
+  const [framework, setFramework] = React.useState<string>('pmbok7');
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('active_framework')
+          .eq('id', user.id)
+          .single();
+        setFramework(normalizeExamPath(profile?.active_framework));
+      } catch {
+        /* keep default */
+      }
+    })();
+  }, []);
+  return framework;
+}
 
 // ── Notes Tab ───────────────────────────────────────────────────────────────
 function NotesTab() {
@@ -102,16 +134,17 @@ const SLIDE_ICONS: Record<string, string> = {
   intro: '🎯', concept: '📐', framework: '🔷', example: '💡', summary: '✅',
 };
 
+// PMPeco brand palette (from the logo): indigo #5B2D91, teal #1AB0A2, gold #F5A623.
 const SLIDE_ACCENTS: Record<string, string> = {
-  intro: '#1B2A4A', concept: '#2563EB', framework: '#7C3AED', example: '#059669', summary: '#C5A572',
+  intro: '#5B2D91', concept: '#1AB0A2', framework: '#5B2D91', example: '#1AB0A2', summary: '#5B2D91',
 };
 
 function SlidePlayer({
-  script, topic, audioRef, isPlaying, duration, currentTime,
+  script, topic, audioRef, isPlaying, duration, currentTime, framework,
 }: {
   script: string; topic: string;
   audioRef: React.RefObject<HTMLAudioElement | null>;
-  isPlaying: boolean; duration: number; currentTime: number;
+  isPlaying: boolean; duration: number; currentTime: number; framework: string;
 }) {
   const { isArabic } = useLanguage();
   const [slides, setSlides] = React.useState<Slide[]>([]);
@@ -171,14 +204,14 @@ TITLE: Core Principles
 - First key principle explained briefly
 - Second key principle explained briefly
 - Third key principle explained briefly
-HIGHLIGHT: Foundation of PMBOK 7
+HIGHLIGHT: Why this matters for the exam
 
 SLIDE:framework
 TITLE: The Framework
 - Framework element one
 - Framework element two
 - Framework element three
-HIGHLIGHT: How it connects to ECO 2021
+HIGHLIGHT: How it connects to the exam content outline
 
 SLIDE:example
 TITLE: Real-World Application
@@ -202,7 +235,7 @@ TITLE: Key Takeaways
 HIGHLIGHT: You are building real expertise`,
           lessonTitle: topic,
           domain: 'all',
-          framework: 'pmbok7',
+          framework,
         }),
       });
       if (!res.body) throw new Error('No body');
@@ -246,7 +279,7 @@ HIGHLIGHT: You are building real expertise`,
   function buildFallbackSlides(): Slide[] {
     const paragraphs = script.split('\n\n').filter(p => p.trim().length > 40);
     const slides: Slide[] = [
-      { title: topic, points: isArabic ? ['دليل PMBOK الطبعة السابعة 2021', 'PMP ECO يناير 2021', 'تحليل على مستوى خبير'] : ['PMBOK Guide 7th Edition 2021', 'PMP ECO January 2021', 'Expert-level analysis'], type: 'intro', highlight: isArabic ? 'بوابتك إلى إتقان PMP' : 'Your gateway to PMP mastery' },
+      { title: topic, points: isArabic ? [frameworkLabel(framework), 'تحليل على مستوى خبير'] : [frameworkLabel(framework), 'Expert-level analysis'], type: 'intro', highlight: isArabic ? 'بوابتك إلى إتقان PMP' : 'Your gateway to PMP mastery' },
     ];
     paragraphs.slice(0, 4).forEach((p, i) => {
       const sentences = p.split('. ').filter(s => s.length > 15 && s.length < 120).slice(0, 3);
@@ -276,9 +309,9 @@ HIGHLIGHT: You are building real expertise`,
 
   if (isGenerating) {
     return (
-      <div className="rounded-2xl overflow-hidden border border-gray-200 bg-[#1B2A4A] max-w-3xl mx-auto" style={{ aspectRatio: '16/10' }}>
+      <div className="rounded-2xl overflow-hidden border border-gray-200 bg-[#5B2D91] max-w-3xl mx-auto" style={{ aspectRatio: '16/10' }}>
         <div className="h-full flex flex-col items-center justify-center p-8 animate-pulse">
-          <div className="w-16 h-1 bg-[#C5A572] rounded-full mb-8 opacity-50" />
+          <div className="w-16 h-1 bg-[#F5A623] rounded-full mb-8 opacity-50" />
           <div className="h-6 bg-white/10 rounded w-2/3 mb-4" />
           <div className="h-4 bg-white/5 rounded w-1/2 mb-8" />
           <div className="space-y-3 w-full max-w-md">
@@ -295,14 +328,15 @@ HIGHLIGHT: You are building real expertise`,
   if (slides.length === 0) return null;
 
   const slide = slides[currentSlide];
-  const accent = SLIDE_ACCENTS[slide.type] || '#1B2A4A';
+  const accent = SLIDE_ACCENTS[slide.type] || '#5B2D91';
+  const brandGradient = 'linear-gradient(135deg,#1AB0A2,#5B2D91)';
   const icon = SLIDE_ICONS[slide.type] || '📌';
   const prog = slides.length > 1 ? (currentSlide / (slides.length - 1)) * 100 : 100;
 
   return (
     <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-lg max-w-3xl mx-auto">
       <div className="relative bg-white" style={{ aspectRatio: '16/10' }}>
-        <div className="absolute top-0 left-0 right-0 h-1.5" style={{ backgroundColor: accent }} />
+        <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: brandGradient }} />
         <div className="absolute top-5 left-6 flex items-center gap-3">
           <span className="text-xs font-bold text-white px-2.5 py-1 rounded-md" style={{ backgroundColor: accent }}>{currentSlide + 1} / {slides.length}</span>
           <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">{slide.type}</span>
@@ -311,8 +345,8 @@ HIGHLIGHT: You are building real expertise`,
           <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{topic}</span>
         </div>
         <div className={`h-full flex flex-col justify-center px-8 pt-12 pb-6 transition-all duration-300 ${transition ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
-          <div className="w-12 h-1 rounded-full mb-5" style={{ backgroundColor: '#C5A572' }} />
-          <h2 className="text-3xl font-bold text-[#1B2A4A] leading-tight mb-8">
+          <div className="w-12 h-1 rounded-full mb-5" style={{ backgroundColor: '#F5A623' }} />
+          <h2 className="text-3xl font-bold text-[#472272] leading-tight mb-8">
             <span className="mr-2">{icon}</span>{slide.title}
           </h2>
           <div className="space-y-4 flex-1">
@@ -324,14 +358,14 @@ HIGHLIGHT: You are building real expertise`,
             ))}
           </div>
           {slide.highlight && (
-            <div className="mt-5 p-4 rounded-xl border-l-4 bg-gray-50" style={{ borderColor: '#C5A572' }}>
-              <p className="text-base font-semibold text-[#1B2A4A] italic">{slide.highlight}</p>
+            <div className="mt-5 p-4 rounded-xl border-l-4 bg-gray-50" style={{ borderColor: '#F5A623' }}>
+              <p className="text-base font-semibold text-[#472272] italic">{slide.highlight}</p>
             </div>
           )}
         </div>
         <div className="absolute bottom-0 left-0 right-0">
           <div className="h-1 bg-gray-100">
-            <div className="h-full transition-all duration-700 ease-out" style={{ width: prog + '%', backgroundColor: accent }} />
+            <div className="h-full transition-all duration-700 ease-out" style={{ width: prog + '%', background: brandGradient }} />
           </div>
         </div>
         {isPlaying && (
@@ -345,16 +379,19 @@ HIGHLIGHT: You are building real expertise`,
           </div>
         )}
       </div>
-      <div className="bg-[#1B2A4A] px-4 py-3 flex items-center gap-2 overflow-x-auto">
+      <div className="bg-[#5B2D91] px-4 py-3 flex items-center gap-2 overflow-x-auto">
         {slides.map((s, i) => (
           <button key={i} onClick={() => goToSlide(i)}
             className={cn('flex-shrink-0 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-              i === currentSlide ? 'bg-white text-[#1B2A4A]' : 'text-white/50 hover:text-white hover:bg-white/10'
+              i === currentSlide ? 'bg-white text-[#5B2D91]' : 'text-white/50 hover:text-white hover:bg-white/10'
             )}>
             <span className="mr-1">{SLIDE_ICONS[s.type]}</span>{i + 1}
           </button>
         ))}
-        <span className="ml-auto text-[10px] text-[#C5A572] font-medium flex-shrink-0">{isArabic ? 'PMBOK 7 + ECO 2021' : 'PMBOK 7 + ECO 2021'}</span>
+        <div className="ml-auto flex items-center gap-3 flex-shrink-0">
+          <span className="text-[11px] font-extrabold tracking-tight text-white">PMP<span className="text-[#F5A623]">eco</span></span>
+          <span className="text-[10px] text-[#F5A623] font-medium">{frameworkLabel(framework)}</span>
+        </div>
       </div>
     </div>
   );
@@ -362,7 +399,7 @@ HIGHLIGHT: You are building real expertise`,
 
 // ── Learning Companion Panel ─────────────────────────────────────────────────
 
-function LearningCompanion({ script, topic, domain }: { script: string; topic: string; domain: string }) {
+function LearningCompanion({ script, topic, domain, framework }: { script: string; topic: string; domain: string; framework: string }) {
   const { isArabic } = useLanguage();
   const [activeSection, setActiveSection] = React.useState<'takeaways' | 'terms' | 'quiz'>('takeaways');
   const [isLoading, setIsLoading] = React.useState(false);
@@ -428,7 +465,7 @@ ANSWER: [A/B/C/D]
 WHY: [Brief rationale]`,
           lessonTitle: topic,
           domain: domain,
-          framework: 'pmbok7',
+          framework,
         }),
       });
       if (!res.body) throw new Error('No body');
@@ -603,14 +640,14 @@ WHY: [Brief rationale]`,
 
 const AUDIO_LOADING_MESSAGES_EN = [
   { text: "Our AI narrator is preparing your lesson...", sub: "Creating a focused PMP audio experience" },
-  { text: "Writing the narration script from PMBOK 7...", sub: "Every word grounded in official PMI sources" },
+  { text: "Writing the narration script...", sub: "Every word grounded in official PMI sources" },
   { text: "Converting knowledge into an audio experience...", sub: "Listen, learn, and absorb at your own pace" },
   { text: "Crafting a personalized audio lesson...", sub: "The best PMs learn through multiple channels" },
 ];
 
 const AUDIO_LOADING_MESSAGES_AR = [
   { text: "راويك الذكي يحضر درسك...", sub: "إنشاء تجربة صوتية مركزة لاختبار PMP" },
-  { text: "كتابة نص السرد من PMBOK 7...", sub: "كل كلمة مستندة إلى مصادر PMI الرسمية" },
+  { text: "كتابة نص السرد...", sub: "كل كلمة مستندة إلى مصادر PMI الرسمية" },
   { text: "تحويل المعرفة إلى تجربة صوتية...", sub: "استمع وتعلم واستوعب بسرعتك الخاصة" },
   { text: "صياغة درس صوتي شخصي...", sub: "أفضل مديري المشاريع يتعلمون عبر قنوات متعددة" },
 ];
@@ -640,16 +677,43 @@ function AudioLoadingMessage() {
 
 // ── Audio Tab ────────────────────────────────────────────────────────────────
 
-const AUDIO_TOPICS = [
-  { id: '1', title_en: 'PMBOK 7 Overview — Principles & Domains', title_ar: 'نظرة عامة على PMBOK 7 — المبادئ والمجالات', domain: 'all', icon: '📘' },
-  { id: '2', title_en: 'Stakeholder Engagement Strategies', title_ar: 'استراتيجيات تفاعل أصحاب المصلحة', domain: 'stakeholders', icon: '🤝' },
-  { id: '3', title_en: 'Agile vs Predictive — When to Use What', title_ar: 'أجايل مقابل التنبؤي — متى تستخدم أي', domain: 'development-approach', icon: '🔄' },
-  { id: '4', title_en: 'Earned Value Management Deep Dive', title_ar: 'غوص عميق في إدارة القيمة المكتسبة', domain: 'measurement', icon: '📊' },
-  { id: '5', title_en: 'ECO People Domain — Task Walkthrough', title_ar: 'مجال الأشخاص ECO — شرح المهام', domain: 'people', icon: '👥' },
-  { id: '6', title_en: 'Risk Management & Uncertainty', title_ar: 'إدارة المخاطر وعدم اليقين', domain: 'uncertainty', icon: '⚡' },
-  { id: '7', title_en: 'Team Performance & Servant Leadership', title_ar: 'أداء الفريق والقيادة الخادمة', domain: 'team', icon: '👤' },
-  { id: '8', title_en: 'Planning: Scope, Schedule & Budget', title_ar: 'التخطيط: النطاق والجدول الزمني والميزانية', domain: 'planning', icon: '📋' },
-];
+type AudioTopic = { id: string; title_en: string; title_ar: string; domain: string; icon: string };
+
+// Audio topics per exam pathway. pmbok8 + bridge grounded in the verified PMBOK 8
+// (7 performance domains, 6 principles) and ECO 2026 (People 33 / Process 41 / BE 26,
+// with governance/compliance/change/risk moved into Business Environment) structures.
+const AUDIO_TOPICS_BY_FRAMEWORK: Record<string, AudioTopic[]> = {
+  pmbok7: [
+    { id: '1', title_en: 'PMBOK 7 Overview — Principles & Domains', title_ar: 'نظرة عامة على PMBOK 7 — المبادئ والمجالات', domain: 'all', icon: '📘' },
+    { id: '2', title_en: 'Stakeholder Engagement Strategies', title_ar: 'استراتيجيات تفاعل أصحاب المصلحة', domain: 'stakeholders', icon: '🤝' },
+    { id: '3', title_en: 'Agile vs Predictive — When to Use What', title_ar: 'أجايل مقابل التنبؤي — متى تستخدم أي', domain: 'development-approach', icon: '🔄' },
+    { id: '4', title_en: 'Earned Value Management Deep Dive', title_ar: 'غوص عميق في إدارة القيمة المكتسبة', domain: 'measurement', icon: '📊' },
+    { id: '5', title_en: 'ECO People Domain — Task Walkthrough', title_ar: 'مجال الأشخاص ECO — شرح المهام', domain: 'people', icon: '👥' },
+    { id: '6', title_en: 'Risk Management & Uncertainty', title_ar: 'إدارة المخاطر وعدم اليقين', domain: 'uncertainty', icon: '⚡' },
+    { id: '7', title_en: 'Team Performance & Servant Leadership', title_ar: 'أداء الفريق والقيادة الخادمة', domain: 'team', icon: '👤' },
+    { id: '8', title_en: 'Planning: Scope, Schedule & Budget', title_ar: 'التخطيط: النطاق والجدول الزمني والميزانية', domain: 'planning', icon: '📋' },
+  ],
+  pmbok8: [
+    { id: '1', title_en: 'PMBOK 8 Overview — 6 Principles & 7 Performance Domains', title_ar: 'نظرة عامة على PMBOK 8 — 6 مبادئ و7 مجالات أداء', domain: 'all', icon: '📘' },
+    { id: '2', title_en: 'Stakeholder Engagement & Alignment', title_ar: 'إشراك المعنيين ومواءمة التوقعات', domain: 'stakeholders', icon: '🤝' },
+    { id: '3', title_en: 'Predictive, Agile & Hybrid — Tailoring the Approach', title_ar: 'التنبؤي والرشيق والهجين — تكييف المنهج', domain: 'development-approach', icon: '🔄' },
+    { id: '4', title_en: 'Finance Fluency — EVM, NPV & Business Value', title_ar: 'الطلاقة المالية — القيمة المكتسبة وصافي القيمة الحالية وقيمة الأعمال', domain: 'finance', icon: '💰' },
+    { id: '5', title_en: 'ECO 2026 People Domain — Leading & Empowering Teams', title_ar: 'مجال الأفراد ECO 2026 — قيادة الفرق وتمكينها', domain: 'people', icon: '👥' },
+    { id: '6', title_en: 'Risk & Uncertainty in the Business Environment', title_ar: 'المخاطر وعدم اليقين في بيئة الأعمال', domain: 'risk', icon: '⚡' },
+    { id: '7', title_en: 'Governance, Compliance & Integrated Change Control', title_ar: 'الحوكمة والامتثال والتحكم المتكامل في التغيير', domain: 'governance', icon: '⚖️' },
+    { id: '8', title_en: 'AI-Augmented Delivery & Sustainability', title_ar: 'التسليم المعزّز بالذكاء الاصطناعي والاستدامة', domain: 'business-environment', icon: '🌱' },
+  ],
+  bridge: [
+    { id: '1', title_en: 'What Changed — PMBOK 7→8 & ECO 2021→2026', title_ar: 'ما الذي تغيّر — PMBOK 7→8 و ECO 2021→2026', domain: 'all', icon: '🔀' },
+    { id: '2', title_en: 'Performance Domains Restructured (8 → 7)', title_ar: 'إعادة هيكلة مجالات الأداء (8 → 7)', domain: 'all', icon: '📘' },
+    { id: '3', title_en: 'Business Environment Rises: 8% → 26%', title_ar: 'صعود بيئة الأعمال: 8% → 26%', domain: 'business-environment', icon: '📈' },
+    { id: '4', title_en: 'New Emphasis — Finance Fluency & Business Value', title_ar: 'تركيز جديد — الطلاقة المالية وقيمة الأعمال', domain: 'finance', icon: '💰' },
+    { id: '5', title_en: 'New Emphasis — AI-Augmented Delivery', title_ar: 'تركيز جديد — التسليم المعزّز بالذكاء الاصطناعي', domain: 'process', icon: '🤖' },
+    { id: '6', title_en: 'New Emphasis — Sustainability & ESG', title_ar: 'تركيز جديد — الاستدامة والحوكمة البيئية والاجتماعية', domain: 'business-environment', icon: '🌱' },
+    { id: '7', title_en: 'ECO Domain Weights & Task Renumbering', title_ar: 'أوزان مجالات ECO وإعادة ترقيم المهام', domain: 'all', icon: '🔢' },
+    { id: '8', title_en: 'Bridge Strategy — What to Re-study', title_ar: 'استراتيجية الجسر — ما الذي يجب إعادة دراسته', domain: 'all', icon: '🎯' },
+  ],
+};
 
 const AUDIO_DOMAIN_LABELS: Record<string, { en: string; ar: string }> = {
   all: { en: 'all', ar: 'عام' },
@@ -671,6 +735,8 @@ function getAudioDomainLabel(domain: string, isArabic: boolean) {
 
 function AudioTab() {
   const { isArabic, t } = useLanguage();
+  const framework = useActiveFramework();
+  const topics = AUDIO_TOPICS_BY_FRAMEWORK[framework] ?? AUDIO_TOPICS_BY_FRAMEWORK.pmbok7;
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [script, setScript] = React.useState('');
@@ -683,7 +749,7 @@ function AudioTab() {
   const [error, setError] = React.useState('');
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
-  async function generateAudio(topic: typeof AUDIO_TOPICS[0]) {
+  async function generateAudio(topic: AudioTopic) {
     const topicTitle = isArabic ? topic.title_ar : topic.title_en;
     if (activeId === topic.id && audioSrc) { togglePlay(); return; }
     setActiveId(topic.id);
@@ -695,7 +761,7 @@ function AudioTab() {
       const res = await fetch('/api/tts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: topicTitle, topicId: topic.id, language: isArabic ? 'ar' : 'en', scriptOnly: false }),
+        body: JSON.stringify({ topic: topicTitle, topicId: topic.id, language: isArabic ? 'ar' : 'en', scriptOnly: false, framework }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -740,7 +806,7 @@ function AudioTab() {
     return Math.floor(s / 60) + ':' + (Math.floor(s % 60) < 10 ? '0' : '') + Math.floor(s % 60);
   }
 
-  const activeTopic = AUDIO_TOPICS.find(t => t.id === activeId);
+  const activeTopic = topics.find(t => t.id === activeId);
   const activeTopicTitle = activeTopic ? (isArabic ? activeTopic.title_ar : activeTopic.title_en) : '';
 
   return (
@@ -755,7 +821,7 @@ function AudioTab() {
 
       {/* Slide Player */}
       {activeId && !isGenerating && script && (
-        <SlidePlayer script={script} topic={activeTopicTitle} audioRef={audioRef} isPlaying={isPlaying} duration={duration} currentTime={currentTime} />
+        <SlidePlayer script={script} topic={activeTopicTitle} audioRef={audioRef} isPlaying={isPlaying} duration={duration} currentTime={currentTime} framework={framework} />
       )}
 
       {/* Audio Controls */}
@@ -764,7 +830,7 @@ function AudioTab() {
           <div className="p-5">
             <div className="flex items-center gap-4 mb-4">
               <button onClick={togglePlay} disabled={!audioSrc}
-                className="w-12 h-12 rounded-full bg-[#1B2A4A] hover:bg-[#2a3f6e] text-white flex items-center justify-center flex-shrink-0 transition-colors shadow-md disabled:opacity-50">
+                className="w-12 h-12 rounded-full bg-[#5B2D91] hover:bg-[#472272] text-white flex items-center justify-center flex-shrink-0 transition-colors shadow-md disabled:opacity-50">
                 {isPlaying ? (
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
                 ) : (
@@ -773,7 +839,7 @@ function AudioTab() {
               </button>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-gray-900 truncate">{activeTopicTitle}</p>
-                <p className="text-xs text-gray-400">{isArabic ? 'السرد الذكي — PMBOK 7 + ECO 2021' : 'AI Narration — PMBOK 7 + ECO 2021'}</p>
+                <p className="text-xs text-gray-400">{isArabic ? `السرد الذكي — ${frameworkLabel(framework)}` : `AI Narration — ${frameworkLabel(framework)}`}</p>
               </div>
               <button onClick={() => setShowScript(!showScript)}
                 className={cn('text-xs font-medium px-3 py-1.5 rounded-lg transition-colors', showScript ? 'bg-violet-100 text-violet-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')}>
@@ -784,8 +850,8 @@ function AudioTab() {
               <div className="flex items-center gap-3">
                 <span className="text-xs text-gray-400 w-10 text-right font-mono">{formatTime(currentTime)}</span>
                 <div className="flex-1 h-2 bg-gray-100 rounded-full cursor-pointer group" onClick={handleSeek}>
-                  <div className="h-full bg-[#1B2A4A] rounded-full relative transition-all" style={{ width: progress + '%' }}>
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-[#1B2A4A] rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="h-full bg-[#5B2D91] rounded-full relative transition-all" style={{ width: progress + '%' }}>
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-[#5B2D91] rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </div>
                 <span className="text-xs text-gray-400 w-10 font-mono">{formatTime(duration)}</span>
@@ -803,7 +869,7 @@ function AudioTab() {
 
       {/* Learning Companion */}
       {activeId && !isGenerating && script && (
-        <LearningCompanion script={script} topic={activeTopicTitle} domain={activeTopic?.domain || ''} />
+        <LearningCompanion script={script} topic={activeTopicTitle} domain={activeTopic?.domain || ''} framework={framework} />
       )}
 
       {/* Loading state */}
@@ -841,7 +907,7 @@ function AudioTab() {
         </div>
         <p className="text-sm text-brand-900/50 mb-6">{isArabic ? 'انقر على أي درس لإنشاء تجربة صوتية مروية بالذكاء الاصطناعي.' : 'Click any lesson to generate an AI-narrated audio experience.'}</p>
         <div className="space-y-1">
-          {AUDIO_TOPICS.map(topic => {
+          {topics.map(topic => {
             const topicTitle = isArabic ? topic.title_ar : topic.title_en;
             const isActive = activeId === topic.id;
             const isCurrentlyPlaying = isActive && isPlaying;
@@ -882,17 +948,48 @@ function AudioTab() {
 }
 
 // ── Flashcards Tab ──────────────────────────────────────────────────────────
-function FlashcardsTab() {
-  const { isArabic } = useLanguage();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const cards = [
+type Flashcard = { front: string; back: string };
+
+// Framework-aware flashcards. pmbok8 + bridge grounded in verified PMBOK 8 (7 domains,
+// 6 principles) and ECO 2026 (People 33 / Process 41 / BE 26) facts. CPI and conflict
+// modes carry over unchanged across pathways.
+function getFlashcards(framework: string, isArabic: boolean): Flashcard[] {
+  const cpi: Flashcard = { front: isArabic ? 'عرّف CPI في إدارة القيمة المكتسبة' : 'Define CPI in Earned Value Management', back: isArabic ? 'مؤشر الأداء في الكلفة = EV / AC. CPI > 1.0 يعني أقل من الميزانية، CPI < 1.0 يعني أكثر من الميزانية.' : 'Cost Performance Index = EV / AC. CPI > 1.0 means under budget, CPI < 1.0 means over budget.' };
+  const conflict: Flashcard = { front: isArabic ? 'اذكر 3 تقنيات لحل النزاعات' : 'Name 3 conflict resolution techniques', back: isArabic ? 'التعاون/حل المشاكل (الأفضل)، التسوية/المصالحة، الانسحاب/التجنب، التنعيم/الاستيعاب، الإجبار/التوجيه المباشر' : 'Collaborate/Problem Solve (best), Compromise/Reconcile, Withdraw/Avoid, Smooth/Accommodate, Force/Direct' };
+
+  if (framework === 'pmbok8') {
+    return [
+      { front: isArabic ? 'ما مجالات الأداء السبعة في PMBOK 8؟' : 'What are the 7 Performance Domains in PMBOK 8?', back: isArabic ? 'الحوكمة، النطاق، الجدول الزمني، المالية، أصحاب المصلحة، الموارد، المخاطر' : 'Governance, Scope, Schedule, Finance, Stakeholders, Resources, Risk' },
+      { front: isArabic ? 'ما أوزان مجالات امتحان ECO 2026؟' : 'What are the ECO 2026 exam domain weights?', back: isArabic ? 'الأفراد 33٪، العمليات 41٪، بيئة الأعمال 26٪' : 'People 33%, Process 41%, Business Environment 26%' },
+      cpi,
+      { front: isArabic ? 'اذكر مبادئ PMBOK 8 الستة' : 'Name the 6 PMBOK 8 principles', back: isArabic ? 'تبنّي نظرة شمولية؛ التركيز على القيمة؛ ترسيخ الجودة في العمليات والمخرجات؛ كن قائداً مسؤولاً؛ دمج الاستدامة في جميع مجالات المشروع؛ بناء ثقافة تمكينية' : 'Adopt a Holistic View; Focus on Value; Embed Quality Into Processes and Deliverables; Be an Accountable Leader; Integrate Sustainability Within All Project Areas; Build an Empowered Culture' },
+      conflict,
+    ];
+  }
+  if (framework === 'bridge') {
+    return [
+      { front: isArabic ? 'كان لدى PMBOK 7 ثمانية مجالات أداء — كم عددها في PMBOK 8؟' : 'PMBOK 7 had 8 performance domains — how many in PMBOK 8?', back: isArabic ? '7: الحوكمة، النطاق، الجدول الزمني، المالية، أصحاب المصلحة، الموارد، المخاطر. أُعيدت هيكلة الفريق والتخطيط وعمل المشروع والتسليم والقياس وعدم اليقين ونهج التطوير.' : '7: Governance, Scope, Schedule, Finance, Stakeholders, Resources, Risk. Team, Planning, Project Work, Delivery, Measurement, Uncertainty & Development Approach were restructured.' },
+      { front: isArabic ? 'كيف تغيّر وزن بيئة الأعمال (2021 → 2026)؟' : 'How did the Business Environment weight change (2021 → 2026)?', back: isArabic ? '8٪ → 26٪. انتقلت الحوكمة والامتثال والتحكم في التغيير والعوائق والمخاطر إلى بيئة الأعمال.' : '8% → 26%. Governance, compliance, change control, impediments/issues and risk moved into Business Environment.' },
+      { front: isArabic ? 'أوزان مجالات ECO 2026 مقابل 2021؟' : 'ECO 2026 domain weights vs ECO 2021?', back: isArabic ? '2026: الأفراد 33٪ / العمليات 41٪ / بيئة الأعمال 26٪. 2021: الأفراد 42٪ / العمليات 50٪ / بيئة الأعمال 8٪.' : '2026: People 33% / Process 41% / BE 26%. 2021 was People 42% / Process 50% / BE 8%.' },
+      { front: isArabic ? 'ما التركيزات الجديدة التي أضافها ECO 2026؟' : 'What new emphases did ECO 2026 add?', back: isArabic ? 'الطلاقة المالية وقيمة الأعمال، والتسليم المعزّز بالذكاء الاصطناعي، والاستدامة والحوكمة البيئية والاجتماعية.' : 'Finance fluency & business value, AI-augmented delivery, and sustainability/ESG.' },
+      { front: isArabic ? 'أي أساسيات تبقى دون تغيير من PMBOK 7 إلى 8؟' : 'Which fundamentals carry over unchanged from PMBOK 7 to 8?', back: isArabic ? 'صيغ القيمة المكتسبة (CPI/SPI/EAC)، وأنماط حل النزاعات، والقيادة الخادمة، ومراحل تطور الفريق (تاكمان).' : 'EVM formulas (CPI/SPI/EAC), conflict-resolution modes, servant leadership, and Tuckman team-development stages.' },
+    ];
+  }
+  return [
     { front: isArabic ? 'ما هي المجالات الأداء الثمانية في PMBOK 7؟' : 'What are the 8 Performance Domains in PMBOK 7?', back: isArabic ? 'أصحاب المصلحة، الفريق، نهج التطوير ودورة الحياة، التخطيط، عمل المشروع، التسليم، القياس، عدم اليقين' : 'Stakeholders, Team, Development Approach & Life Cycle, Planning, Project Work, Delivery, Measurement, Uncertainty' },
     { front: isArabic ? 'ما نسبة امتحان PMP التي تغطي مجال الأشخاص (ECO 2021)؟' : 'What percentage of the PMP exam covers the People domain (ECO 2021)?', back: isArabic ? '42٪ — 14 مهمة تغطي القيادة وإدارة الفريق وحل النزاعات والتعاون مع أصحاب المصلحة' : '42% — 14 tasks covering leadership, team management, conflict resolution, and stakeholder collaboration' },
-    { front: isArabic ? 'عرّف CPI في إدارة القيمة المكتسبة' : 'Define CPI in Earned Value Management', back: isArabic ? 'مؤشر الأداء في الكلفة = EV / AC. CPI > 1.0 يعني أقل من الميزانية، CPI < 1.0 يعني أكثر من الميزانية.' : 'Cost Performance Index = EV / AC. CPI > 1.0 means under budget, CPI < 1.0 means over budget.' },
+    cpi,
     { front: isArabic ? 'ما هي القيادة الخادمة؟' : 'What is Servant Leadership?', back: isArabic ? 'فلسفة قيادية حيث يكون الهدف الأساسي للقائد هو خدمة الفريق. التركيز على إزالة العقبات والتدريب وتمكين أعضاء الفريق.' : 'A leadership philosophy where the leader\'s primary goal is to serve the team. Focus on removing impediments, coaching, and empowering team members.' },
-    { front: isArabic ? 'اذكر 3 تقنيات لحل النزاعات' : 'Name 3 conflict resolution techniques', back: isArabic ? 'التعاون/حل المشاكل (الأفضل)، التسوية/المصالحة، الانسحاب/التجنب، التنعيم/الاستيعاب، الإجبار/التوجيه المباشر' : 'Collaborate/Problem Solve (best), Compromise/Reconcile, Withdraw/Avoid, Smooth/Accommodate, Force/Direct' },
+    conflict,
   ];
+}
+
+function FlashcardsTab() {
+  const { isArabic } = useLanguage();
+  const framework = useActiveFramework();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const cards = getFlashcards(framework, isArabic);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

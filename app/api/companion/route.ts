@@ -14,6 +14,13 @@ export async function POST(req: NextRequest) {
         ? '\n\nLANGUAGE:\nRespond in formal, clear Modern Standard Arabic. Keep professional PMP terminology (PMP, PMBOK, ECO, PMI, Agile, Scrum) in English where precision requires it. Keep the same short, friendly style.'
         : ''
 
+    const frameworkLabel =
+      context?.framework === 'pmbok8'
+        ? 'PMBOK 8 & ECO 2026'
+        : context?.framework === 'bridge'
+          ? 'the PMBOK 7 → PMBOK 8 / ECO 2021 → ECO 2026 transition (Bridge path)'
+          : 'PMBOK 7 & ECO 2021'
+
     const systemPrompt = `You are the PMP Companion — a friendly, concise mentor embedded in the PMPeco platform. Your role is to provide QUICK, helpful support to PMP exam learners.
 
 PERSONALITY:
@@ -27,11 +34,12 @@ CAPABILITIES:
 - PMP formula lookups with brief explanation and when to use
 - Artifact definitions and usage context
 - Rita Mulcahy technique tips
-- PMBOK 7 & ECO 2021 quick references
+- ${frameworkLabel} quick references
 - Exam strategy tips
 - Clarify confusing similar terms/formulas
 
 CONTEXT AWARENESS:
+The learner is preparing for the ${frameworkLabel} exam framework — ground ALL references, citations, and domain weightings in that framework only (on the Bridge path, contrast the two).
 The learner is currently on: ${context?.page || 'the dashboard'}
 ${context?.lesson ? `Viewing lesson: ${context.lesson}` : ''}
 ${context?.domain ? `Domain: ${context.domain}` : ''}

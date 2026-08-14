@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   let prompt = "";
 
   if (type === "practice") {
-    const d = domain === "all" ? "any ECO domain (People 42%, Process 50%, Business Environment 8%)" : domain;
+    const d = domain === "all" ? "any ECO 2026 domain (People 33%, Process 41%, Business Environment 26%)" : domain;
     prompt = `Generate 1 PMP exam question from ${d}. Return JSON: {domain,task,scenario,question,options:{A,B,C,D},correct,rationale}`;
   } else if (type === "exam") {
     prompt = "Generate 10 PMP exam questions reflecting ECO weightings. Return JSON array: [{domain,task,scenario,question,options:{A,B,C,D},correct,rationale}]";

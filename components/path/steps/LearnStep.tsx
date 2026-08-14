@@ -13,6 +13,7 @@ interface Props {
   locale: Locale;
   videos?: LessonVideo[];
   canonicalContentMarkdown?: string | null;
+  framework?: string | null;
 }
 
 const FALLBACK_THEME = {
@@ -120,7 +121,7 @@ function formatDuration(seconds: number | null, locale: Locale) {
   return locale === 'ar' ? `${value} دقيقة` : `${value} min`;
 }
 
-export function LearnStep({ lesson, phaseId, locale, videos = [], canonicalContentMarkdown = null }: Props) {
+export function LearnStep({ lesson, phaseId, locale, videos = [], canonicalContentMarkdown = null, framework = null }: Props) {
   const isAr = locale === 'ar';
   const theme = themeFor(phaseId) || FALLBACK_THEME;
   const canonicalSections = useMemo(() => {
@@ -189,7 +190,7 @@ export function LearnStep({ lesson, phaseId, locale, videos = [], canonicalConte
             content: { heading: 'Lesson objective', content: objective },
             lessonTitle: isAr ? lesson.title.ar : lesson.title.en,
             domain: 'business-environment',
-            framework: 'pmbok8',
+            framework: framework ?? 'pmbok8',
             language: locale,
           }),
         });
