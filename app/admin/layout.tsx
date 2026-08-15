@@ -38,6 +38,7 @@ export default async function AdminLayout({
     { href: "/admin/analytics", icon: "📊", label: "Analytics" },
     { href: "/admin/billing", icon: "💳", label: "Billing & Sales" },
     { href: "/admin/content-manager", icon: "⚡", label: "Content Manager" },
+    { href: "/admin/presentations", icon: "🖼️", label: "Presentations" },
     { href: "/admin/branding", icon: "🎨", label: "Branding" },
     { href: "/admin/media", icon: "🖼️", label: "Media Library" },
     { href: "/admin/study-media", icon: "🎧", label: "Study Studio Media" },
