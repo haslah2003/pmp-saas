@@ -62,6 +62,8 @@ export async function buildDeckSpec(input: DeckArchitectInput): Promise<DeckSpec
     'Design the deck spec now. Return ONLY the JSON object.',
   ].join('\n');
 
+  const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
+
   const res = await fetch(ANTHROPIC_URL, {
     method: 'POST',
     headers: {
@@ -70,20 +72,42 @@ export async function buildDeckSpec(input: DeckArchitectInput): Promise<DeckSpec
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-5',
+      model,
       max_tokens: 4000,
       system: SYS_DECK_ARCHITECT,
       messages: [{ role: 'user', content: userMessage }],
     }),
   });
 
-  if (!res.ok) {
-    throw new Error(`Deck architect model call failed: ${res.status}`);
+  // Read the body once as text so we can surface the real cause on any failure.
+  const rawBody = await res.text();
+  let data: any = {};
+  try {
+    data = JSON.parse(rawBody);
+  } catch {
+    /* non-JSON error body (gateway/HTML) — keep rawBody for the message */
   }
 
-  const data = await res.json();
-  const raw = data?.content?.[0]?.text;
-  if (!raw) throw new Error('Deck architect returned no content.');
+  if (!res.ok) {
+    console.error('[deck-architect] anthropic error', res.status, rawBody.slice(0, 1000));
+    const detail = data?.error?.message || rawBody.slice(0, 200) || 'no body';
+    throw new Error(`Model call failed (${res.status}) for "${model}": ${detail}`);
+  }
+
+  // Pick the first text block (robust to non-text blocks like thinking/tool_use).
+  const raw: string | undefined =
+    (Array.isArray(data?.content)
+      ? data.content.find((b: any) => b?.type === 'text')?.text
+      : undefined) ?? data?.content?.[0]?.text;
+
+  if (!raw) {
+    console.error('[deck-architect] no text block', JSON.stringify(data).slice(0, 1000));
+    throw new Error(
+      `Deck architect returned no content (model="${model}", stop_reason=${data?.stop_reason ?? 'n/a'}, blocks=${
+        Array.isArray(data?.content) ? data.content.map((b: any) => b?.type).join(',') || 'empty' : 'none'
+      }).`
+    );
+  }
 
   let parsed: { title: string; subtitle: string; slides: DeckSlide[]; citations?: DeckCitation[] };
   try {
