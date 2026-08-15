@@ -3,32 +3,31 @@ import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js
 import type { DeckBranding } from './types';
 
 /**
- * Resolves PMPeco branding from the SAME source of truth the rest of the app
- * uses — the branding_config row (id=1) that the admin edits at /admin/branding.
- * No palette is redefined here; the deck inherits whatever the platform is
- * currently branded as. Defaults mirror app/admin/branding/page.tsx so a deck
- * still renders before an admin has ever saved branding.
+ * Resolves the deck theme. Identity (site name + logo) comes from the app's
+ * single source of truth — the branding_config row (id=1). The visual system
+ * (palette + fonts) is the APPROVED PMPeco presentation theme, extracted from
+ * the branded template and held constant so every generated deck matches it,
+ * independent of the app UI palette.
  */
 
-const DEFAULTS = {
-  site_name: 'PMPeco',
-  logo_url: '/logo.png',
-  primary_color: '#0F172A',
-  secondary_color: '#1E40AF',
-  accent_color: '#F59E0B',
-  font_heading: 'Plus Jakarta Sans',
-  font_body: 'DM Sans',
+// Approved presentation theme (from Presentation_Template_pmpeco_2026).
+const THEME = {
+  navy: '0A4065',
+  teal: '00BFB7',
+  violet: '5955EB',
+  purple: 'A003BA',
+  cardBg: 'EAE8F3',
+  cardBorder: 'D7D6F5',
+  bodyInk: '49495A',
+  fontHeading: 'Poppins',
+  fontBody: 'Open Sans',
+  fontSerif: 'Libre Baskerville',
 };
 
-/** pptxgenjs rejects '#'-prefixed and 8-digit hex — normalise to 6 digits bare. */
-function bareHex(value: string | null | undefined, fallback: string): string {
-  const v = (value || '').trim().replace(/^#/, '');
-  if (/^[0-9a-fA-F]{6}$/.test(v)) return v.toUpperCase();
-  if (/^[0-9a-fA-F]{3}$/.test(v)) {
-    return v.split('').map((c) => c + c).join('').toUpperCase();
-  }
-  return fallback;
-}
+const IDENTITY_DEFAULTS = {
+  site_name: 'PMPeco',
+  logo_url: '/logo.png',
+};
 
 function adminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -67,25 +66,15 @@ export async function getDeckBranding(): Promise<DeckBranding> {
   if (supabase) {
     const { data } = await supabase
       .from('branding_config')
-      .select('*')
+      .select('site_name, logo_url')
       .eq('id', 1)
       .single();
     if (data) row = data;
   }
 
-  const primary = bareHex(row.primary_color, bareHex(DEFAULTS.primary_color, '0F172A'));
-  const secondary = bareHex(row.secondary_color, bareHex(DEFAULTS.secondary_color, '1E40AF'));
-  const accent = bareHex(row.accent_color, bareHex(DEFAULTS.accent_color, 'F59E0B'));
-
   return {
-    siteName: row.site_name || DEFAULTS.site_name,
-    logoDataUri: await loadImageDataUri(row.logo_url || DEFAULTS.logo_url),
-    primary,
-    secondary,
-    accent,
-    // Deep ink for dark title/closing slides — reuse primary (brand tokens keep it coherent).
-    ink: primary,
-    fontHeading: row.font_heading || DEFAULTS.font_heading,
-    fontBody: row.font_body || DEFAULTS.font_body,
+    siteName: row.site_name || IDENTITY_DEFAULTS.site_name,
+    logoDataUri: await loadImageDataUri(row.logo_url || IDENTITY_DEFAULTS.logo_url),
+    ...THEME,
   };
 }

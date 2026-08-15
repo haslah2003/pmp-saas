@@ -76,17 +76,31 @@ export interface DeckSpec {
 }
 
 /**
- * Resolved branding — mirrors the branding_config row (single source of truth),
- * normalised for the deck builder (hex WITHOUT leading '#').
+ * Resolved deck theme. Identity (logo, site name) comes from branding_config
+ * (the app's single source of truth); the visual system (palette + fonts) is
+ * the approved PMPeco presentation theme, held constant so every deck matches
+ * the branded template regardless of the app's UI palette.
+ *
+ * All hex values are 6-digit, no leading '#'.
  */
 export interface DeckBranding {
   siteName: string;
   logoDataUri: string | null;
-  /** All hex values are 6-digit, no '#'. */
-  primary: string;
-  secondary: string;
-  accent: string;
-  ink: string;
+  /** Deep navy — dominant ink + dark-slide background. */
+  navy: string;
+  /** Primary accent (teal). */
+  teal: string;
+  /** Secondary accent (violet). */
+  violet: string;
+  /** Tertiary accent (magenta/purple). */
+  purple: string;
+  /** Lavender card fill. */
+  cardBg: string;
+  /** Lavender card border. */
+  cardBorder: string;
+  /** Body text grey. */
+  bodyInk: string;
   fontHeading: string;
   fontBody: string;
+  fontSerif: string;
 }
