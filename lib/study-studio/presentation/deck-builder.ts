@@ -21,7 +21,17 @@ function lighten(hex: string, pct: number): string {
   return [mix(r), mix(g), mix(b)].map((c) => c.toString(16).padStart(2, '0')).join('').toUpperCase();
 }
 
-type Ctx = { pptx: pptxgen; b: DeckBranding; iceOnNavy: string };
+type Ctx = { pptx: pptxgen; b: DeckBranding; iceOnNavy: string; illustrations: Record<number, string> };
+
+// Framed illustration (rounded card + soft shadow, cover-cropped image).
+function illoCard(ctx: Ctx, slide: pptxgen.Slide, dataUri: string, x: number, y: number, w: number, h: number, onNavy: boolean) {
+  slide.addShape(ctx.pptx.ShapeType.roundRect, {
+    x: x - 0.09, y: y - 0.09, w: w + 0.18, h: h + 0.18, rectRadius: 0.16,
+    fill: { color: onNavy ? WHITE : ctx.b.cardBg }, line: { color: ctx.b.cardBorder, width: 1 },
+    shadow: { type: 'outer', color: '5A5F9E', blur: 14, offset: 5, angle: 90, opacity: 0.32 },
+  });
+  slide.addImage({ data: dataUri, x, y, w, h, sizing: { type: 'cover', w, h } });
+}
 
 // ---- shared building blocks -----------------------------------------
 function footer(ctx: Ctx, slide: pptxgen.Slide, siteFooter: string, dark: boolean) {
@@ -70,26 +80,43 @@ function accentAt(ctx: Ctx, i: number): string {
 // ---- layout renderers -----------------------------------------------
 function renderTitle(ctx: Ctx, slide: pptxgen.Slide, s: DeckSlide, spec: DeckSpec) {
   const { b } = ctx;
+  const illo = ctx.illustrations[s.n];
   slide.background = { color: b.navy };
   slide.addShape(ctx.pptx.ShapeType.roundRect, { x: 9.8, y: -1.7, w: 5.2, h: 5.2, rectRadius: 0.5, fill: { color: b.teal, transparency: 62 }, line: { type: 'none' } });
   slide.addShape(ctx.pptx.ShapeType.roundRect, { x: 11.1, y: 3.5, w: 3.5, h: 3.5, rectRadius: 0.45, fill: { color: b.violet, transparency: 66 }, line: { type: 'none' } });
+  const textW = illo ? 6.9 : 9.7;
   chip(ctx, slide, 0.9, 1.5, s.kicker || spec.meta.pathwayLabel, false);
-  slide.addText(s.headline || spec.title, { x: 0.85, y: 2.1, w: 9.7, h: 2.3, fontFace: b.fontHeading, fontSize: 42, bold: true, color: WHITE, lineSpacingMultiple: 1.0 });
-  slide.addText(s.subhead || spec.subtitle, { x: 0.9, y: 4.55, w: 9.2, h: 0.9, fontFace: b.fontBody, fontSize: 18, color: ctx.iceOnNavy, lineSpacingMultiple: 1.1 });
-  if (b.logoDataUri) slide.addImage({ data: b.logoDataUri, x: 0.9, y: 5.7, w: 0.6, h: 0.6 });
-  slide.addText(b.siteName, { x: 1.62, y: 5.75, w: 5, h: 0.5, fontFace: b.fontHeading, fontSize: 16, bold: true, color: WHITE, valign: 'middle', margin: 0 });
+  slide.addText(s.headline || spec.title, { x: 0.85, y: 2.1, w: textW, h: 2.3, fontFace: b.fontHeading, fontSize: illo ? 38 : 42, bold: true, color: WHITE, lineSpacingMultiple: 1.0 });
+  slide.addText(s.subhead || spec.subtitle, { x: 0.9, y: 4.55, w: textW, h: 0.9, fontFace: b.fontBody, fontSize: 17, color: ctx.iceOnNavy, lineSpacingMultiple: 1.1 });
+  if (b.logoDataUri) slide.addImage({ data: b.logoDataUri, x: 0.9, y: 5.75, w: 0.55, h: 0.55 });
+  slide.addText(b.siteName, { x: 1.55, y: 5.78, w: 5, h: 0.5, fontFace: b.fontHeading, fontSize: 16, bold: true, color: WHITE, valign: 'middle', margin: 0 });
+  if (illo) illoCard(ctx, slide, illo, 8.35, 1.65, 4.25, 4.15, true);
 }
 
 function renderDefinition(ctx: Ctx, slide: pptxgen.Slide, s: DeckSlide, siteFooter: string) {
   const { b } = ctx;
+  const illo = ctx.illustrations[s.n];
   slide.background = { color: WHITE };
   chip(ctx, slide, 0.9, 0.6, s.kicker || 'Definition', true);
   title(ctx, slide, s.headline, b.navy);
-  slide.addText(s.body || '', { x: 0.9, y: 2.15, w: 7.2, h: 3.2, fontFace: b.fontBody, fontSize: 18, color: b.bodyInk, lineSpacingMultiple: 1.2 });
-  if (s.stat) {
-    slide.addShape(ctx.pptx.ShapeType.roundRect, { x: 8.7, y: 1.95, w: 3.7, h: 3.0, rectRadius: 0.18, fill: { color: b.cardBg }, line: { color: b.cardBorder, width: 1 } });
-    slide.addText(s.stat.value, { x: 8.7, y: 2.25, w: 3.7, h: 1.55, fontFace: b.fontSerif, fontSize: 54, bold: true, color: b.teal, align: 'center', margin: 0 });
-    slide.addText(s.stat.label, { x: 8.85, y: 3.85, w: 3.4, h: 0.9, fontFace: b.fontBody, fontSize: 15, color: b.navy, align: 'center', margin: 0 });
+
+  if (illo) {
+    // Text left, illustration right. Stat (if any) becomes a compact pill.
+    let bodyY = 2.15;
+    if (s.stat) {
+      const pill = `${s.stat.value}  ·  ${s.stat.label}`;
+      slide.addText(pill, { x: 0.9, y: 2.0, w: 6.5, h: 0.55, fontFace: b.fontHeading, fontSize: 14, bold: true, color: WHITE, fill: { color: b.teal }, align: 'center', valign: 'middle', rectRadius: 0.1, shape: ctx.pptx.ShapeType.roundRect, margin: 0 });
+      bodyY = 2.8;
+    }
+    slide.addText(s.body || '', { x: 0.9, y: bodyY, w: 6.6, h: 5.0 - bodyY, fontFace: b.fontBody, fontSize: 17, color: b.bodyInk, lineSpacingMultiple: 1.2, valign: 'top' });
+    illoCard(ctx, slide, illo, 7.95, 2.0, 4.5, 3.65, false);
+  } else {
+    slide.addText(s.body || '', { x: 0.9, y: 2.15, w: 7.2, h: 3.2, fontFace: b.fontBody, fontSize: 18, color: b.bodyInk, lineSpacingMultiple: 1.2 });
+    if (s.stat) {
+      slide.addShape(ctx.pptx.ShapeType.roundRect, { x: 8.7, y: 1.95, w: 3.7, h: 3.0, rectRadius: 0.18, fill: { color: b.cardBg }, line: { color: b.cardBorder, width: 1 } });
+      slide.addText(s.stat.value, { x: 8.7, y: 2.25, w: 3.7, h: 1.55, fontFace: b.fontSerif, fontSize: 54, bold: true, color: b.teal, align: 'center', margin: 0 });
+      slide.addText(s.stat.label, { x: 8.85, y: 3.85, w: 3.4, h: 0.9, fontFace: b.fontBody, fontSize: 15, color: b.navy, align: 'center', margin: 0 });
+    }
   }
   footer(ctx, slide, siteFooter, false);
 }
@@ -186,15 +213,18 @@ function renderExamFocus(ctx: Ctx, slide: pptxgen.Slide, s: DeckSlide, siteFoote
 
 function renderClosing(ctx: Ctx, slide: pptxgen.Slide, s: DeckSlide, spec: DeckSpec, siteFooter: string) {
   const { b } = ctx;
+  const illo = ctx.illustrations[s.n];
   slide.background = { color: b.navy };
   slide.addShape(ctx.pptx.ShapeType.roundRect, { x: -1.6, y: 4.1, w: 5.2, h: 5.2, rectRadius: 0.5, fill: { color: b.violet, transparency: 64 }, line: { type: 'none' } });
-  slide.addShape(ctx.pptx.ShapeType.roundRect, { x: 10.6, y: -1.4, w: 4, h: 4, rectRadius: 0.4, fill: { color: b.teal, transparency: 66 }, line: { type: 'none' } });
+  if (!illo) slide.addShape(ctx.pptx.ShapeType.roundRect, { x: 10.6, y: -1.4, w: 4, h: 4, rectRadius: 0.4, fill: { color: b.teal, transparency: 66 }, line: { type: 'none' } });
+  const textW = illo ? 6.7 : 10.6;
   chip(ctx, slide, 0.9, 1.2, s.kicker || 'Key takeaway', false);
-  slide.addText(s.headline, { x: 0.85, y: 1.75, w: 10.6, h: 0.9, fontFace: b.fontHeading, fontSize: 34, bold: true, color: WHITE });
-  slide.addText(s.body || '', { x: 0.9, y: 2.85, w: 10.6, h: 2.1, fontFace: b.fontBody, fontSize: 20, color: ctx.iceOnNavy, lineSpacingMultiple: 1.2 });
+  slide.addText(s.headline, { x: 0.85, y: 1.75, w: textW, h: 0.9, fontFace: b.fontHeading, fontSize: 34, bold: true, color: WHITE });
+  slide.addText(s.body || '', { x: 0.9, y: 2.85, w: textW, h: 2.1, fontFace: b.fontBody, fontSize: 20, color: ctx.iceOnNavy, lineSpacingMultiple: 1.2 });
+  if (illo) illoCard(ctx, slide, illo, 8.15, 1.85, 4.3, 3.5, true);
   if (s.cta) {
-    slide.addShape(ctx.pptx.ShapeType.roundRect, { x: 0.9, y: 5.25, w: 7.6, h: 0.75, rectRadius: 0.1, fill: { color: b.teal }, line: { type: 'none' } });
-    slide.addText(s.cta, { x: 0.9, y: 5.25, w: 7.6, h: 0.75, fontFace: b.fontHeading, fontSize: 16, bold: true, color: b.navy, align: 'center', valign: 'middle', margin: 0 });
+    slide.addShape(ctx.pptx.ShapeType.roundRect, { x: 0.9, y: 5.25, w: 7.1, h: 0.75, rectRadius: 0.1, fill: { color: b.teal }, line: { type: 'none' } });
+    slide.addText(s.cta, { x: 0.9, y: 5.25, w: 7.1, h: 0.75, fontFace: b.fontHeading, fontSize: 16, bold: true, color: b.navy, align: 'center', valign: 'middle', margin: 0 });
   }
   if (spec.citations.length) {
     const src = spec.citations.map((c) => `[${c.ref}] ${c.source_title}`).join('   ');
@@ -205,14 +235,18 @@ function renderClosing(ctx: Ctx, slide: pptxgen.Slide, s: DeckSlide, spec: DeckS
 }
 
 // ---- entry point ----------------------------------------------------
-export async function buildDeckPptx(spec: DeckSpec, branding: DeckBranding): Promise<Buffer> {
+export async function buildDeckPptx(
+  spec: DeckSpec,
+  branding: DeckBranding,
+  illustrations: Record<number, string> = {}
+): Promise<Buffer> {
   const pptx = new pptxgen();
   pptx.layout = 'LAYOUT_WIDE';
   pptx.author = `${branding.siteName} — Deck Builder`;
   pptx.company = branding.siteName;
   pptx.title = spec.title;
 
-  const ctx: Ctx = { pptx, b: branding, iceOnNavy: lighten(branding.violet, 0.72) };
+  const ctx: Ctx = { pptx, b: branding, iceOnNavy: lighten(branding.violet, 0.72), illustrations };
   const siteFooter = `${branding.siteName} · Grounded in ${spec.meta.pathwayLabel}`;
 
   for (const s of spec.slides) {

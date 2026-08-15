@@ -3,6 +3,7 @@ import { getAccess } from '@/lib/auth/access';
 import { buildDeckSpec } from '@/lib/study-studio/presentation/deck-architect';
 import { buildDeckPptx } from '@/lib/study-studio/presentation/deck-builder';
 import { getDeckBranding } from '@/lib/study-studio/presentation/branding';
+import { resolveDeckIllustrations } from '@/lib/study-studio/presentation/illustrations';
 import { normalizeExamPath } from '@/lib/pmp/exam-paths';
 import type { AppLocale } from '@/lib/pmp/exam-paths';
 
@@ -54,8 +55,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ spec });
     }
 
-    const branding = await getDeckBranding();
-    const pptx = await buildDeckPptx(spec, branding);
+    const [branding, illustrations] = await Promise.all([
+      getDeckBranding(),
+      resolveDeckIllustrations(spec),
+    ]);
+    const pptx = await buildDeckPptx(spec, branding, illustrations);
 
     const safeName = topic.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '').slice(0, 60) || 'deck';
     const fileName = `${branding.siteName}_${safeName}.pptx`;

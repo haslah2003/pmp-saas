@@ -39,7 +39,7 @@ function adminClient() {
 }
 
 /** Fetch an image URL (absolute, or app-relative like /logo.png) as a data URI. */
-async function loadImageDataUri(logoUrl: string): Promise<string | null> {
+export async function loadImageDataUri(logoUrl: string): Promise<string | null> {
   try {
     let url = logoUrl;
     if (url.startsWith('/')) {
