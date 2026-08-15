@@ -25,6 +25,20 @@ function stripJsonFences(text: string): string {
     .trim();
 }
 
+/**
+ * Extract the JSON object from a model reply that may be wrapped in prose or
+ * fences. Falls back to the fence-stripped text if no braces are found.
+ */
+function extractJsonObject(text: string): string {
+  const stripped = stripJsonFences(text);
+  const start = stripped.indexOf('{');
+  const end = stripped.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end > start) {
+    return stripped.slice(start, end + 1);
+  }
+  return stripped;
+}
+
 /** Concise canonical framing so the model always has the pathway's identity, even with thin evidence. */
 function canonicalPathwayFacts(pathway: ExamPathId, locale: AppLocale): string {
   const copy = EXAM_PATHS[pathway].copy[locale];
@@ -73,7 +87,9 @@ export async function buildDeckSpec(input: DeckArchitectInput): Promise<DeckSpec
     },
     body: JSON.stringify({
       model,
-      max_tokens: 4000,
+      // Generous headroom: a full 8-slide spec plus any thinking tokens the
+      // model emits must both fit, or the JSON truncates mid-object.
+      max_tokens: 8000,
       system: SYS_DECK_ARCHITECT,
       messages: [{ role: 'user', content: userMessage }],
     }),
@@ -111,9 +127,18 @@ export async function buildDeckSpec(input: DeckArchitectInput): Promise<DeckSpec
 
   let parsed: { title: string; subtitle: string; slides: DeckSlide[]; citations?: DeckCitation[] };
   try {
-    parsed = JSON.parse(stripJsonFences(raw));
+    parsed = JSON.parse(extractJsonObject(raw));
   } catch {
-    throw new Error('Deck architect returned invalid JSON.');
+    console.error(
+      `[deck-architect] invalid JSON (model="${model}", stop_reason=${data?.stop_reason ?? 'n/a'}, len=${raw.length})`,
+      raw.slice(0, 2000)
+    );
+    const truncated = data?.stop_reason === 'max_tokens';
+    throw new Error(
+      truncated
+        ? 'Deck architect output was cut off (max_tokens). Try a narrower topic.'
+        : 'Deck architect returned invalid JSON.'
+    );
   }
 
   if (!Array.isArray(parsed.slides) || parsed.slides.length === 0) {
