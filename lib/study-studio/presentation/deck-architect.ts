@@ -4,9 +4,10 @@ import {
   retrieveResourceEvidence,
   formatResourceEvidenceForPrompt,
 } from '@/lib/rag/resource-retrieval';
-import { EXAM_PATHS, normalizeExamPath } from '@/lib/pmp/exam-paths';
+import { EXAM_PATHS } from '@/lib/pmp/exam-paths';
 import type { ExamPathId, AppLocale } from '@/lib/pmp/exam-paths';
-import type { DeckSpec, DeckSlide, DeckCitation } from './types';
+import type { DeckSpec } from './types';
+import { validateDeckSpec } from './validation';
 
 /**
  * Agent 1 — Deck Architect.
@@ -54,16 +55,21 @@ function canonicalPathwayFacts(pathway: ExamPathId, locale: AppLocale): string {
 
 export interface DeckArchitectInput {
   topic: string;
-  pathway: ExamPathId | string;
-  locale?: AppLocale;
+  pathway: ExamPathId;
+  locale: AppLocale;
+  slideCount: number;
 }
 
 export async function buildDeckSpec(input: DeckArchitectInput): Promise<DeckSpec> {
-  const pathway = normalizeExamPath(input.pathway);
-  const locale: AppLocale = input.locale || 'en';
+  const pathway = input.pathway;
+  const locale = input.locale;
   const topic = input.topic.trim();
 
-  const evidence = await retrieveResourceEvidence({ framework: pathway, query: topic, limit: 6 });
+  const evidenceLimit = Math.min(12, Math.max(6, Math.ceil(input.slideCount / 2)));
+  const evidence = await retrieveResourceEvidence({ framework: pathway, query: topic, limit: evidenceLimit });
+  if (!evidence.length) {
+    throw new Error('The resource library does not contain enough evidence for this topic. Add or activate relevant resources before generating the deck.');
+  }
   const evidenceBlock = formatResourceEvidenceForPrompt(evidence);
 
   const userMessage = [
@@ -73,90 +79,97 @@ export async function buildDeckSpec(input: DeckArchitectInput): Promise<DeckSpec
     '',
     `TOPIC: "${topic}"`,
     `LOCALE: ${locale}`,
+    `REQUESTED SLIDE COUNT: ${input.slideCount}`,
     'Design the deck spec now. Return ONLY the JSON object.',
   ].join('\n');
 
   const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
+  const citations = evidence.map((chunk, index) => ({
+    ref: index + 1,
+    source_title: chunk.source_title,
+    chunk_title: chunk.chunk_title,
+    framework: chunk.framework,
+  }));
+  const maxTokens = Math.min(24_000, Math.max(6_000, input.slideCount * 850));
+  let retryReason = '';
 
-  const res = await fetch(ANTHROPIC_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': process.env.ANTHROPIC_API_KEY!,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model,
-      // Generous headroom: a full 8-slide spec plus any thinking tokens the
-      // model emits must both fit, or the JSON truncates mid-object.
-      max_tokens: 8000,
-      system: SYS_DECK_ARCHITECT,
-      messages: [{ role: 'user', content: userMessage }],
-    }),
-  });
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const correctivePrompt = retryReason
+      ? `\n\nCORRECTION REQUIRED: The previous response failed because: ${retryReason}. Return a complete, valid JSON object with exactly ${input.slideCount} slides.`
+      : '';
+    const res = await fetch(ANTHROPIC_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY!,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        system: SYS_DECK_ARCHITECT,
+        messages: [{ role: 'user', content: userMessage + correctivePrompt }],
+      }),
+      signal: AbortSignal.timeout(55_000),
+    });
 
-  // Read the body once as text so we can surface the real cause on any failure.
-  const rawBody = await res.text();
-  let data: any = {};
-  try {
-    data = JSON.parse(rawBody);
-  } catch {
-    /* non-JSON error body (gateway/HTML) — keep rawBody for the message */
+    const rawBody = await res.text();
+    let data: any = {};
+    try {
+      data = JSON.parse(rawBody);
+    } catch {
+      /* non-JSON error body (gateway/HTML) — keep rawBody for the message */
+    }
+
+    if (!res.ok) {
+      console.error('[deck-architect] anthropic error', res.status, rawBody.slice(0, 1000));
+      const detail = data?.error?.message || rawBody.slice(0, 200) || 'no body';
+      throw new Error(`Model call failed (${res.status}) for "${model}": ${detail}`);
+    }
+
+    const raw: string | undefined =
+      (Array.isArray(data?.content)
+        ? data.content.find((b: any) => b?.type === 'text')?.text
+        : undefined) ?? data?.content?.[0]?.text;
+
+    try {
+      if (!raw) {
+        throw new Error(
+          `Deck architect returned no content (stop_reason=${data?.stop_reason ?? 'n/a'}).`
+        );
+      }
+      const parsed = JSON.parse(extractJsonObject(raw));
+      const candidate = {
+        ...(typeof parsed === 'object' && parsed !== null ? parsed : {}),
+        meta: {
+          topic,
+          pathway,
+          locale,
+          pathwayLabel: EXAM_PATHS[pathway].copy[locale].shortLabel,
+          generatedAt: new Date().toISOString(),
+          requestedSlideCount: input.slideCount,
+          grounded: false,
+        },
+        citations,
+      };
+      const validated = validateDeckSpec(candidate, input.slideCount);
+      const usedRefs = new Set(validated.slides.flatMap((slide) => slide.citationRefs));
+      validated.citations = validated.citations.filter((citation) => usedRefs.has(citation.ref));
+      return validated;
+    } catch (error) {
+      const truncated = data?.stop_reason === 'max_tokens';
+      retryReason = truncated
+        ? `output was truncated at ${maxTokens} tokens`
+        : error instanceof Error ? error.message : 'invalid deck JSON';
+      console.error(
+        `[deck-architect] attempt ${attempt} rejected (model="${model}", stop_reason=${data?.stop_reason ?? 'n/a'}, len=${raw?.length ?? 0}): ${retryReason}`,
+        raw?.slice(0, 2000) ?? ''
+      );
+      if (attempt === 2) {
+        throw new Error(`Deck architect failed validation after one retry: ${retryReason}`);
+      }
+    }
   }
 
-  if (!res.ok) {
-    console.error('[deck-architect] anthropic error', res.status, rawBody.slice(0, 1000));
-    const detail = data?.error?.message || rawBody.slice(0, 200) || 'no body';
-    throw new Error(`Model call failed (${res.status}) for "${model}": ${detail}`);
-  }
-
-  // Pick the first text block (robust to non-text blocks like thinking/tool_use).
-  const raw: string | undefined =
-    (Array.isArray(data?.content)
-      ? data.content.find((b: any) => b?.type === 'text')?.text
-      : undefined) ?? data?.content?.[0]?.text;
-
-  if (!raw) {
-    console.error('[deck-architect] no text block', JSON.stringify(data).slice(0, 1000));
-    throw new Error(
-      `Deck architect returned no content (model="${model}", stop_reason=${data?.stop_reason ?? 'n/a'}, blocks=${
-        Array.isArray(data?.content) ? data.content.map((b: any) => b?.type).join(',') || 'empty' : 'none'
-      }).`
-    );
-  }
-
-  let parsed: { title: string; subtitle: string; slides: DeckSlide[]; citations?: DeckCitation[] };
-  try {
-    parsed = JSON.parse(extractJsonObject(raw));
-  } catch {
-    console.error(
-      `[deck-architect] invalid JSON (model="${model}", stop_reason=${data?.stop_reason ?? 'n/a'}, len=${raw.length})`,
-      raw.slice(0, 2000)
-    );
-    const truncated = data?.stop_reason === 'max_tokens';
-    throw new Error(
-      truncated
-        ? 'Deck architect output was cut off (max_tokens). Try a narrower topic.'
-        : 'Deck architect returned invalid JSON.'
-    );
-  }
-
-  if (!Array.isArray(parsed.slides) || parsed.slides.length === 0) {
-    throw new Error('Deck architect returned no slides.');
-  }
-
-  return {
-    meta: {
-      topic,
-      pathway,
-      locale,
-      pathwayLabel: EXAM_PATHS[pathway].copy[locale].shortLabel,
-      generatedAt: new Date().toISOString(),
-      grounded: evidence.length > 0,
-    },
-    title: parsed.title,
-    subtitle: parsed.subtitle,
-    slides: parsed.slides,
-    citations: parsed.citations || [],
-  };
+  throw new Error('Deck architect failed unexpectedly.');
 }

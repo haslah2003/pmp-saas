@@ -20,29 +20,31 @@ export interface Illustration {
 
 export const ILLUSTRATIONS: Illustration[] = [
   { id: 'org-building', file: 'org-building.jpg', hasPeople: false,
-    tags: ['organization', 'governance', 'business', 'environment', 'enterprise', 'compliance', 'company', 'structure', 'strategy'] },
+    tags: ['organization', 'governance', 'business', 'environment', 'enterprise', 'compliance', 'company', 'structure', 'strategy', 'منظمة', 'حوكمة', 'اعمال', 'بيئة', 'امتثال', 'استراتيجية', 'هيكل'] },
   { id: 'team-planning', file: 'team-planning.jpg', hasPeople: true,
-    tags: ['planning', 'team', 'principles', 'systems', 'thinking', 'collaboration', 'foundations', 'mindset', 'holistic', 'kickoff', 'scope'] },
+    tags: ['planning', 'team', 'principles', 'systems', 'thinking', 'collaboration', 'foundations', 'mindset', 'holistic', 'kickoff', 'scope', 'تخطيط', 'فريق', 'مبادئ', 'انظمة', 'تفكير', 'تعاون', 'نطاق'] },
   { id: 'process-leadership', file: 'process-leadership.jpg', hasPeople: true,
-    tags: ['process', 'leadership', 'strategy', 'delivery', 'roadmap', 'vision', 'facilitation', 'domains', 'value', 'principles', 'engagement'] },
+    tags: ['process', 'leadership', 'strategy', 'delivery', 'roadmap', 'vision', 'facilitation', 'domains', 'value', 'principles', 'engagement', 'عملية', 'عمليات', 'قيادة', 'استراتيجية', 'تسليم', 'رؤية', 'قيمة', 'مشاركة'] },
   { id: 'schedule-scope', file: 'schedule-scope.jpg', hasPeople: true,
-    tags: ['schedule', 'scope', 'execution', 'domains', 'planning', 'timeline', 'wbs', 'requirements', 'governance', 'change'] },
+    tags: ['schedule', 'scope', 'execution', 'domains', 'planning', 'timeline', 'wbs', 'requirements', 'governance', 'change', 'جدول', 'نطاق', 'تنفيذ', 'تخطيط', 'متطلبات', 'حوكمة', 'تغيير'] },
   { id: 'measurement-metrics', file: 'measurement-metrics.jpg', hasPeople: true,
-    tags: ['measurement', 'metrics', 'data', 'performance', 'analytics', 'kpi', 'evm', 'reporting', 'finance', 'value', 'uncertainty', 'risk'] },
+    tags: ['measurement', 'metrics', 'data', 'performance', 'analytics', 'kpi', 'evm', 'reporting', 'finance', 'value', 'uncertainty', 'risk', 'قياس', 'مؤشرات', 'بيانات', 'اداء', 'تحليل', 'تقارير', 'مالية', 'قيمة', 'مخاطر', 'عدم', 'يقين'] },
   { id: 'stakeholders-engagement', file: 'stakeholders-engagement.jpg', hasPeople: true,
-    tags: ['stakeholders', 'engagement', 'communication', 'team', 'people', 'collaboration', 'relationships', 'alignment', 'meeting'] },
+    tags: ['stakeholders', 'engagement', 'communication', 'team', 'people', 'collaboration', 'relationships', 'alignment', 'meeting', 'اصحاب', 'مصلحة', 'مشاركة', 'تواصل', 'فريق', 'افراد', 'تعاون', 'علاقات', 'مواءمة', 'اجتماع'] },
   { id: 'delivery-agile', file: 'delivery-agile.jpg', hasPeople: true,
-    tags: ['delivery', 'agile', 'hybrid', 'workflow', 'kanban', 'backlog', 'adaptive', 'iteration', 'sprint', 'team', 'process'] },
+    tags: ['delivery', 'agile', 'hybrid', 'workflow', 'kanban', 'backlog', 'adaptive', 'iteration', 'sprint', 'team', 'process', 'تسليم', 'رشيق', 'مرن', 'هجين', 'تدفق', 'كانبان', 'تكرار', 'فريق', 'عملية'] },
   { id: 'study-notes', file: 'study-notes.jpg', hasPeople: false,
-    tags: ['study', 'notes', 'tailoring', 'exam', 'summary', 'takeaway', 'principles', 'review', 'documents', 'preparation'] },
+    tags: ['study', 'notes', 'tailoring', 'exam', 'summary', 'takeaway', 'principles', 'review', 'documents', 'preparation', 'دراسة', 'ملاحظات', 'تكييف', 'اختبار', 'ملخص', 'مبادئ', 'مراجعة', 'وثائق', 'تحضير'] },
 ];
 
 function keywordsFor(text: string): string[] {
   return (text || '')
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, ' ')
+    .normalize('NFKD')
+    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
     .split(/\s+/)
-    .filter((w) => w.length >= 4);
+    .filter((w) => w.length >= 3);
 }
 
 function scoreIllustration(illo: Illustration, keywords: string[]): number {
@@ -86,6 +88,10 @@ export function pickIllustration(
       bestScore = s;
       best = illo;
     }
+  }
+  if (bestScore === 0) {
+    const hash = Array.from(context).reduce((sum, char) => (sum * 31 + char.codePointAt(0)!) >>> 0, 0);
+    best = available[hash % available.length];
   }
   used.add(best.id);
   return best;

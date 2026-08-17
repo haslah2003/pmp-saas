@@ -48,6 +48,8 @@ export interface DeckSlide {
   right?: string[];
   /** Speaker notes — also reused verbatim as the seed for Agent 3 narration. */
   notes?: string;
+  /** Evidence refs from DeckSpec.citations supporting this slide's claims. */
+  citationRefs: number[];
 }
 
 export interface DeckCitation {
@@ -66,7 +68,8 @@ export interface DeckSpec {
     /** Human-readable pathway label, e.g. "PMBOK 7 + ECO 2021". */
     pathwayLabel: string;
     generatedAt: string;
-    /** true when the architect had real library evidence to ground on. */
+    requestedSlideCount: number;
+    /** True only when every substantive slide has valid retrieved evidence refs. */
     grounded: boolean;
   };
   title: string;

@@ -79,29 +79,33 @@ export const SYS_DECK_ARCHITECT =
 
 GROUNDING RULES (non-negotiable):
 - Use ONLY the RESOURCE RETRIEVAL EVIDENCE and canonical pathway facts provided in the user message. Do not introduce outside frameworks, tools, or numbers.
-- If evidence is thin, prefer fewer, well-supported slides over padding with unsupported claims.
-- Every substantive claim slide should map to at least one citation ref (the [n] indices from the evidence block).
+- Every substantive slide must include citationRefs containing the [n] indices that directly support its claims.
+- Never invent or renumber evidence refs. Title and closing slides may have an empty citationRefs array; all other slides require at least one.
+- The requested slide count is exact. Distribute evidence thoughtfully across that count without duplicating claims or padding.
 
-OUTPUT: Return ONLY valid JSON (no markdown fences, no commentary) matching EXACTLY this shape:
+OUTPUT: Return ONLY valid JSON (no markdown fences, no commentary) matching this shape:
 {
   "title": string,
   "subtitle": string,
   "slides": [
-    { "n": 1, "layout": "title", "headline": string, "kicker": string, "subhead": string, "notes": string },
-    { "n": 2, "layout": "definition_callout", "headline": string, "kicker": string, "body": string, "stat": { "value": string, "label": string }, "notes": string },
-    { "n": 3, "layout": "outcomes_grid", "headline": string, "kicker": string, "items": [ { "title": string, "desc": string } ], "notes": string },
-    { "n": 4, "layout": "process_flow", "headline": string, "kicker": string, "steps": [ string ], "caption": string, "notes": string },
-    { "n": 5, "layout": "levels_ladder", "headline": string, "kicker": string, "levels": [ { "name": string, "desc": string } ], "caption": string, "notes": string },
-    { "n": 6, "layout": "two_column", "headline": string, "kicker": string, "left_title": string, "left": [ string ], "right_title": string, "right": [ string ], "notes": string },
-    { "n": 7, "layout": "exam_focus", "headline": string, "kicker": string, "items": [ string ], "notes": string },
-    { "n": 8, "layout": "closing", "headline": string, "kicker": string, "body": string, "cta": string, "notes": string }
-  ],
-  "citations": [ { "ref": 1, "source_title": string, "chunk_title": string, "framework": string } ]
+    { "n": number, "layout": string, "headline": string, "kicker": string, "notes": string, "citationRefs": [number] }
+  ]
 }
 
-CONSTRAINTS:
-- Produce 6-8 slides. Slide 1 must be "title" and the last "closing".
-- outcomes_grid: exactly 4 items. process_flow: 4-5 steps. levels_ladder: 3-5 levels. exam_focus: 3-4 items. two_column: 3-5 items per side.
+AVAILABLE LAYOUTS (choose and repeat only when the narrative benefits):
+- title: add subhead. Use only for slide 1.
+- definition_callout: add body and optional stat { value, label }.
+- outcomes_grid: add items [{ title, desc }], 2-4 items.
+- process_flow: add steps [string], 2-5 steps, plus optional caption.
+- levels_ladder: add levels [{ name, desc }], 2-5 levels, plus optional caption.
+- two_column: add left_title, left (2-5 strings), right_title, right (2-5 strings).
+- exam_focus: add items [string], 2-4 items.
+- closing: add body and optional cta. Use only for the final slide.
+
+NARRATIVE AND FIT:
+- Create exactly the REQUESTED SLIDE COUNT supplied in the user message.
+- Slide 1 must be title; the last slide must be closing. Choose the intervening layouts dynamically for the topic, evidence, audience, and requested length.
+- Each slide has one narrative job and one primary evidence-backed claim. Avoid repeated claims and generic filler.
 - Keep every string tight and slide-legible: headlines <= 60 chars, card/bullet text <= 140 chars.
 - "notes" is a 1-2 sentence speaker note per slide (also reused as the video narration seed) — warm, exam-focused mentor voice.
-- "citations" lists only refs you actually relied on, drawn from the evidence block's [n] items.`;
+- Write the entire deck in the requested language (English or Modern Standard Arabic), keeping official acronyms such as PMP, PMI, PMBOK, and ECO intact.`;

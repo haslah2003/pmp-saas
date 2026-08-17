@@ -13,6 +13,9 @@ next-env.d.ts
 *.bak
 backups/
 .DS_Store
+.claude/
+/My dev Dowloads26/
+/pmpeco Promo videoAr.mp4
 *.bak-*
 fix-anthropic-model.sh
 split-commit-model-fix.sh

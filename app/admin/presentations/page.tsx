@@ -4,27 +4,29 @@ import React, { useState } from 'react';
 import { Card, Button, Badge } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { EXAM_PATHS, EXAM_PATH_ORDER } from '@/lib/pmp/exam-paths';
-import type { ExamPathId, AppLocale } from '@/lib/pmp/exam-paths';
+import type { ExamPathId } from '@/lib/pmp/exam-paths';
+
+type DeckLocale = 'en' | 'ar';
 
 type SlidePreview = {
   n: number;
   layout: string;
   headline: string;
   kicker?: string;
+  citationRefs: number[];
 };
 
 type DeckSpecPreview = {
-  meta: { topic: string; pathway: string; pathwayLabel: string; grounded: boolean };
+  meta: { topic: string; pathway: string; pathwayLabel: string; grounded: boolean; requestedSlideCount: number };
   title: string;
   subtitle: string;
   slides: SlidePreview[];
   citations: { ref: number; source_title: string; chunk_title: string; framework: string }[];
 };
 
-const LOCALES: { id: AppLocale; label: string }[] = [
+const LOCALES: { id: DeckLocale; label: string }[] = [
   { id: 'en', label: 'English' },
   { id: 'ar', label: 'العربية' },
-  { id: 'fr', label: 'Français' },
 ];
 
 const LAYOUT_ICON: Record<string, string> = {
@@ -40,21 +42,39 @@ const LAYOUT_ICON: Record<string, string> = {
 
 export default function PresentationsPage() {
   const [pathway, setPathway] = useState<ExamPathId>('pmbok7');
-  const [locale, setLocale] = useState<AppLocale>('en');
+  const [locale, setLocale] = useState<DeckLocale>('en');
   const [topic, setTopic] = useState('');
+  const [slideCount, setSlideCount] = useState(8);
 
   const [previewing, setPreviewing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [spec, setSpec] = useState<DeckSpecPreview | null>(null);
+  const [specFingerprint, setSpecFingerprint] = useState<string | null>(null);
 
-  const canRun = topic.trim().length > 0 && !previewing && !downloading;
+  const fingerprint = JSON.stringify({ topic: topic.trim(), pathway, locale, slideCount });
+  const validSlideCount = Number.isInteger(slideCount) && slideCount >= 3 && slideCount <= 30;
+  const canRun = topic.trim().length >= 2 && validSlideCount && !previewing && !downloading;
 
-  async function callApi(mode: 'spec' | 'pptx') {
+  async function requestSpec(): Promise<DeckSpecPreview> {
+    const requestedFingerprint = fingerprint;
+    const res = await fetch('/api/ai/presentation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: topic.trim(), pathway, locale, slideCount, mode: 'spec' }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    setSpec(data.spec);
+    setSpecFingerprint(requestedFingerprint);
+    return data.spec;
+  }
+
+  async function renderSpec(deckSpec: DeckSpecPreview) {
     return fetch('/api/ai/presentation', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic: topic.trim(), pathway, locale, mode }),
+      body: JSON.stringify({ mode: 'render', spec: deckSpec }),
     });
   }
 
@@ -63,10 +83,7 @@ export default function PresentationsPage() {
     setPreviewing(true);
     setSpec(null);
     try {
-      const res = await callApi('spec');
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
-      setSpec(data.spec);
+      await requestSpec();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Preview failed.');
     } finally {
@@ -78,7 +95,8 @@ export default function PresentationsPage() {
     setError(null);
     setDownloading(true);
     try {
-      const res = await callApi('pptx');
+      const deckSpec = spec && specFingerprint === fingerprint ? spec : await requestSpec();
+      const res = await renderSpec(deckSpec);
       const contentType = res.headers.get('content-type') || '';
       if (!res.ok || contentType.includes('application/json')) {
         const data = await res.json().catch(() => ({}));
@@ -161,10 +179,27 @@ export default function PresentationsPage() {
                 />
               </div>
               <div>
+                <label className="text-sm font-medium mb-1.5 block" htmlFor="presentation-slide-count">
+                  Number of slides
+                </label>
+                <input
+                  id="presentation-slide-count"
+                  type="number"
+                  min={3}
+                  max={30}
+                  step={1}
+                  inputMode="numeric"
+                  value={slideCount}
+                  onChange={(e) => setSlideCount(Number(e.target.value))}
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-blue-500/30"
+                />
+                <p className="text-xs text-gray-400 mt-1">Enter any whole number from 3 to 30.</p>
+              </div>
+              <div>
                 <label className="text-sm font-medium mb-1.5 block">Language</label>
                 <select
                   value={locale}
-                  onChange={(e) => setLocale(e.target.value as AppLocale)}
+                  onChange={(e) => setLocale(e.target.value as DeckLocale)}
                   className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none bg-white"
                 >
                   {LOCALES.map((l) => (
@@ -194,11 +229,7 @@ export default function PresentationsPage() {
         <Card padding="lg" className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold">Outline preview</h3>
-            {spec && (
-              <Badge variant={spec.meta.grounded ? 'success' : 'warning'}>
-                {spec.meta.grounded ? 'Grounded in library' : 'Thin evidence'}
-              </Badge>
-            )}
+            {spec && <Badge variant="success">Grounded in library</Badge>}
           </div>
 
           {!spec && !previewing && (
@@ -228,6 +259,11 @@ export default function PresentationsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-gray-900">{s.headline}</div>
                       <div className="text-[11px] text-gray-400 uppercase tracking-wide">{s.layout.replace(/_/g, ' ')}</div>
+                      {s.citationRefs.length > 0 && (
+                        <div className="text-[11px] text-emerald-600 mt-0.5">
+                          Evidence {s.citationRefs.map((ref) => `[${ref}]`).join(' ')}
+                        </div>
+                      )}
                     </div>
                     <span className="text-xs text-gray-300 font-mono">{s.n}</span>
                   </div>

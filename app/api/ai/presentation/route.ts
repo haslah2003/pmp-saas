@@ -4,8 +4,13 @@ import { buildDeckSpec } from '@/lib/study-studio/presentation/deck-architect';
 import { buildDeckPptx } from '@/lib/study-studio/presentation/deck-builder';
 import { getDeckBranding } from '@/lib/study-studio/presentation/branding';
 import { resolveDeckIllustrations } from '@/lib/study-studio/presentation/illustrations';
-import { normalizeExamPath } from '@/lib/pmp/exam-paths';
-import type { AppLocale } from '@/lib/pmp/exam-paths';
+import {
+  readDeckLocale,
+  readPathway,
+  readSlideCount,
+  readTopic,
+  validateDeckSpec,
+} from '@/lib/study-studio/presentation/validation';
 
 // pptxgenjs builds a zip in memory; keep it on the Node runtime, not edge.
 export const runtime = 'nodejs';
@@ -23,37 +28,58 @@ export const maxDuration = 120;
  *   mode 'spec' -> returns the DeckSpec JSON (preview / editing before rendering)
  *   mode 'pptx' -> returns the .pptx as a download (default)
  */
+const activeArchitects = new Set<string>();
+
+function safeFilePart(value: string, fallback: string) {
+  return value
+    .normalize('NFKD')
+    .replace(/[^\p{L}\p{N}]+/gu, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 60) || fallback;
+}
+
 export async function POST(request: NextRequest) {
-  const { isAdmin } = await getAccess();
+  const { isAdmin, userId } = await getAccess();
   if (!isAdmin) {
     return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   }
 
-  let body: { topic?: string; pathway?: string; locale?: string; mode?: string };
+  let body: Record<string, unknown>;
   try {
     body = await request.json();
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('invalid');
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const topic = (body.topic || '').trim();
-  if (!topic) {
-    return NextResponse.json({ error: 'A topic is required.' }, { status: 400 });
-  }
-  const pathway = normalizeExamPath(body.pathway);
-  const locale = (body.locale as AppLocale) || 'en';
-  const mode = body.mode === 'spec' ? 'spec' : 'pptx';
-
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json({ error: 'AI is not configured.' }, { status: 503 });
-  }
-
   try {
-    const spec = await buildDeckSpec({ topic, pathway, locale });
+    const mode = body.mode;
+    if (mode !== 'spec' && mode !== 'render') {
+      return NextResponse.json({ error: 'Mode must be spec or render.' }, { status: 400 });
+    }
 
     if (mode === 'spec') {
-      return NextResponse.json({ spec });
+      const topic = readTopic(body.topic);
+      const pathway = readPathway(body.pathway);
+      const locale = readDeckLocale(body.locale);
+      const slideCount = readSlideCount(body.slideCount);
+      if (!process.env.ANTHROPIC_API_KEY) {
+        return NextResponse.json({ error: 'AI is not configured.' }, { status: 503 });
+      }
+      const lockKey = userId || 'admin';
+      if (activeArchitects.has(lockKey)) {
+        return NextResponse.json({ error: 'A presentation outline is already being generated. Please wait for it to finish.' }, { status: 429 });
+      }
+      activeArchitects.add(lockKey);
+      try {
+        const spec = await buildDeckSpec({ topic, pathway, locale, slideCount });
+        return NextResponse.json({ spec });
+      } finally {
+        activeArchitects.delete(lockKey);
+      }
     }
+
+    const spec = validateDeckSpec(body.spec);
 
     const [branding, illustrations] = await Promise.all([
       getDeckBranding(),
@@ -61,20 +87,21 @@ export async function POST(request: NextRequest) {
     ]);
     const pptx = await buildDeckPptx(spec, branding, illustrations);
 
-    const safeName = topic.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '').slice(0, 60) || 'deck';
-    const fileName = `${branding.siteName}_${safeName}.pptx`;
+    const fileName = `${safeFilePart(branding.siteName, 'PMPeco')}_${safeFilePart(spec.meta.topic, 'deck')}.pptx`;
+    const encodedName = encodeURIComponent(fileName);
 
     return new NextResponse(new Uint8Array(pptx), {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Content-Disposition': `attachment; filename="presentation.pptx"; filename*=UTF-8''${encodedName}`,
         'X-Deck-Grounded': String(spec.meta.grounded),
         'X-Deck-Slides': String(spec.slides.length),
       },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Deck generation failed.';
-    return NextResponse.json({ error: message }, { status: 500 });
+    const isValidation = /must|required|invalid|unsupported|missing|too long|does not match|contain|begin|evidence/i.test(message);
+    return NextResponse.json({ error: message }, { status: isValidation ? 400 : 500 });
   }
 }

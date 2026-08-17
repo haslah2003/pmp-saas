@@ -38,22 +38,53 @@ function adminClient() {
   });
 }
 
-/** Fetch an image URL (absolute, or app-relative like /logo.png) as a data URI. */
-export async function loadImageDataUri(logoUrl: string): Promise<string | null> {
+const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp']);
+
+function isPrivateHostname(hostname: string) {
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  if (host === 'localhost' || host.endsWith('.local') || host === '::1') return true;
+  const parts = host.split('.').map(Number);
+  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) return false;
+  return parts[0] === 10 || parts[0] === 127 || parts[0] === 0 ||
+    (parts[0] === 169 && parts[1] === 254) ||
+    (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
+    (parts[0] === 192 && parts[1] === 168);
+}
+
+function resolveImageUrl(imageUrl: string): URL | null {
+  let value = imageUrl.trim();
+  if (value.startsWith('/')) {
+    const base =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
+    if (!base) return null;
+    value = base.replace(/\/$/, '') + value;
+  }
   try {
-    let url = logoUrl;
-    if (url.startsWith('/')) {
-      const base =
-        process.env.NEXT_PUBLIC_SITE_URL ||
-        process.env.NEXT_PUBLIC_APP_URL ||
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
-      if (!base) return null; // can't resolve a relative asset server-side without a base
-      url = base.replace(/\/$/, '') + url;
-    }
-    const res = await fetch(url);
+    const url = new URL(value);
+    if (!['http:', 'https:'].includes(url.protocol) || isPrivateHostname(url.hostname)) return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+/** Fetch a bounded public raster image as a data URI. */
+export async function loadImageDataUri(imageUrl: string): Promise<string | null> {
+  try {
+    const url = resolveImageUrl(imageUrl);
+    if (!url) return null;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8_000), redirect: 'error' });
     if (!res.ok) return null;
-    const contentType = res.headers.get('content-type') || 'image/png';
-    const buf = Buffer.from(await res.arrayBuffer());
+    const contentType = (res.headers.get('content-type') || '').split(';')[0].toLowerCase();
+    if (!ALLOWED_IMAGE_TYPES.has(contentType)) return null;
+    const declaredLength = Number(res.headers.get('content-length') || 0);
+    if (declaredLength > MAX_IMAGE_BYTES) return null;
+    const data = await res.arrayBuffer();
+    if (data.byteLength > MAX_IMAGE_BYTES) return null;
+    const buf = Buffer.from(data);
     return `data:${contentType};base64,${buf.toString('base64')}`;
   } catch {
     return null;
