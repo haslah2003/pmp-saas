@@ -33,6 +33,13 @@ assert.equal(valid.meta.grounded, true);
 assert.equal(readPathway('bridge'), 'bridge');
 assert.equal(readDeckLocale('ar'), 'ar');
 assert.equal(readSlideCount(30), 30);
+const withoutTitleSubhead = validateDeckSpec({
+  ...baseSpec,
+  meta: { ...baseSpec.meta, templateId: 'pmpeco-medium' },
+  slides: [{ ...baseSpec.slides[0], subhead: undefined }, baseSpec.slides[1], baseSpec.slides[2]],
+});
+assert.equal(withoutTitleSubhead.slides[0].subhead, undefined);
+assert.equal(withoutTitleSubhead.meta.templateId, 'pmpeco-medium');
 
 assert.throws(() => readPathway('pmbok-8'), /Pathway/);
 assert.throws(() => readDeckLocale('fr'), /English or Arabic/);

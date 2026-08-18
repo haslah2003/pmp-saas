@@ -17,6 +17,13 @@ export const DECK_TEMPLATES: DeckTemplateOption[] = [
     supportsArabic: true,
   },
   {
+    id: 'pmpeco-medium',
+    name: 'PMPeco Medium',
+    description: 'Balanced light and color · structured, polished layouts',
+    preview: '/presentation-templates/pmpeco-medium.png',
+    supportsArabic: true,
+  },
+  {
     id: 'pmpeco-bold',
     name: 'PMPeco Bold',
     description: 'Dark navy · high-contrast cards and callouts',

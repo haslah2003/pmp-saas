@@ -3,6 +3,7 @@ import { getAccess } from '@/lib/auth/access';
 import { buildDeckSpec } from '@/lib/study-studio/presentation/deck-architect';
 import { buildDeckPptx } from '@/lib/study-studio/presentation/deck-builder';
 import { buildCleanTemplateDeck } from '@/lib/study-studio/presentation/deck-builder-clean';
+import { buildMediumTemplateDeck } from '@/lib/study-studio/presentation/deck-builder-medium';
 import { getDeckBranding } from '@/lib/study-studio/presentation/branding';
 import { resolveDeckIllustrations } from '@/lib/study-studio/presentation/illustrations';
 import {
@@ -89,7 +90,9 @@ export async function POST(request: NextRequest) {
     const branding = await getDeckBranding();
     const pptx = spec.meta.templateId === 'pmpeco-clean'
       ? await buildCleanTemplateDeck(spec)
-      : await buildDeckPptx(spec, branding, await resolveDeckIllustrations(spec));
+      : spec.meta.templateId === 'pmpeco-medium'
+        ? await buildMediumTemplateDeck(spec)
+        : await buildDeckPptx(spec, branding, await resolveDeckIllustrations(spec));
 
     const fileName = `${safeFilePart(branding.siteName, 'PMPeco')}_${safeFilePart(spec.meta.topic, 'deck')}.pptx`;
     const encodedName = encodeURIComponent(fileName);

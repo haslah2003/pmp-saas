@@ -23,7 +23,7 @@ export type SlideLayout =
   | 'exam_focus'
   | 'closing';
 
-export type DeckTemplateId = 'pmpeco-clean' | 'pmpeco-bold';
+export type DeckTemplateId = 'pmpeco-clean' | 'pmpeco-medium' | 'pmpeco-bold';
 
 export interface DeckSlide {
   n: number;

@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { buildDeckPptx } from '../lib/study-studio/presentation/deck-builder';
 import { buildCleanTemplateDeck } from '../lib/study-studio/presentation/deck-builder-clean';
+import { buildMediumTemplateDeck } from '../lib/study-studio/presentation/deck-builder-medium';
 import { validateDeckSpec } from '../lib/study-studio/presentation/validation';
 import type { DeckBranding, DeckSpec } from '../lib/study-studio/presentation/types';
 
@@ -90,12 +91,20 @@ async function renderClean(name: string, spec: DeckSpec) {
   await writeFile(path.join(outputDir, name), buffer);
 }
 
+async function renderMedium(name: string, spec: DeckSpec) {
+  const mediumSpec = validateDeckSpec({ ...spec, meta: { ...spec.meta, templateId: 'pmpeco-medium' } });
+  const buffer = await buildMediumTemplateDeck(mediumSpec);
+  await writeFile(path.join(outputDir, name), buffer);
+}
+
 async function main() {
   await mkdir(outputDir, { recursive: true });
   await render('presentation-en-8-slides.pptx', english, ['stakeholders-engagement.jpg', 'team-planning.jpg']);
   await render('presentation-ar-5-slides.pptx', arabic, ['stakeholders-engagement.jpg', 'process-leadership.jpg']);
   await renderClean('presentation-clean-en-8-slides.pptx', english);
   await renderClean('presentation-clean-ar-5-slides.pptx', arabic);
+  await renderMedium('presentation-medium-en-8-slides.pptx', english);
+  await renderMedium('presentation-medium-ar-5-slides.pptx', arabic);
   console.log(outputDir);
 }
 

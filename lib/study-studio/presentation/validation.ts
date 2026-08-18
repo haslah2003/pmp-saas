@@ -17,7 +17,7 @@ const LAYOUTS = new Set<SlideLayout>([
   'exam_focus',
   'closing',
 ]);
-const TEMPLATES = new Set<DeckTemplateId>(['pmpeco-clean', 'pmpeco-bold']);
+const TEMPLATES = new Set<DeckTemplateId>(['pmpeco-clean', 'pmpeco-medium', 'pmpeco-bold']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -147,7 +147,9 @@ function validateSlide(value: unknown, index: number, validRefs: Set<number>): D
 
   switch (slide.layout) {
     case 'title':
-      if (!slide.subhead) throw new Error(`slides[${index}].subhead is required for a title slide.`);
+      // Some otherwise-valid model responses omit the optional title subhead.
+      // Renderers already fall back to the deck subtitle, so do not reject the
+      // entire generation for this repairable omission.
       break;
     case 'definition_callout':
       if (!slide.body) throw new Error(`slides[${index}].body is required for a definition slide.`);
