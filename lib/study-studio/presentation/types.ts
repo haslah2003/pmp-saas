@@ -23,6 +23,8 @@ export type SlideLayout =
   | 'exam_focus'
   | 'closing';
 
+export type DeckTemplateId = 'pmpeco-clean' | 'pmpeco-bold';
+
 export interface DeckSlide {
   n: number;
   layout: SlideLayout;
@@ -69,6 +71,7 @@ export interface DeckSpec {
     pathwayLabel: string;
     generatedAt: string;
     requestedSlideCount: number;
+    templateId: DeckTemplateId;
     /** True only when every substantive slide has valid retrieved evidence refs. */
     grounded: boolean;
   };

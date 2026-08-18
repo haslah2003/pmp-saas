@@ -1,5 +1,5 @@
 import type { AppLocale, ExamPathId } from '@/lib/pmp/exam-paths';
-import type { DeckCitation, DeckSlide, DeckSpec, SlideLayout } from './types';
+import type { DeckCitation, DeckSlide, DeckSpec, DeckTemplateId, SlideLayout } from './types';
 
 export const MIN_DECK_SLIDES = 3;
 export const MAX_DECK_SLIDES = 30;
@@ -17,6 +17,7 @@ const LAYOUTS = new Set<SlideLayout>([
   'exam_focus',
   'closing',
 ]);
+const TEMPLATES = new Set<DeckTemplateId>(['pmpeco-clean', 'pmpeco-bold']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -66,6 +67,13 @@ export function readTopic(value: unknown): string {
   const topic = requiredString(value, 'Topic', MAX_DECK_TOPIC_LENGTH);
   if (topic.length < 2) throw new Error('Topic must contain at least 2 characters.');
   return topic;
+}
+
+export function readDeckTemplate(value: unknown): DeckTemplateId {
+  if (typeof value !== 'string' || !TEMPLATES.has(value as DeckTemplateId)) {
+    throw new Error('Presentation template is invalid.');
+  }
+  return value as DeckTemplateId;
 }
 
 function validateCitation(value: unknown, index: number): DeckCitation {
@@ -203,6 +211,7 @@ export function validateDeckSpec(value: unknown, expectedSlideCount?: number): D
       pathwayLabel: requiredString(value.meta.pathwayLabel, 'meta.pathwayLabel', 120),
       generatedAt: requiredString(value.meta.generatedAt, 'meta.generatedAt', 80),
       requestedSlideCount,
+      templateId: readDeckTemplate(value.meta.templateId ?? 'pmpeco-clean'),
       grounded: slides.slice(1, -1).every((slide) => slide.citationRefs.length > 0),
     },
     title: requiredString(value.title, 'title', 120),

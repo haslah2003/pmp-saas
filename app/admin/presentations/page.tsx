@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Card, Button, Badge } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { EXAM_PATHS, EXAM_PATH_ORDER } from '@/lib/pmp/exam-paths';
 import type { ExamPathId } from '@/lib/pmp/exam-paths';
+import { DECK_TEMPLATES } from '@/lib/study-studio/presentation/templates';
+import type { DeckTemplateId } from '@/lib/study-studio/presentation/types';
 
 type DeckLocale = 'en' | 'ar';
 
@@ -17,7 +20,7 @@ type SlidePreview = {
 };
 
 type DeckSpecPreview = {
-  meta: { topic: string; pathway: string; pathwayLabel: string; grounded: boolean; requestedSlideCount: number };
+  meta: { topic: string; pathway: string; pathwayLabel: string; grounded: boolean; requestedSlideCount: number; templateId: DeckTemplateId };
   title: string;
   subtitle: string;
   slides: SlidePreview[];
@@ -45,6 +48,7 @@ export default function PresentationsPage() {
   const [locale, setLocale] = useState<DeckLocale>('en');
   const [topic, setTopic] = useState('');
   const [slideCount, setSlideCount] = useState(8);
+  const [templateId, setTemplateId] = useState<DeckTemplateId>('pmpeco-clean');
 
   const [previewing, setPreviewing] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -52,7 +56,7 @@ export default function PresentationsPage() {
   const [spec, setSpec] = useState<DeckSpecPreview | null>(null);
   const [specFingerprint, setSpecFingerprint] = useState<string | null>(null);
 
-  const fingerprint = JSON.stringify({ topic: topic.trim(), pathway, locale, slideCount });
+  const fingerprint = JSON.stringify({ topic: topic.trim(), pathway, locale, slideCount, templateId });
   const validSlideCount = Number.isInteger(slideCount) && slideCount >= 3 && slideCount <= 30;
   const canRun = topic.trim().length >= 2 && validSlideCount && !previewing && !downloading;
 
@@ -61,7 +65,7 @@ export default function PresentationsPage() {
     const res = await fetch('/api/ai/presentation', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic: topic.trim(), pathway, locale, slideCount, mode: 'spec' }),
+      body: JSON.stringify({ topic: topic.trim(), pathway, locale, slideCount, templateId, mode: 'spec' }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
@@ -142,7 +146,33 @@ export default function PresentationsPage() {
         {/* ---- Form ---- */}
         <div className="lg:col-span-1 space-y-6">
           <Card padding="lg">
-            <h3 className="font-bold mb-4">1 · Pathway</h3>
+            <h3 className="font-bold mb-4">1 · Template</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {DECK_TEMPLATES.map((template) => {
+                const active = template.id === templateId;
+                return (
+                  <button
+                    key={template.id}
+                    type="button"
+                    onClick={() => setTemplateId(template.id)}
+                    className={cn(
+                      'overflow-hidden rounded-xl border-2 text-left transition-all bg-white',
+                      active ? 'border-violet-600 shadow-sm ring-2 ring-violet-100' : 'border-gray-200 hover:border-gray-300'
+                    )}
+                  >
+                    <Image src={template.preview} alt={`${template.name} preview`} width={640} height={360} className="aspect-video w-full object-cover border-b border-gray-100" />
+                    <span className="block p-2.5">
+                      <span className="block text-xs font-semibold text-gray-900">{template.name}</span>
+                      <span className="mt-0.5 block text-[10px] leading-4 text-gray-500">{template.description}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </Card>
+
+          <Card padding="lg">
+            <h3 className="font-bold mb-4">2 · Pathway</h3>
             <div className="space-y-2">
               {EXAM_PATH_ORDER.map((id) => {
                 const p = EXAM_PATHS[id];
@@ -171,7 +201,7 @@ export default function PresentationsPage() {
           </Card>
 
           <Card padding="lg">
-            <h3 className="font-bold mb-4">2 · Topic & language</h3>
+            <h3 className="font-bold mb-4">3 · Topic & language</h3>
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Topic</label>

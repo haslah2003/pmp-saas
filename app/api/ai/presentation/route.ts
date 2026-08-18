@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAccess } from '@/lib/auth/access';
 import { buildDeckSpec } from '@/lib/study-studio/presentation/deck-architect';
 import { buildDeckPptx } from '@/lib/study-studio/presentation/deck-builder';
+import { buildCleanTemplateDeck } from '@/lib/study-studio/presentation/deck-builder-clean';
 import { getDeckBranding } from '@/lib/study-studio/presentation/branding';
 import { resolveDeckIllustrations } from '@/lib/study-studio/presentation/illustrations';
 import {
   readDeckLocale,
+  readDeckTemplate,
   readPathway,
   readSlideCount,
   readTopic,
@@ -65,6 +67,7 @@ export async function POST(request: NextRequest) {
       const pathway = readPathway(body.pathway);
       const locale = readDeckLocale(body.locale);
       const slideCount = readSlideCount(body.slideCount);
+      const templateId = readDeckTemplate(body.templateId);
       if (!process.env.ANTHROPIC_API_KEY) {
         return NextResponse.json({ error: 'AI is not configured.' }, { status: 503 });
       }
@@ -74,7 +77,7 @@ export async function POST(request: NextRequest) {
       }
       activeArchitects.add(lockKey);
       try {
-        const spec = await buildDeckSpec({ topic, pathway, locale, slideCount });
+        const spec = await buildDeckSpec({ topic, pathway, locale, slideCount, templateId });
         return NextResponse.json({ spec });
       } finally {
         activeArchitects.delete(lockKey);
@@ -83,11 +86,10 @@ export async function POST(request: NextRequest) {
 
     const spec = validateDeckSpec(body.spec);
 
-    const [branding, illustrations] = await Promise.all([
-      getDeckBranding(),
-      resolveDeckIllustrations(spec),
-    ]);
-    const pptx = await buildDeckPptx(spec, branding, illustrations);
+    const branding = await getDeckBranding();
+    const pptx = spec.meta.templateId === 'pmpeco-clean'
+      ? await buildCleanTemplateDeck(spec)
+      : await buildDeckPptx(spec, branding, await resolveDeckIllustrations(spec));
 
     const fileName = `${safeFilePart(branding.siteName, 'PMPeco')}_${safeFilePart(spec.meta.topic, 'deck')}.pptx`;
     const encodedName = encodeURIComponent(fileName);

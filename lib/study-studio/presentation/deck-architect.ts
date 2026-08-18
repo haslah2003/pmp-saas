@@ -6,7 +6,7 @@ import {
 } from '@/lib/rag/resource-retrieval';
 import { EXAM_PATHS } from '@/lib/pmp/exam-paths';
 import type { ExamPathId, AppLocale } from '@/lib/pmp/exam-paths';
-import type { DeckSpec } from './types';
+import type { DeckSpec, DeckTemplateId } from './types';
 import { validateDeckSpec } from './validation';
 
 /**
@@ -58,6 +58,7 @@ export interface DeckArchitectInput {
   pathway: ExamPathId;
   locale: AppLocale;
   slideCount: number;
+  templateId: DeckTemplateId;
 }
 
 export async function buildDeckSpec(input: DeckArchitectInput): Promise<DeckSpec> {
@@ -156,6 +157,7 @@ export async function buildDeckSpec(input: DeckArchitectInput): Promise<DeckSpec
           pathwayLabel: EXAM_PATHS[pathway].copy[locale].shortLabel,
           generatedAt: new Date().toISOString(),
           requestedSlideCount: input.slideCount,
+          templateId: input.templateId,
           grounded: false,
         },
         citations,

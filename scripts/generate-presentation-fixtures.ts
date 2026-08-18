@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { buildDeckPptx } from '../lib/study-studio/presentation/deck-builder';
+import { buildCleanTemplateDeck } from '../lib/study-studio/presentation/deck-builder-clean';
 import { validateDeckSpec } from '../lib/study-studio/presentation/validation';
 import type { DeckBranding, DeckSpec } from '../lib/study-studio/presentation/types';
 
@@ -34,6 +35,7 @@ function meta(locale: 'en' | 'ar', count: number) {
     pathwayLabel: 'PMBOK 8 + ECO 2026',
     generatedAt: new Date().toISOString(),
     requestedSlideCount: count,
+    templateId: 'pmpeco-clean' as const,
     grounded: false,
   };
 }
@@ -83,10 +85,17 @@ async function render(name: string, spec: DeckSpec, files: string[]) {
   await writeFile(path.join(outputDir, name), buffer);
 }
 
+async function renderClean(name: string, spec: DeckSpec) {
+  const buffer = await buildCleanTemplateDeck(spec);
+  await writeFile(path.join(outputDir, name), buffer);
+}
+
 async function main() {
   await mkdir(outputDir, { recursive: true });
   await render('presentation-en-8-slides.pptx', english, ['stakeholders-engagement.jpg', 'team-planning.jpg']);
   await render('presentation-ar-5-slides.pptx', arabic, ['stakeholders-engagement.jpg', 'process-leadership.jpg']);
+  await renderClean('presentation-clean-en-8-slides.pptx', english);
+  await renderClean('presentation-clean-ar-5-slides.pptx', arabic);
   console.log(outputDir);
 }
 
