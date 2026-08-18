@@ -97,21 +97,29 @@ export async function buildDeckSpec(input: DeckArchitectInput): Promise<DeckSpec
     const correctivePrompt = retryReason
       ? `\n\nCORRECTION REQUIRED: The previous response failed because: ${retryReason}. Return a complete, valid JSON object with exactly ${input.slideCount} slides.`
       : '';
-    const res = await fetch(ANTHROPIC_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY!,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: maxTokens,
-        system: SYS_DECK_ARCHITECT,
-        messages: [{ role: 'user', content: userMessage + correctivePrompt }],
-      }),
-      signal: AbortSignal.timeout(55_000),
-    });
+    let res: Response;
+    try {
+      res = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY!,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          system: SYS_DECK_ARCHITECT,
+          messages: [{ role: 'user', content: userMessage + correctivePrompt }],
+        }),
+        signal: AbortSignal.timeout(110_000),
+      });
+    } catch (error) {
+      if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+        throw new Error(`Deck architect timed out after 110 seconds on attempt ${attempt}. Please try again.`);
+      }
+      throw error;
+    }
 
     const rawBody = await res.text();
     let data: any = {};

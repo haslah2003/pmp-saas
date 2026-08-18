@@ -95,7 +95,12 @@ export default function PresentationsPage() {
     setError(null);
     setDownloading(true);
     try {
-      const deckSpec = spec && specFingerprint === fingerprint ? spec : await requestSpec();
+      const reusableSpec = spec && specFingerprint === fingerprint ? spec : null;
+      if (!reusableSpec) {
+        setSpec(null);
+        setSpecFingerprint(null);
+      }
+      const deckSpec = reusableSpec || await requestSpec();
       const res = await renderSpec(deckSpec);
       const contentType = res.headers.get('content-type') || '';
       if (!res.ok || contentType.includes('application/json')) {

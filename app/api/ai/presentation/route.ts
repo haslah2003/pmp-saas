@@ -14,7 +14,9 @@ import {
 
 // pptxgenjs builds a zip in memory; keep it on the Node runtime, not edge.
 export const runtime = 'nodejs';
-export const maxDuration = 120;
+// Longer Arabic and high-slide-count specs can need more than two minutes,
+// especially when the architect uses its one validation retry.
+export const maxDuration = 300;
 
 /**
  * Multi-agent presentation pipeline.
