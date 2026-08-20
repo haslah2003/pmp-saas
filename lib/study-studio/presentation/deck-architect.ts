@@ -18,6 +18,15 @@ import { validateDeckSpec } from './validation';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
+function describeRequestFailure(error: unknown): string {
+  if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+    return 'the model request timed out after 110 seconds';
+  }
+  return error instanceof Error && error.message
+    ? `the model request failed (${error.message})`
+    : 'the model request failed unexpectedly';
+}
+
 function stripJsonFences(text: string): string {
   return text
     .trim()
@@ -116,10 +125,13 @@ export async function buildDeckSpec(input: DeckArchitectInput): Promise<DeckSpec
         signal: AbortSignal.timeout(110_000),
       });
     } catch (error) {
-      if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
-        throw new Error(`Deck architect timed out after 110 seconds on attempt ${attempt}. Please try again.`);
+      const failure = describeRequestFailure(error);
+      console.error(`[deck-architect] attempt ${attempt} request error: ${failure}`, error);
+      if (attempt === 1) {
+        retryReason = failure;
+        continue;
       }
-      throw error;
+      throw new Error(`Deck architect could not reach the AI service after one retry. Please try again in a moment.`);
     }
 
     const rawBody = await res.text();
