@@ -35,6 +35,41 @@ export const maxDuration = 300;
  */
 const activeArchitects = new Set<string>();
 
+function streamJsonTask(task: () => Promise<unknown>) {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      // Send headers and a harmless JSON whitespace heartbeat immediately, then
+      // often enough to keep reverse proxies from treating long AI work as idle.
+      controller.enqueue(encoder.encode('\n'));
+      const heartbeat = setInterval(() => controller.enqueue(encoder.encode(' \n')), 15_000);
+
+      void task()
+        .then((payload) => controller.enqueue(encoder.encode(JSON.stringify(payload))))
+        .catch((error) => {
+          const message = error instanceof Error ? error.message : 'Deck generation failed.';
+          controller.enqueue(encoder.encode(JSON.stringify({ error: message })));
+        })
+        .finally(() => {
+          clearInterval(heartbeat);
+          controller.close();
+        });
+    },
+  });
+
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      // Event-stream responses are forwarded incrementally by Cloudflare/Vercel
+      // instead of being buffered until the AI task finishes. The payload remains
+      // whitespace followed by one JSON object, which requestSpec parses as text.
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-store, no-transform',
+      'X-Accel-Buffering': 'no',
+    },
+  });
+}
+
 function safeFilePart(value: string, fallback: string) {
   return value
     .normalize('NFKD')
@@ -77,12 +112,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'A presentation outline is already being generated. Please wait for it to finish.' }, { status: 429 });
       }
       activeArchitects.add(lockKey);
-      try {
-        const spec = await buildDeckSpec({ topic, pathway, locale, slideCount, templateId });
-        return NextResponse.json({ spec });
-      } finally {
-        activeArchitects.delete(lockKey);
-      }
+      return streamJsonTask(async () => {
+        try {
+          const spec = await buildDeckSpec({ topic, pathway, locale, slideCount, templateId });
+          return { spec };
+        } finally {
+          activeArchitects.delete(lockKey);
+        }
+      });
     }
 
     const spec = validateDeckSpec(body.spec);

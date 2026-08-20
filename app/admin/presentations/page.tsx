@@ -76,7 +76,7 @@ export default function PresentationsPage() {
         throw new Error('The outline service returned an invalid response. Please try again.');
       }
     }
-    if (!res.ok) {
+    if (!res.ok || data.error) {
       throw new Error(data.error || `Outline request failed (${res.status}). Please try again.`);
     }
     if (!data.spec) {
