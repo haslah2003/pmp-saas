@@ -67,8 +67,21 @@ export default function PresentationsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ topic: topic.trim(), pathway, locale, slideCount, templateId, mode: 'spec' }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    const rawBody = await res.text();
+    let data: { error?: string; spec?: DeckSpecPreview } = {};
+    try {
+      data = rawBody ? JSON.parse(rawBody) : {};
+    } catch {
+      if (res.ok) {
+        throw new Error('The outline service returned an invalid response. Please try again.');
+      }
+    }
+    if (!res.ok) {
+      throw new Error(data.error || `Outline request failed (${res.status}). Please try again.`);
+    }
+    if (!data.spec) {
+      throw new Error('The outline service returned no presentation. Please try again.');
+    }
     setSpec(data.spec);
     setSpecFingerprint(requestedFingerprint);
     return data.spec;
