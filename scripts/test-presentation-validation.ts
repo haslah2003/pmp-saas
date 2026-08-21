@@ -41,6 +41,40 @@ const withoutTitleSubhead = validateDeckSpec({
 assert.equal(withoutTitleSubhead.slides[0].subhead, undefined);
 assert.equal(withoutTitleSubhead.meta.templateId, 'pmpeco-medium');
 
+const repairableSpec = validateDeckSpec({
+  ...baseSpec,
+  slides: [
+    baseSpec.slides[0],
+    {
+      n: 2,
+      layout: 'levels_ladder',
+      headline: 'A repairable ladder',
+      levels: [{ name: 'One level', desc: 'A'.repeat(220) }],
+      citationRefs: [1],
+    },
+    baseSpec.slides[2],
+  ],
+});
+assert.equal(repairableSpec.slides[1].layout, 'definition_callout');
+assert.ok((repairableSpec.slides[1].body?.length || 0) <= 180 + 'One level: '.length);
+
+const overlongItemsSpec = validateDeckSpec({
+  ...baseSpec,
+  slides: [
+    baseSpec.slides[0],
+    {
+      n: 2,
+      layout: 'outcomes_grid',
+      headline: 'Bounded cards',
+      items: Array.from({ length: 6 }, (_, index) => ({ title: `Item ${index + 1}`, desc: 'word '.repeat(60) })),
+      citationRefs: [1],
+    },
+    baseSpec.slides[2],
+  ],
+});
+assert.equal(overlongItemsSpec.slides[1].items?.length, 4);
+assert.ok((overlongItemsSpec.slides[1].items?.[0] as { desc: string }).desc.length <= 180);
+
 assert.throws(() => readPathway('pmbok-8'), /Pathway/);
 assert.throws(() => readDeckLocale('fr'), /English or Arabic/);
 assert.throws(() => readSlideCount(31), /3 to 30/);

@@ -30,16 +30,29 @@ function requiredString(value: unknown, field: string, max = 500): string {
   return text;
 }
 
-function optionalString(value: unknown, field: string, max = 500): string | undefined {
+function truncateAtWord(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const shortened = text.slice(0, max + 1);
+  const boundary = shortened.lastIndexOf(' ');
+  return (boundary >= Math.floor(max * 0.65) ? shortened.slice(0, boundary) : text.slice(0, max)).trim();
+}
+
+/** Bounds model-authored copy without discarding an otherwise valid grounded deck. */
+function boundedString(value: unknown, field: string, max = 500): string {
+  if (typeof value !== 'string' || !value.trim()) throw new Error(`${field} is required.`);
+  return truncateAtWord(value.trim(), max);
+}
+
+function boundedOptionalString(value: unknown, field: string, max = 500): string | undefined {
   if (value == null || value === '') return undefined;
-  return requiredString(value, field, max);
+  return boundedString(value, field, max);
 }
 
 function stringArray(value: unknown, field: string, min: number, max: number): string[] {
-  if (!Array.isArray(value) || value.length < min || value.length > max) {
+  if (!Array.isArray(value) || value.length < min) {
     throw new Error(`${field} must contain ${min}-${max} items.`);
   }
-  return value.map((item, index) => requiredString(item, `${field}[${index}]`, 180));
+  return value.slice(0, max).map((item, index) => boundedString(item, `${field}[${index}]`, 180));
 }
 
 export function readPathway(value: unknown): ExamPathId {
@@ -81,9 +94,9 @@ function validateCitation(value: unknown, index: number): DeckCitation {
   if (!Number.isInteger(value.ref) || Number(value.ref) < 1) throw new Error(`citations[${index}].ref is invalid.`);
   return {
     ref: Number(value.ref),
-    source_title: requiredString(value.source_title, `citations[${index}].source_title`, 240),
-    chunk_title: requiredString(value.chunk_title, `citations[${index}].chunk_title`, 240),
-    framework: requiredString(value.framework, `citations[${index}].framework`, 80),
+    source_title: boundedString(value.source_title, `citations[${index}].source_title`, 240),
+    chunk_title: boundedString(value.chunk_title, `citations[${index}].chunk_title`, 240),
+    framework: boundedString(value.framework, `citations[${index}].framework`, 80),
   };
 }
 
@@ -103,45 +116,44 @@ function validateSlide(value: unknown, index: number, validRefs: Set<number>): D
   const slide: DeckSlide = {
     n: index + 1,
     layout: layout as SlideLayout,
-    headline: requiredString(value.headline, `slides[${index}].headline`, 90),
-    kicker: optionalString(value.kicker, `slides[${index}].kicker`, 45),
-    subhead: optionalString(value.subhead, `slides[${index}].subhead`, 180),
-    body: optionalString(value.body, `slides[${index}].body`, 700),
-    caption: optionalString(value.caption, `slides[${index}].caption`, 180),
-    cta: optionalString(value.cta, `slides[${index}].cta`, 100),
-    notes: optionalString(value.notes, `slides[${index}].notes`, 700),
+    headline: boundedString(value.headline, `slides[${index}].headline`, 90),
+    kicker: boundedOptionalString(value.kicker, `slides[${index}].kicker`, 45),
+    subhead: boundedOptionalString(value.subhead, `slides[${index}].subhead`, 180),
+    body: boundedOptionalString(value.body, `slides[${index}].body`, 700),
+    caption: boundedOptionalString(value.caption, `slides[${index}].caption`, 180),
+    cta: boundedOptionalString(value.cta, `slides[${index}].cta`, 100),
+    notes: boundedOptionalString(value.notes, `slides[${index}].notes`, 700),
     citationRefs: refs,
   };
 
   if (isRecord(value.stat)) {
     slide.stat = {
-      value: requiredString(value.stat.value, `slides[${index}].stat.value`, 40),
-      label: requiredString(value.stat.label, `slides[${index}].stat.label`, 120),
+      value: boundedString(value.stat.value, `slides[${index}].stat.value`, 40),
+      label: boundedString(value.stat.label, `slides[${index}].stat.label`, 120),
     };
   }
   if (Array.isArray(value.items)) {
     slide.items = value.items.slice(0, 6).map((item, itemIndex) => {
-      if (typeof item === 'string') return requiredString(item, `slides[${index}].items[${itemIndex}]`, 180);
+      if (typeof item === 'string') return boundedString(item, `slides[${index}].items[${itemIndex}]`, 180);
       if (!isRecord(item)) throw new Error(`slides[${index}].items[${itemIndex}] is invalid.`);
       return {
-        title: optionalString(item.title, `slides[${index}].items[${itemIndex}].title`, 80),
-        desc: requiredString(item.desc, `slides[${index}].items[${itemIndex}].desc`, 180),
+        title: boundedOptionalString(item.title, `slides[${index}].items[${itemIndex}].title`, 80),
+        desc: boundedString(item.desc, `slides[${index}].items[${itemIndex}].desc`, 180),
       };
     });
   }
   if (value.steps != null) slide.steps = stringArray(value.steps, `slides[${index}].steps`, 2, 5);
   if (Array.isArray(value.levels)) {
-    if (value.levels.length < 2 || value.levels.length > 5) throw new Error(`slides[${index}].levels must contain 2-5 items.`);
-    slide.levels = value.levels.map((level, levelIndex) => {
+    slide.levels = value.levels.slice(0, 5).map((level, levelIndex) => {
       if (!isRecord(level)) throw new Error(`slides[${index}].levels[${levelIndex}] is invalid.`);
       return {
-        name: requiredString(level.name, `slides[${index}].levels[${levelIndex}].name`, 60),
-        desc: requiredString(level.desc, `slides[${index}].levels[${levelIndex}].desc`, 180),
+        name: boundedString(level.name, `slides[${index}].levels[${levelIndex}].name`, 60),
+        desc: boundedString(level.desc, `slides[${index}].levels[${levelIndex}].desc`, 180),
       };
     });
   }
-  slide.left_title = optionalString(value.left_title, `slides[${index}].left_title`, 80);
-  slide.right_title = optionalString(value.right_title, `slides[${index}].right_title`, 80);
+  slide.left_title = boundedOptionalString(value.left_title, `slides[${index}].left_title`, 80);
+  slide.right_title = boundedOptionalString(value.right_title, `slides[${index}].right_title`, 80);
   if (value.left != null) slide.left = stringArray(value.left, `slides[${index}].left`, 2, 5);
   if (value.right != null) slide.right = stringArray(value.right, `slides[${index}].right`, 2, 5);
 
@@ -155,15 +167,22 @@ function validateSlide(value: unknown, index: number, validRefs: Set<number>): D
       if (!slide.body) throw new Error(`slides[${index}].body is required for a definition slide.`);
       break;
     case 'outcomes_grid':
-      if (!slide.items || slide.items.length < 2 || slide.items.length > 4) {
+      if (!slide.items || slide.items.length < 2) {
         throw new Error(`slides[${index}].items must contain 2-4 items.`);
       }
+      slide.items = slide.items.slice(0, 4);
       break;
     case 'process_flow':
       if (!slide.steps) throw new Error(`slides[${index}].steps are required for a process slide.`);
       break;
     case 'levels_ladder':
-      if (!slide.levels) throw new Error(`slides[${index}].levels are required for a levels slide.`);
+      if (!slide.levels?.length) throw new Error(`slides[${index}].levels are required for a levels slide.`);
+      if (slide.levels.length === 1) {
+        const [level] = slide.levels;
+        slide.layout = 'definition_callout';
+        slide.body = slide.body || `${level.name}: ${level.desc}`;
+        delete slide.levels;
+      }
       break;
     case 'two_column':
       if (!slide.left_title || !slide.right_title || !slide.left || !slide.right) {
@@ -171,9 +190,10 @@ function validateSlide(value: unknown, index: number, validRefs: Set<number>): D
       }
       break;
     case 'exam_focus':
-      if (!slide.items || slide.items.length < 2 || slide.items.length > 4) {
+      if (!slide.items || slide.items.length < 2) {
         throw new Error(`slides[${index}].items must contain 2-4 exam-focus items.`);
       }
+      slide.items = slide.items.slice(0, 4);
       break;
     case 'closing':
       if (!slide.body) throw new Error(`slides[${index}].body is required for a closing slide.`);

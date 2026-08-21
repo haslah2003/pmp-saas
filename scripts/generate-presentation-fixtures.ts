@@ -72,6 +72,39 @@ const arabic = validateDeckSpec({
   ],
 }, 5);
 
+// Mirrors the two production failures reported on 2026-08-21: a one-row
+// levels ladder and an overlong grid item. Validation must repair both before
+// any renderer sees the spec.
+const repaired = validateDeckSpec({
+  ...english,
+  meta: { ...english.meta, topic: 'Repairable architect output' },
+  slides: english.slides.map((slide, index) => {
+    if (index === 2) {
+      return {
+        ...slide,
+        layout: 'levels_ladder',
+        items: undefined,
+        levels: [{ name: 'Single generated level', desc: 'A grounded single-level explanation that must remain usable.' }],
+      };
+    }
+    if (index === 5) {
+      return {
+        ...slide,
+        layout: 'outcomes_grid',
+        left_title: undefined,
+        left: undefined,
+        right_title: undefined,
+        right: undefined,
+        items: Array.from({ length: 6 }, (_, itemIndex) => ({
+          title: `Generated item ${itemIndex + 1}`,
+          desc: 'This intentionally overlong grounded description verifies that safe repair trims model copy at a word boundary without rejecting the complete presentation. '.repeat(3),
+        })),
+      };
+    }
+    return slide;
+  }),
+}, 8);
+
 async function imageData(file: string) {
   const bytes = await readFile(path.join(process.cwd(), 'public', 'illustrations', file));
   return `data:image/jpeg;base64,${bytes.toString('base64')}`;
@@ -105,6 +138,9 @@ async function main() {
   await renderClean('presentation-clean-ar-5-slides.pptx', arabic);
   await renderMedium('presentation-medium-en-8-slides.pptx', english);
   await renderMedium('presentation-medium-ar-5-slides.pptx', arabic);
+  await render('presentation-repaired-bold-8-slides.pptx', { ...repaired, meta: { ...repaired.meta, templateId: 'pmpeco-bold' } }, ['team-planning.jpg']);
+  await renderClean('presentation-repaired-clean-8-slides.pptx', repaired);
+  await renderMedium('presentation-repaired-medium-8-slides.pptx', repaired);
   console.log(outputDir);
 }
 
