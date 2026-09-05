@@ -143,7 +143,8 @@ export default function StudyMediaAdminPage() {
 
     try {
       const result = await compressMedia(file, (p) => setProgress(p));
-      const bucket = result.mediaType === "video" ? "course-videos" : "media";
+      // Premium lesson audio and video must both remain in private storage.
+      const bucket = "study-media";
       const path = `study-media/${framework}/${topicId}/${lang}.${result.ext}`;
 
       setProgress({ phase: "upload", ratio: 0 });
@@ -152,8 +153,7 @@ export default function StudyMediaAdminPage() {
         .upload(path, result.blob, { upsert: true, contentType: result.contentType });
       if (upErr) throw new Error(`Upload failed — ${upErr.message}`);
 
-      const public_url =
-        result.mediaType === "audio" ? supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl : null;
+      const public_url = null;
 
       const { error: dbErr } = await supabase.from("topic_media").upsert(
         {
@@ -389,9 +389,8 @@ export default function StudyMediaAdminPage() {
       )}
 
       <p className="text-[11px] text-gray-400">
-        Mapping <span className="font-semibold">{fwLabel}</span> · videos → private{" "}
-        <code className="font-mono">course-videos</code> (signed URLs) · audio → public{" "}
-        <code className="font-mono">media</code>. Large in-browser compression may take a few minutes;
+        Mapping <span className="font-semibold">{fwLabel}</span> · audio/video → private{" "}
+        <code className="font-mono">study-media</code> (signed URLs). Large in-browser compression may take a few minutes;
         keep this tab open.
       </p>
     </div>

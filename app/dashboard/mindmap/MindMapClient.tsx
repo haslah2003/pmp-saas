@@ -1070,13 +1070,9 @@ export default function MindMapClient() {
             </button>
           ))}
 
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-600 hover:border-purple-200 hover:text-[#4b164c]"
-          >
-            {translate('Export PDF', isArabic)}
-          </button>
+          <span className="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-500">
+            © PMPeco · {translate('In-platform use only', isArabic)}
+          </span>
         </div>
       </div>
 

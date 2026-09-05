@@ -253,14 +253,6 @@ function getFieldByLanguage(
   return englishValue;
 }
 
-function sanitizeFileName(value: string) {
-  return value
-    .trim()
-    .replace(/[\\/:*?"<>|]+/g, '-')
-    .replace(/\s+/g, '-')
-    .slice(0, 80) || 'mindmap';
-}
-
 function wrapSvgText(
   value: string,
   maxCharsPerLine: number,
@@ -334,7 +326,6 @@ function TreeMindMap({
     label: string;
     explanation: string;
   } | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const branchRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -359,47 +350,6 @@ const leafRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
       return next;
     });
     setTimeout(() => forceUpdate({}), 550);
-  };
-
-  const downloadPDF = async () => {
-    const container = containerRef.current;
-    if (!container || isExporting) return;
-    setIsExporting(true);
-    try {
-      const [{ jsPDF }, html2canvas] = await Promise.all([
-        import('jspdf'),
-        import('html2canvas').then((m) => m.default),
-      ]);
-      const canvas = await html2canvas(container, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 36;
-      const availableWidth = pageWidth - margin * 2;
-      const availableHeight = pageHeight - margin * 2;
-      const imgRatio = canvas.width / canvas.height;
-      let imgWidth = availableWidth;
-      let imgHeight = imgWidth / imgRatio;
-      if (imgHeight > availableHeight) {
-        imgHeight = availableHeight;
-        imgWidth = imgHeight * imgRatio;
-      }
-      const x = (pageWidth - imgWidth) / 2;
-      const y = (pageHeight - imgHeight) / 2;
-      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-      pdf.save(`${sanitizeFileName(center)}.pdf`);
-    } catch (error) {
-      console.error('Mind map PDF export failed:', error);
-      alert(isArabic ? 'تعذر تصدير الخريطة الذهنية بصيغة PDF.' : 'Could not export the mind map as PDF.');
-    } finally {
-      setIsExporting(false);
-    }
   };
 
   const getBezierPath = (fromEl: HTMLElement, toEl: HTMLElement, container: HTMLElement) => {
@@ -579,19 +529,7 @@ const leafRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
         </div>
       )}
 
-      <button
-        onClick={downloadPDF}
-        disabled={isExporting}
-        className="mt-4 text-xs text-gray-500 hover:text-violet-600 border border-gray-200 hover:border-violet-300 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-50"
-      >
-        {isExporting
-          ? isArabic
-            ? 'جارٍ تجهيز PDF…'
-            : 'Preparing PDF…'
-          : isArabic
-            ? '⬇️ تحميل الخريطة الذهنية PDF'
-            : '⬇️ Download Mind Map PDF'}
-      </button>
+      <p className="mt-4 text-xs font-semibold text-gray-400">© PMPeco · {isArabic ? 'للاستخدام داخل المنصة فقط' : 'In-platform use only'}</p>
     </div>
   );
 }
@@ -609,23 +547,6 @@ function GuruPanel({
   onLinkClick: (domain: string) => void;
   isArabic: boolean;
 }) {
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = () => {
-    const text = `${report.greeting}\n\n${report.overall_assessment}`;
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-
-    a.href = url;
-    a.download = 'guru-report.txt';
-    a.click();
-
-    URL.revokeObjectURL(url);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
   return (
     <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl border-l border-gray-200 z-50 flex flex-col overflow-hidden">
       <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-4 flex-shrink-0">
@@ -641,13 +562,6 @@ function GuruPanel({
           </div>
 
           <div className="flex gap-2">
-            <button
-              onClick={handleSave}
-              className="text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded-lg transition-all"
-            >
-              {saved ? (isArabic ? '✓ تم الحفظ' : '✓ Saved') : isArabic ? '⬇ حفظ' : '⬇ Save'}
-            </button>
-
             <button onClick={onClose} className="text-white/70 hover:text-white text-lg leading-none">
               ✕
             </button>

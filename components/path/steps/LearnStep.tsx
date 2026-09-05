@@ -350,8 +350,12 @@ export function LearnStep({ lesson, phaseId, locale, videos = [], canonicalConte
                 >
                   <video
                     controls
+                    controlsList="nodownload noremoteplayback"
+                    disablePictureInPicture
+                    disableRemotePlayback
                     preload="metadata"
                     poster={video.thumbnailUrl ?? undefined}
+                    onContextMenu={(event) => event.preventDefault()}
                     style={{
                       width: '100%',
                       display: 'block',

@@ -280,12 +280,7 @@ export default function StrategicReportClient({ reportRow, learnerName, reportHi
             >
               {copied ? S.copied : S.copyLink}
             </button>
-            <button
-              onClick={() => window.print()}
-              className="rounded-xl bg-[#1AB0A2] px-4 py-2 text-sm font-semibold text-white hover:bg-[#148F84]"
-            >
-              {S.print}
-            </button>
+            <span className="text-xs font-semibold text-gray-400">© PMPeco · In-platform use only</span>
           </div>
         </div>
       </div>

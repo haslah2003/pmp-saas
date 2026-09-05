@@ -6,8 +6,7 @@ import { normalizeExamPath } from "@/lib/pmp/exam-paths";
 
 // Learner playback resolver for Study Studio media.
 // Reads the (framework, topic, language) mapping and returns a playable URL:
-//   * audio in the public `media` bucket -> its stored public URL
-//   * video in the private `course-videos` bucket -> a reusable signed URL
+//   * audio/video in private storage -> a reusable signed URL
 // Premium-gated, mirroring the old live-audio feature.
 
 // Supabase CDN caches each unique signed token independently. Reusing one URL
@@ -106,9 +105,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ found: false });
   }
 
+  // public_url is retained only for backward compatibility with legacy rows.
+  // All new Study Studio uploads use private storage.
   let url = data.public_url ?? null;
 
-  // Private bucket (video): reuse a gated signed URL so Supabase CDN can cache
+  // Private bucket: reuse a gated signed URL so Supabase CDN can cache
   // the object across plays instead of receiving a new token on every click.
   if (!url && data.storage_bucket && data.storage_path) {
     try {

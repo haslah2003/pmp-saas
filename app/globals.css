@@ -16,6 +16,18 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-thumb { background: #c7c7c7; border-radius: 3px; }
 
+/* Learner content is intended for use inside PMPeco. This deters ordinary
+   browser printing; the billing receipt explicitly opts back in below. */
+@media print {
+  [data-protected-learning-content] > * {
+    display: none !important;
+  }
+
+  [data-protected-learning-content] > [data-print-allowed] {
+    display: block !important;
+  }
+}
+
 @keyframes pulse-dot {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }

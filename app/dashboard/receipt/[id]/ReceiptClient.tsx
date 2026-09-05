@@ -96,7 +96,7 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
   const handlePrint = () => window.print()
 
   return (
-    <>
+    <div data-print-allowed>
       <style jsx global>{`
         @media print {
           @page { margin: 0.4in; size: A4; }
@@ -266,6 +266,6 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }

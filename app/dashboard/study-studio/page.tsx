@@ -221,8 +221,12 @@ function AudioTab() {
                 src={media.url}
                 poster={media.posterUrl ?? undefined}
                 controls
+                controlsList="nodownload noremoteplayback"
+                disablePictureInPicture
+                disableRemotePlayback
                 autoPlay
                 playsInline
+                onContextMenu={(event) => event.preventDefault()}
                 className="w-full max-h-[70vh] bg-black"
               />
             </div>
@@ -252,7 +256,15 @@ function AudioTab() {
               <Badge variant="info">{getAudioDomainLabel(activeTopic?.domain || '', isArabic)}</Badge>
             </div>
             {media.mediaType === 'audio' && (
-              <audio key={media.url} src={media.url} controls autoPlay className="w-full" />
+              <audio
+                key={media.url}
+                src={media.url}
+                controls
+                controlsList="nodownload noremoteplayback"
+                autoPlay
+                onContextMenu={(event) => event.preventDefault()}
+                className="w-full"
+              />
             )}
           </div>
         </Card>
