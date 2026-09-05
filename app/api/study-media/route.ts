@@ -33,6 +33,20 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = await createClient();
+  const { data: availability, error: availabilityError } = await supabase
+    .from("study_media_availability")
+    .select("enabled")
+    .eq("framework", framework)
+    .maybeSingle();
+
+  if (availabilityError) {
+    console.error("[study-media] availability lookup error:", availabilityError.message);
+    return NextResponse.json({ error: "Media availability check failed" }, { status: 503 });
+  }
+  if (!availability?.enabled) {
+    return NextResponse.json({ found: false, enabled: false }, { status: 404 });
+  }
+
   const { data, error } = await supabase
     .from("topic_media")
     .select("media_type, storage_bucket, storage_path, public_url, poster_url, title, duration_seconds")

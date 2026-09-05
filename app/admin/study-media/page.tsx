@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   AUDIO_TOPICS_BY_FRAMEWORK,
@@ -48,10 +48,12 @@ function fmtDuration(s: number | null) {
 }
 
 export default function StudyMediaAdminPage() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [framework, setFramework] = useState<string>("pmbok8");
   const [rows, setRows] = useState<Record<string, Row>>({});
   const [loading, setLoading] = useState(true);
+  const [enabled, setEnabled] = useState(false);
+  const [settingBusy, setSettingBusy] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ phase: CompressPhase | "upload"; ratio: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -65,13 +67,17 @@ export default function StudyMediaAdminPage() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data } = await supabase.from("topic_media").select("*").eq("framework", framework);
+      const [{ data }, { data: setting }] = await Promise.all([
+        supabase.from("topic_media").select("*").eq("framework", framework),
+        supabase.from("study_media_availability").select("enabled").eq("framework", framework).maybeSingle(),
+      ]);
       if (cancelled) return;
       const map: Record<string, Row> = {};
       (data as Row[] | null)?.forEach((r) => {
         map[slotKey(r.topic_id, r.language)] = r;
       });
       setRows(map);
+      setEnabled(setting?.enabled === true);
       setLoading(false);
     })();
     return () => {
@@ -86,6 +92,33 @@ export default function StudyMediaAdminPage() {
       map[slotKey(r.topic_id, r.language)] = r;
     });
     setRows(map);
+  }
+
+  const expectedSlotCount = topics.length * LANGS.length;
+  const populatedSlotCount = Object.keys(rows).length;
+  const libraryComplete = expectedSlotCount > 0 && populatedSlotCount === expectedSlotCount;
+
+  async function toggleAvailability() {
+    if (!enabled && !libraryComplete) {
+      setError(`Complete all ${expectedSlotCount} media slots before activation.`);
+      return;
+    }
+    const action = enabled ? "hide" : "activate";
+    if (!window.confirm(`Are you sure you want to ${action} Study Studio Media for ${fwLabel}?`)) return;
+
+    setSettingBusy(true);
+    setError(null);
+    const { data: { user } } = await supabase.auth.getUser();
+    const nextEnabled = !enabled;
+    const { error: settingError } = await supabase.from("study_media_availability").upsert({
+      framework,
+      enabled: nextEnabled,
+      enabled_at: nextEnabled ? new Date().toISOString() : null,
+      enabled_by: nextEnabled ? user?.id ?? null : null,
+    }, { onConflict: "framework" });
+    if (settingError) setError(`Availability update failed — ${settingError.message}`);
+    else setEnabled(nextEnabled);
+    setSettingBusy(false);
   }
 
   function pickFile(topicId: string, lang: string) {
@@ -211,6 +244,31 @@ export default function StudyMediaAdminPage() {
           );
         })}
       </div>
+
+      {/* Manual learner release gate */}
+      {!loading && (
+        <div className={`rounded-2xl border p-4 ${enabled ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-gray-900">
+                Learner visibility: {enabled ? "Active" : "Hidden"}
+              </p>
+              <p className="text-xs text-gray-600 mt-1">
+                {populatedSlotCount}/{expectedSlotCount} English and Arabic media slots populated.
+                {!libraryComplete && " Activation unlocks only after every slot is complete."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={toggleAvailability}
+              disabled={settingBusy || (!enabled && !libraryComplete)}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40 ${enabled ? "bg-amber-600 hover:bg-amber-700" : "bg-emerald-600 hover:bg-emerald-700"}`}
+            >
+              {settingBusy ? "Updating…" : enabled ? "Hide from learners" : "Activate for learners"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>

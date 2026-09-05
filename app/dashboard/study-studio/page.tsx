@@ -638,6 +638,33 @@ function QuizTab() {
 export default function StudyStudioPage() {
   const { t, isArabic } = useLanguage();
   const [activeTab, setActiveTab] = useState<StudyTab>('notes');
+  const framework = useActiveFramework();
+  const supabase = React.useMemo(() => createClient(), []);
+  const [mediaEnabled, setMediaEnabled] = useState(false);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('study_media_availability')
+        .select('enabled')
+        .eq('framework', framework)
+        .maybeSingle();
+      if (!cancelled) setMediaEnabled(data?.enabled === true);
+    })();
+    return () => { cancelled = true; };
+  }, [framework, supabase]);
+
+  React.useEffect(() => {
+    if (!mediaEnabled && activeTab === 'audio') setActiveTab('notes');
+  }, [activeTab, mediaEnabled]);
+
+  const tabs = [
+    { id: 'notes', label: t('studio.notes'), icon: <span>📝</span> },
+    ...(mediaEnabled ? [{ id: 'audio', label: t('studio.audio'), icon: <span>🎬</span> }] : []),
+    { id: 'flashcards', label: t('studio.flashcards'), icon: <span>🃏</span> },
+    { id: 'quiz', label: t('studio.quiz'), icon: <span>❓</span> },
+  ];
 
   return (
     <div dir={isArabic ? 'rtl' : 'ltr'} className="space-y-6">
@@ -647,12 +674,7 @@ export default function StudyStudioPage() {
       </div>
 
       <Tabs
-        tabs={[
-          { id: 'notes', label: t('studio.notes'), icon: <span>📝</span> },
-          { id: 'audio', label: t('studio.audio'), icon: <span>🎬</span> },
-          { id: 'flashcards', label: t('studio.flashcards'), icon: <span>🃏</span> },
-          { id: 'quiz', label: t('studio.quiz'), icon: <span>❓</span> },
-        ]}
+        tabs={tabs}
         activeTab={activeTab}
         onChange={(id) => setActiveTab(id as StudyTab)}
       />
