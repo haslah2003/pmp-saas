@@ -1,15 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getAccess } from "@/lib/auth/access";
 import { normalizeExamPath } from "@/lib/pmp/exam-paths";
 
 // Learner playback resolver for Study Studio media.
 // Reads the (framework, topic, language) mapping and returns a playable URL:
 //   * audio in the public `media` bucket -> its stored public URL
-//   * video in the private `course-videos` bucket -> a short-lived signed URL
+//   * video in the private `course-videos` bucket -> a reusable signed URL
 // Premium-gated, mirroring the old live-audio feature.
 
-const SIGNED_URL_TTL_SECONDS = 60 * 60 * 2; // 2h — comfortably longer than any clip
+// Supabase CDN caches each unique signed token independently. Reusing one URL
+// for 24h lets subsequent learners hit the edge cache instead of forcing every
+// play through the storage origin. Access to the URL remains Premium-gated here.
+const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24;
+const SIGNED_URL_REFRESH_MARGIN_MS = 60 * 60 * 1000;
+
+type CachedSignedUrl = { url: string; expiresAt: number };
+
+async function getReusableSignedUrl(bucket: string, path: string, version: string) {
+  const admin = createAdminClient();
+  const cacheKey = `study-media-url:v1:${bucket}:${path}:${version}`;
+  const { data: cached } = await admin
+    .from("content_cache")
+    .select("content")
+    .eq("cache_key", cacheKey)
+    .maybeSingle();
+
+  if (cached?.content) {
+    try {
+      const parsed = JSON.parse(cached.content) as CachedSignedUrl;
+      if (parsed.url && parsed.expiresAt > Date.now() + SIGNED_URL_REFRESH_MARGIN_MS) return parsed.url;
+    } catch {
+      // Replace malformed or expired cache data below.
+    }
+  }
+
+  const { data: signed, error } = await admin.storage
+    .from(bucket)
+    .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
+  if (error || !signed?.signedUrl) throw error ?? new Error("Signed URL was not created");
+
+  const value: CachedSignedUrl = {
+    url: signed.signedUrl,
+    expiresAt: Date.now() + SIGNED_URL_TTL_SECONDS * 1000,
+  };
+  const { error: cacheError } = await admin.from("content_cache").upsert(
+    { cache_key: cacheKey, content: JSON.stringify(value), content_type: "study-media-url" },
+    { onConflict: "cache_key" }
+  );
+  if (cacheError) console.error("[study-media] URL cache save error:", cacheError.message);
+  return value.url;
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -49,7 +91,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase
     .from("topic_media")
-    .select("media_type, storage_bucket, storage_path, public_url, poster_url, title, duration_seconds")
+    .select("media_type, storage_bucket, storage_path, public_url, poster_url, title, duration_seconds, updated_at")
     .eq("framework", framework)
     .eq("topic_id", topicId)
     .eq("language", language)
@@ -66,30 +108,30 @@ export async function GET(request: NextRequest) {
 
   let url = data.public_url ?? null;
 
-  // Private bucket (video): mint a signed URL via the authed server client,
-  // matching the proven course_videos pattern.
+  // Private bucket (video): reuse a gated signed URL so Supabase CDN can cache
+  // the object across plays instead of receiving a new token on every click.
   if (!url && data.storage_bucket && data.storage_path) {
-    const { data: signed, error: signErr } = await supabase.storage
-      .from(data.storage_bucket)
-      .createSignedUrl(data.storage_path, SIGNED_URL_TTL_SECONDS);
-
-    if (signErr) {
-      console.error("[study-media] signed URL error:", signErr.message);
+    try {
+      url = await getReusableSignedUrl(data.storage_bucket, data.storage_path, data.updated_at);
+    } catch (signError) {
+      console.error("[study-media] signed URL error:", signError);
       return NextResponse.json({ found: false, error: "Media temporarily unavailable" }, { status: 502 });
     }
-    url = signed?.signedUrl ?? null;
   }
 
   if (!url) {
     return NextResponse.json({ found: false });
   }
 
-  return NextResponse.json({
-    found: true,
-    mediaType: data.media_type,
-    url,
-    posterUrl: data.poster_url ?? null,
-    title: data.title ?? null,
-    durationSeconds: data.duration_seconds ?? null,
-  });
+  return NextResponse.json(
+    {
+      found: true,
+      mediaType: data.media_type,
+      url,
+      posterUrl: data.poster_url ?? null,
+      title: data.title ?? null,
+      durationSeconds: data.duration_seconds ?? null,
+    },
+    { headers: { "Cache-Control": "private, no-store" } }
+  );
 }
