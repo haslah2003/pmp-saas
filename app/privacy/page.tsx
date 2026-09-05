@@ -39,7 +39,6 @@ export default function PrivacyPage() {
         <li><strong>Vercel</strong> &amp; <strong>Cloudflare</strong> — hosting, content delivery, and security.</li>
         <li><strong>PayPal</strong> — payment processing.</li>
         <li><strong>Anthropic (Claude)</strong> — AI-generated explanations and tutoring responses.</li>
-        <li><strong>ElevenLabs</strong> — optional text-to-speech audio.</li>
       </ul>
       <p>
         When you use AI features, the relevant prompt/content is sent to the AI provider to generate a response.

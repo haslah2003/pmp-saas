@@ -1,5 +1,5 @@
 -- Per-user daily AI usage counter, used by middleware to cap paid LLM/TTS calls
--- (Anthropic / ElevenLabs) and prevent runaway cost / abuse.
+-- (Anthropic) and prevent runaway cost / abuse.
 -- Writes happen only server-side via the service role, so no public RLS policies
 -- are needed; RLS is enabled to deny anon/auth clients by default.
 

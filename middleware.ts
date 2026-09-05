@@ -14,11 +14,10 @@ const AUTH_API_PREFIXES = [
   '/api/companion',
   '/api/deeper',
   '/api/ai',
-  '/api/tts',
   '/api/practice',
 ]
 
-// Subset that costs money per call (Anthropic / ElevenLabs) — apply a per-user
+// Subset that costs money per call (Anthropic) — apply a per-user
 // daily usage cap on top of auth. Precise prefixes so non-LLM routes
 // (e.g. /api/practice/questions) are auth-gated but NOT counted.
 const LLM_API_PREFIXES = [
@@ -28,7 +27,6 @@ const LLM_API_PREFIXES = [
   '/api/ai/tutor',
   '/api/ai/notes',
   '/api/ai/questions',
-  '/api/tts/generate',
 ]
 
 const AI_DAILY_CAP = Number(process.env.AI_DAILY_CAP || 200)
@@ -139,7 +137,6 @@ export const config = {
     '/api/companion/:path*',
     '/api/deeper/:path*',
     '/api/ai/:path*',
-    '/api/tts/:path*',
     '/api/practice/:path*',
   ],
 }

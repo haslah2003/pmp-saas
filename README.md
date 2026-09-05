@@ -10,7 +10,7 @@ AI-powered PMP exam preparation grounded exclusively in **PMBOK Guide 7th Editio
 | Styling | Tailwind CSS + shadcn/ui |
 | Backend | Supabase (PostgreSQL + Auth + RLS) |
 | AI Engine | Anthropic Claude API (Sonnet 4) |
-| Voice/TTS | ElevenLabs Multilingual v2 |
+| Study media | Pre-produced video/audio stored in Supabase |
 | Payments | PayPal Subscriptions API |
 | Deployment | Vercel |
 
@@ -28,7 +28,6 @@ npm install
 
 - **Supabase**: [supabase.com](https://supabase.com) — Create a new project
 - **Anthropic**: [console.anthropic.com](https://console.anthropic.com) — Get API key
-- **ElevenLabs**: [elevenlabs.io](https://elevenlabs.io) — Get API key + choose a voice
 - **PayPal Developer**: [developer.paypal.com](https://developer.paypal.com) — Create app + subscription plans
 
 ### 3. Set up Supabase database
@@ -46,7 +45,6 @@ cp .env.example .env.local
 Fill in all values in `.env.local`:
 - Supabase URL + Anon Key (from project Settings → API)
 - Anthropic API key
-- ElevenLabs API key + Voice ID
 - PayPal Client ID + Secret + Webhook ID
 
 ### 5. Run locally
@@ -90,7 +88,7 @@ pmp-saas/
 │       ├── ai/tutor/route.ts       # Claude - AI Tutor (rate-limited)
 │       ├── ai/notes/route.ts       # Claude - Study Notes (premium)
 │       ├── ai/questions/route.ts   # Claude - Questions/Cards/Quiz
-│       ├── tts/generate/route.ts   # ElevenLabs - Audio (premium)
+│       ├── study-media/route.ts    # Protected uploaded media playback
 │       ├── payments/create-subscription/route.ts  # PayPal checkout
 │       └── webhooks/paypal/route.ts # PayPal webhook handler
 ├── lib/
@@ -109,7 +107,7 @@ pmp-saas/
 
 - **Phase 1** ✅ Foundation: Project setup, auth, DB, API routes, PayPal
 - **Phase 2**: Port full PMPeco UI (Mind Map, Course, Practice, Exam, Tutor)
-- **Phase 3**: Study Studio (Notes, Flashcards, Quiz) + ElevenLabs audio
+- **Phase 3**: Study Studio (Notes, Flashcards, Quiz) + uploaded video/audio
 - **Phase 4**: Paywall middleware, rate limiting, usage tracking
 - **Phase 5**: Landing page polish, SEO, analytics
 - **Phase 6**: Domain, production deploy, soft launch

@@ -31,7 +31,7 @@ The patch proposes 785 insertions and 2 deletions across eight files:
 - `lib/constants.ts`: deck architect system prompt.
 - `package.json` and `package-lock.json`: add `pptxgenjs`.
 
-The proposed pathway contract reuses the existing `ExamPathId` values: `pmbok7`, `pmbok8`, and `bridge`. It intends to reuse `retrieveResourceEvidence` for grounding and the existing `branding_config` as the visual source of truth. A third video agent was explicitly deferred; the transcript notes that existing `buildAudioScript` and `/api/tts` may later support pathway-aware narration.
+The proposed pathway contract reuses the existing `ExamPathId` values: `pmbok7`, `pmbok8`, and `bridge`. It intends to reuse `retrieveResourceEvidence` for grounding and the existing `branding_config` as the visual source of truth. Study Studio media now uses admin-uploaded video/audio stored in Supabase.
 
 ## Agreed Roles
 
@@ -54,7 +54,7 @@ The proposed pathway contract reuses the existing `ExamPathId` values: `pmbok7`,
 - npm: `10.7.0`
 - `node_modules` and `.env.local` are present locally.
 - Primary scripts: `npm run dev`, `npm run build`, and `npm run lint`.
-- The application currently depends on Supabase, Anthropic, ElevenLabs, PayPal, Vercel Analytics, and Sentry. Never expose or copy local secret values into documentation or logs.
+- The application currently depends on Supabase, Anthropic, PayPal, Vercel Analytics, and Sentry. Never expose or copy local secret values into documentation or logs.
 
 ## Known Documentation Drift
 
