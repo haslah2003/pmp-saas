@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { getAccess, TIER_RANK } from '@/lib/auth/access';
+import { publicPracticeQuestion } from '@/lib/practice/scoring';
 
 type QuestionRow = Record<string, unknown>;
 type SbClient = Awaited<ReturnType<typeof createClient>>;
@@ -8,30 +9,8 @@ type SbClient = Awaited<ReturnType<typeof createClient>>;
 const ECO_QUESTION_TYPES = ['single_response', 'multiple_response', 'pull_down', 'matching', 'ordering'];
 const FREE_PRACTICE_PER_TYPE = 3;
 
-function pickLocalizedText(row: QuestionRow, arKey: string, enKey: string) {
-  const ar = row[arKey];
-  const en = row[enKey];
-
-  if (typeof ar === 'string' && ar.trim().length > 0) {
-    return ar;
-  }
-
-  return en;
-}
-
 function localizeQuestion(row: QuestionRow, useArabic: boolean) {
-  if (!useArabic) return row;
-
-  return {
-    ...row,
-    question_text: pickLocalizedText(row, 'question_text_ar', 'question_text'),
-    option_a: pickLocalizedText(row, 'option_a_ar', 'option_a'),
-    option_b: pickLocalizedText(row, 'option_b_ar', 'option_b'),
-    option_c: pickLocalizedText(row, 'option_c_ar', 'option_c'),
-    option_d: pickLocalizedText(row, 'option_d_ar', 'option_d'),
-    explanation: pickLocalizedText(row, 'explanation_ar', 'explanation'),
-    rita_tip: pickLocalizedText(row, 'rita_tip_ar', 'rita_tip'),
-  };
+  return publicPracticeQuestion(row, useArabic);
 }
 
 type PracticeFramework = 'pmbok7' | 'pmbok8' | 'bridge';

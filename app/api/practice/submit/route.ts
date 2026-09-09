@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -624,11 +625,10 @@ export async function POST(req: NextRequest) {
     const {
       sessionId,
       blockNumber,
-      results,
+      results: clientResults,
       framework,
       activeFramework,
       language,
-      cycleResults,
     } = body as {
       sessionId: string;
       blockNumber: number;
@@ -636,35 +636,65 @@ export async function POST(req: NextRequest) {
       framework: string;
       activeFramework?: string;
       language?: string;
-      cycleResults?: QuestionResult[];
     };
 
     const isArabic = language === 'ar';
     const activeRoute = activeFramework || framework || 'pmbok7';
 
-    if (!sessionId || !Array.isArray(results)) {
+    if (!sessionId || !Array.isArray(clientResults)) {
       return NextResponse.json(
         { error: 'Missing sessionId or results' },
         { status: 400 }
       );
     }
 
+    const admin = createAdminClient();
+    const { data: session } = await admin.from('practice_sessions').select('id,user_id').eq('id', sessionId).maybeSingle();
+    if (!session || session.user_id !== user.id) {
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    }
+
+    const { data: storedResponses, error: responseError } = await admin
+      .from('question_responses')
+      .select('question_id,selected_answer,is_correct,block_number,answered_at')
+      .eq('user_id', user.id)
+      .eq('session_id', sessionId)
+      .order('answered_at', { ascending: true });
+    if (responseError) throw responseError;
+
+    const questionIds = Array.from(new Set((storedResponses || []).map((item) => item.question_id)));
+    const { data: canonicalQuestions, error: canonicalError } = questionIds.length > 0
+      ? await admin.from('questions').select('id,question_text,question_text_ar,correct_answer,explanation,explanation_ar,rita_tip,rita_tip_ar,domain,difficulty').in('id', questionIds)
+      : { data: [], error: null };
+    if (canonicalError) throw canonicalError;
+    const questionsById = new Map((canonicalQuestions || []).map((item) => [item.id, item]));
+    const toResult = (item: NonNullable<typeof storedResponses>[number]): QuestionResult | null => {
+      const question = questionsById.get(item.question_id);
+      if (!question) return null;
+      return {
+        questionId: question.id,
+        questionText: String(isArabic ? question.question_text_ar || question.question_text : question.question_text),
+        selectedAnswer: String(item.selected_answer || ''),
+        correctAnswer: String(question.correct_answer || ''),
+        isCorrect: Boolean(item.is_correct),
+        explanation: String(isArabic ? question.explanation_ar || question.explanation : question.explanation || ''),
+        ritaTip: String(isArabic ? question.rita_tip_ar || question.rita_tip : question.rita_tip || ''),
+        domain: String(question.domain || ''),
+        difficulty: String(question.difficulty || ''),
+      };
+    };
+    const results = (storedResponses || [])
+      .filter((item) => item.block_number === blockNumber)
+      .map(toResult)
+      .filter((item): item is QuestionResult => Boolean(item));
+    const canonicalCycleResults = (storedResponses || []).map(toResult).filter((item): item is QuestionResult => Boolean(item));
+    if (results.length === 0) {
+      return NextResponse.json({ error: 'No recorded answers found for this block' }, { status: 400 });
+    }
+
     const correct = results.filter((r) => r.isCorrect).length;
     const total = results.length;
     const score = total > 0 ? Math.round((correct / total) * 100) : 0;
-
-    const responses = results.map((r) => ({
-      user_id: user.id,
-      session_id: sessionId,
-      question_id: r.questionId,
-      selected_answer: r.selectedAnswer,
-      is_correct: r.isCorrect,
-      block_number: blockNumber,
-    }));
-
-    if (responses.length > 0) {
-      await supabase.from('practice_responses').insert(responses);
-    }
 
     const { data: existingProfile } = await supabase
       .from('learning_profiles')
@@ -900,8 +930,7 @@ Route-specific expectations:
       });
     }
 
-    const strategicCycleResults =
-      Array.isArray(cycleResults) && cycleResults.length > 0 ? cycleResults : results;
+    const strategicCycleResults = canonicalCycleResults.length > 0 ? canonicalCycleResults : results;
 
     const strategicReport =
       blockNumber % 3 === 0

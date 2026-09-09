@@ -64,16 +64,16 @@ interface Question {
   option_c_ar?: string;
   option_d: string;
   option_d_ar?: string;
-  correct_answer: string;
+  correct_answer?: string;
   question_type?: QuestionType;
   answer_data?: StructuredAnswerData;
   answer_data_ar?: StructuredAnswerData;
-  explanation: string;
+  explanation?: string;
   explanation_ar?: string;
-  rita_tip: string;
+  rita_tip?: string;
   rita_tip_ar?: string;
-  pmbok_reference: string;
-  eco_reference: string;
+  pmbok_reference?: string;
+  eco_reference?: string;
 }
 
 interface QuestionBankStatus {
@@ -737,12 +737,6 @@ function getPullDownData(question: Question, isArabic: boolean) {
   return { blanks };
 }
 
-function sameAnswerSet(selected: string[], correct: string[]) {
-  if (selected.length !== correct.length) return false;
-  const selectedSet = new Set(selected);
-  return correct.every((key) => selectedSet.has(key));
-}
-
 function formatMultipleAnswerSummary(keys: string[], options: Record<string, string>, isArabic: boolean) {
   return keys
     .map((key) => `${answerLabel(key, isArabic)}. ${options[key] ?? key}`)
@@ -1213,22 +1207,20 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
     [domain, difficulty, framework, isArabic, debugQuestionId]
   );
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const question = questions[currentQ];
     const questionType = getQuestionType(question);
 
     let selectedAnswerText = selectedAnswer || '';
-    let correctAnswerText = question.correct_answer;
-    let isCorrect = false;
+    let response: string | string[] | Record<string, string> = selectedAnswer || '';
 
     if (questionType === 'multiple_response') {
       const multipleData = getMultipleResponseData(question, isArabic);
 
       if (selectedMultiAnswers.length !== multipleData.selectCount) return;
 
-      isCorrect = sameAnswerSet(selectedMultiAnswers, multipleData.correct);
       selectedAnswerText = formatMultipleAnswerSummary(selectedMultiAnswers, multipleData.options, isArabic);
-      correctAnswerText = formatMultipleAnswerSummary(multipleData.correct, multipleData.options, isArabic);
+      response = selectedMultiAnswers;
     } else if (questionType === 'pull_down') {
       const pullDownData = getPullDownData(question, isArabic);
       const allBlanksAnswered =
@@ -1237,27 +1229,62 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
 
       if (!allBlanksAnswered) return;
 
-      isCorrect = pullDownData.blanks.every((blank) => selectedPullDownAnswers[blank.id] === blank.correct);
       selectedAnswerText = formatPullDownSummary(pullDownData.blanks, selectedPullDownAnswers);
-      correctAnswerText = formatPullDownCorrectSummary(pullDownData.blanks);
+      response = selectedPullDownAnswers;
     } else if (questionType === 'matching') {
       const m = getMatchingData(question, isArabic);
       const allAssigned = m.items.length > 0 && m.items.every((it) => matchingAssignments[it.id]);
       if (!allAssigned) return;
 
-      isCorrect = m.items.every((it) => matchingAssignments[it.id] === m.correct[it.id]);
       selectedAnswerText = formatMatchingSummary(m.items, m.categories, matchingAssignments);
-      correctAnswerText = formatMatchingSummary(m.items, m.categories, m.correct);
+      response = matchingAssignments;
     } else if (questionType === 'ordering') {
       const o = getOrderingData(question, isArabic);
-      if (orderingSequence.length !== o.items.length || o.correctOrder.length !== o.items.length) return;
+      if (orderingSequence.length !== o.items.length) return;
 
-      isCorrect = o.correctOrder.every((id, i) => orderingSequence[i] === id);
       selectedAnswerText = formatOrderingSummary(orderingSequence, o.items);
-      correctAnswerText = formatOrderingSummary(o.correctOrder, o.items);
+      response = orderingSequence;
     } else {
       if (!selectedAnswer) return;
-      isCorrect = selectedAnswer === question.correct_answer;
+      response = selectedAnswer;
+    }
+
+    setError('');
+    const res = await fetch('/api/practice/answer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, blockNumber, questionId: question.id, language: isArabic ? 'ar' : 'en', response }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || dt('Could not record your answer. Please try again.', isArabic));
+      return;
+    }
+
+    const feedback = data.feedback || {};
+    const answeredQuestion: Question = {
+      ...question,
+      correct_answer: feedback.correctAnswer,
+      answer_data: feedback.answerData,
+      explanation: feedback.explanation,
+      rita_tip: feedback.ritaTip,
+      pmbok_reference: feedback.pmbokReference,
+      eco_reference: feedback.ecoReference,
+    };
+    setQuestions((previous) => previous.map((item, index) => index === currentQ ? answeredQuestion : item));
+
+    let correctAnswerText = String(feedback.correctAnswer || '');
+    if (questionType === 'multiple_response') {
+      const d = getMultipleResponseData(answeredQuestion, false);
+      correctAnswerText = formatMultipleAnswerSummary(d.correct, d.options, isArabic);
+    } else if (questionType === 'pull_down') {
+      correctAnswerText = formatPullDownCorrectSummary(getPullDownData(answeredQuestion, false).blanks);
+    } else if (questionType === 'matching') {
+      const d = getMatchingData(answeredQuestion, false);
+      correctAnswerText = formatMatchingSummary(d.items, d.categories, d.correct);
+    } else if (questionType === 'ordering') {
+      const d = getOrderingData(answeredQuestion, false);
+      correctAnswerText = formatOrderingSummary(d.correctOrder, d.items);
     }
 
     const result: QuestionResult = {
@@ -1269,9 +1296,9 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
       ),
       selectedAnswer: selectedAnswerText,
       correctAnswer: correctAnswerText,
-      isCorrect,
-      explanation: getFieldByLanguage(isArabic, question.explanation, question.explanation_ar),
-      ritaTip: getFieldByLanguage(isArabic, question.rita_tip, question.rita_tip_ar),
+      isCorrect: Boolean(data.isCorrect),
+      explanation: String(feedback.explanation || ''),
+      ritaTip: String(feedback.ritaTip || ''),
       domain: question.domain,
       difficulty: question.difficulty,
     };
@@ -1906,7 +1933,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
               <p className="text-blue-800 text-sm leading-relaxed">
                 {getFieldByLanguage(
                   isArabic,
-                  currentQuestion.explanation,
+                  currentQuestion.explanation || '',
                   currentQuestion.explanation_ar
                 )}
               </p>
