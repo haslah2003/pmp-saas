@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { buildIndividualReport } from '../lib/diagnostic/report';
+import { assertReportHasNoPlaceholders, buildIndividualReport } from '../lib/diagnostic/report';
 
 const score = {
   readinessBand: 'developing' as const, weightedScore: 0.61, standardError: 0.08,
@@ -31,4 +31,9 @@ assert.equal(report.approachProfile.find((entry) => entry.key === 'hybrid')?.evi
 assert.equal(report.decisionProfile.find((entry) => entry.key === 'first')?.proportion, 0);
 assert.equal(report.kpis.situationalJudgment, 0.5);
 assert.equal(report.coverage.pmbok8Principles, 'not_assessed');
+assert.equal(report.preparationTarget, 0.75);
+assert.equal(report.progress.label, 'Baseline attempt');
+assert.equal(report.metricDefinitions.measurementConfidence.includes('not another readiness score'), true);
+assert.equal(report.strengths.length > 0, false, 'Tiny fixtures should not manufacture strengths from inadequate evidence.');
+assert.throws(() => assertReportHasNoPlaceholders({ copy: 'TODO' }), /placeholder content/);
 console.log('Individual report interpretation, misconception redaction, timing, and study-priority checks passed.');

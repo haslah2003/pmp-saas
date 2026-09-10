@@ -27,6 +27,7 @@ const domainLabels: Record<DiagnosticDomain, string> = { people: 'People', proce
 const approachLabels: Record<DiagnosticApproach, string> = { predictive: 'Predictive', agile: 'Agile', hybrid: 'Hybrid' };
 
 type EvidenceStrength = 'measured' | 'indicative' | 'not_assessed';
+const PREPARATION_TARGET = 0.75;
 
 function evidenceFor(itemCount: number): EvidenceStrength {
   if (itemCount >= 5) return 'measured';
@@ -53,6 +54,12 @@ function decisionType(stem: string): 'first' | 'next' | 'best' | 'other' {
 function spread(values: Array<number | null>) {
   const assessed = values.filter((value): value is number => value !== null);
   return assessed.length > 1 ? Math.max(...assessed) - Math.min(...assessed) : null;
+}
+
+const PLACEHOLDER_PATTERN = /\b(lorem|ipsum|todo|placeholder)\b/i;
+export function assertReportHasNoPlaceholders(value: unknown) {
+  const serialized = JSON.stringify(value);
+  if (PLACEHOLDER_PATTERN.test(serialized)) throw new Error('Report contains unpublished placeholder content.');
 }
 
 export function buildIndividualReport(score: StoredScore, responses: ReportResponse[], items: ReportItem[]) {
@@ -104,12 +111,29 @@ export function buildIndividualReport(score: StoredScore, responses: ReportRespo
     impact: gap.itemCount >= 2 ? 'High' : 'Confirm',
     action: `Complete targeted instruction and scenario practice for ${gap.ecoTask}, then reassess.`,
   }));
-  return {
+  const strengthCandidates = [
+    ...approaches.map((entry) => ({ ...entry, category: 'Delivery approach' })),
+    ...cognitive.map((entry) => ({ ...entry, category: 'Cognitive skill' })),
+    ...decisions.map((entry) => ({ ...entry, category: 'Decision skill' })),
+  ].filter((entry) => entry.proportion !== null && entry.total >= 4)
+    .sort((a, b) => (b.proportion || 0) - (a.proportion || 0));
+  const strengths = strengthCandidates.slice(0, 3).map((entry) => ({
+    label: entry.label,
+    category: entry.category,
+    proportion: entry.proportion as number,
+    evidence: entry.evidence,
+    interpretation: `${entry.label} was one of your strongest observed capabilities in this attempt.`,
+  }));
+  const report = {
     band: { ...bandCopy[score.readinessBand], code: score.readinessBand },
     weightedScore: score.weightedScore,
     scoreExplanation: 'Based on your performance across the tested PMP domains and decision-making scenarios.',
     uncertainty: score.standardError,
     domains: (Object.entries(score.domainScores) as Array<[DiagnosticDomain, StoredScore['domainScores'][DiagnosticDomain]]>).map(([domain, value]) => ({ domain, label: domainLabels[domain], ...value })),
+    preparationTarget: PREPARATION_TARGET,
+    targetNote: 'PMPeco preparation guideline - not a PMI passing score.',
+    progress: { attempt: 1, previousScore: null as number | null, delta: null as number | null, label: 'Baseline attempt' },
+    strengths,
     weakestTasks,
     kpis: {
       overallReadiness: score.weightedScore,
@@ -139,8 +163,20 @@ export function buildIndividualReport(score: StoredScore, responses: ReportRespo
     },
     studySequence: weakDomains.map(([domain]) => ({ domain, label: domainLabels[domain], recommendation: `Begin with PMPeco ${domainLabels[domain]} lessons, then complete scenario practice and re-check mastery.` })),
     timing: { medianSeconds, rushed: responses.filter((response) => response.seconds < 45).length, laboured: responses.filter((response) => response.seconds > 135).length, targetSeconds: 90 },
+    metricDefinitions: {
+      overallReadiness: 'A broad indication of readiness across the PMP capabilities sampled in this diagnostic.',
+      situationalJudgment: 'How consistently you selected sound actions in scenario-based questions.',
+      decisionEfficiency: 'Accuracy on responses completed within a sustainable working-time range.',
+      measurementConfidence: 'How much evidence supports this report; it is not another readiness score.',
+      deliveryApproach: 'Balance of observed performance across predictive, agile, and hybrid delivery contexts.',
+      cognitiveDepth: 'Performance from factual recall through practical application and analysis.',
+      decisionPriority: 'Accuracy when choosing what a project manager should do first, next, or best.',
+    },
+    pacingNote: 'The 90-second reference is a preparation pacing guide derived from managing the official exam time across all questions; it is not a PMI performance threshold.',
     review,
     disclaimer: 'This is an independent preparation instrument, not affiliated with or endorsed by PMI, and it does not predict official examination results. PMI does not publish a numeric passing score.',
     basis: 'This readiness estimate reflects your performance in this diagnostic and becomes more informative as you complete additional assessed practice.',
   };
+  assertReportHasNoPlaceholders(report);
+  return report;
 }
