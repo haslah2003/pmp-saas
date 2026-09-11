@@ -3,6 +3,16 @@ import type { AssemblyItem } from './assembler';
 export interface StoredDiagnosticItem extends AssemblyItem {
   stem: string;
   options: Array<{ id: string; text: string }>;
+  itemType?: 'single_response' | 'multiple_response' | 'graphic_single_response';
+  visualSpec?: {
+    kind: 'bar_chart' | 'table';
+    title?: string;
+    labels?: string[];
+    values?: number[];
+    columns?: string[];
+    rows?: Array<Array<string | number>>;
+    unit?: string;
+  } | null;
 }
 
 export function deterministicOptionOrder(itemId: string, formSeed: string): string[] {
@@ -26,6 +36,8 @@ export function candidateItemPayload(item: StoredDiagnosticItem, optionOrder: st
     id: item.id,
     stem: item.stem,
     domain: item.domain,
+    itemType: item.itemType || 'single_response',
+    visualSpec: item.visualSpec || null,
     positionOptions: optionOrder.map((id) => ({ id, text: options.get(id) || '' })),
   };
 }

@@ -52,7 +52,12 @@ function Radar({ rows }: { rows: ProfileRow[] }) {
 export default function ReportClient() {
   const { isArabic } = useLanguage();
   const [report, setReport] = useState<Report | null>(null); const [error, setError] = useState('');
-  useEffect(() => { fetch('/api/diagnostic/report').then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error); setReport(data.report); }).catch((cause) => setError(cause.message || 'Report unavailable')); }, []);
+  const [returnTo, setReturnTo] = useState('/');
+  useEffect(() => {
+    setReturnTo(sessionStorage.getItem('pmpeco_diagnostic_return_to') || '/');
+    void fetch('/api/diagnostic/event', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ eventName: 'report_view', source: 'report', path: window.location.pathname }) });
+    fetch('/api/diagnostic/report').then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error); setReport(data.report); }).catch((cause) => setError(cause.message || 'Report unavailable'));
+  }, []);
   if (error) return <main className="min-h-screen grid place-items-center p-5 text-red-700">{error}</main>;
   if (!report) return <main className="min-h-screen grid place-items-center p-5 text-slate-600">{isArabic ? 'جارٍ إعداد التقرير…' : 'Preparing report…'}</main>;
   const gap = Math.max(0, Math.round((report.preparationTarget - report.kpis.overallReadiness) * 100)); const incorrect = report.review.filter((item) => !item.correct);
@@ -67,6 +72,7 @@ export default function ReportClient() {
     <section className="grid gap-6 md:grid-cols-2"><div className="rounded-2xl border border-violet-100 bg-white p-6"><h2 className="text-xl font-bold text-violet-950">Timing quality</h2><div className="mt-4 grid grid-cols-3 gap-3 text-center"><div className="rounded-xl bg-violet-50 p-4"><b>{report.timing.medianSeconds}s</b><div className="text-xs text-slate-500">Median</div></div><div className="rounded-xl bg-violet-50 p-4"><b>{report.timing.rushed>=5?pct(report.timingQuality.rushedAccuracy):'More evidence needed'}</b><div className="text-xs text-slate-500">Rushed · n={report.timing.rushed}</div></div><div className="rounded-xl bg-violet-50 p-4"><b>{report.timing.laboured>=5?pct(report.timingQuality.labouredAccuracy):'More evidence needed'}</b><div className="text-xs text-slate-500">Laboured · n={report.timing.laboured}</div></div></div><p className="mt-3 text-xs leading-5 text-slate-500">{report.pacingNote}</p></div><div className="rounded-2xl border border-violet-100 bg-white p-6"><h2 className="text-xl font-bold text-violet-950">Recommended readiness path</h2><ol className="mt-4 space-y-3">{report.studySequence.map((s,i)=><li key={s.label} className="text-sm"><b>{i+1}.</b> {s.recommendation}</li>)}</ol><a href="/dashboard" className="mt-5 block rounded-xl bg-gradient-to-r from-violet-700 to-teal-600 px-5 py-4 text-center font-semibold text-white">Start my readiness plan</a></div></section>
     <section className="rounded-2xl border border-violet-100 bg-white p-6"><h2 className="text-xl font-bold text-violet-950">Misconceptions to correct</h2><p className="mt-2 text-sm text-slate-500">The answer key is protected. Each pattern points you toward targeted learning and practice.</p><div className="mt-4 space-y-2">{incorrect.map((item,i)=><div key={item.itemId} className="rounded-lg bg-red-50 p-3 text-sm text-red-800"><b>{i+1}.</b> {item.misconception} <a href="/dashboard/practice" className="font-semibold underline">Practice this skill</a></div>)}</div></section>
     <a href="/api/diagnostic/report/pdf" className="block rounded-xl bg-gradient-to-r from-violet-700 to-teal-600 px-5 py-4 text-center font-semibold text-white">Download branded, watermarked PDF report</a>
+    <a href={returnTo} className="block text-center text-sm font-semibold text-violet-800 underline">Return to where I was</a>
     <footer className="space-y-2 pb-8 text-xs leading-5 text-slate-500"><p>{report.basis}</p><p>{report.disclaimer}</p><p>Measured = 5+ relevant items. Indicative results use a visibly different treatment and suppress fragile percentages when fewer than five items are available.</p></footer>
   </div></main>;
 }

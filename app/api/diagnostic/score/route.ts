@@ -14,14 +14,14 @@ export async function POST() {
     const { data: formItems, error: formError } = await admin.from('diagnostic_form_items').select('item_id').eq('form_id', session.form_id);
     if (formError) throw formError;
     const itemIds = (formItems || []).map((entry) => entry.item_id);
-    const { data: items, error: itemError } = await admin.from('diagnostic_items').select('id,domain,eco_task,key,difficulty_b,discrimination_a').in('id', itemIds);
+    const { data: items, error: itemError } = await admin.from('diagnostic_items').select('id,domain,eco_task,key,answer_keys').in('id', itemIds);
     if (itemError) throw itemError;
-    const { data: responses, error: responseError } = await admin.from('diagnostic_responses').select('item_id,selected_option').eq('session_id', session.id);
+    const { data: responses, error: responseError } = await admin.from('diagnostic_responses').select('item_id,selected_option,selected_options').eq('session_id', session.id);
     if (responseError) throw responseError;
-    if ((responses || []).filter((response) => response.selected_option).length !== itemIds.length) return NextResponse.json({ error: 'The response set is incomplete.' }, { status: 409 });
+    if ((responses || []).filter((response) => response.selected_options?.length || response.selected_option).length !== itemIds.length) return NextResponse.json({ error: 'The response set is incomplete.' }, { status: 409 });
 
-    const scoringItems = (items || []).map((item) => ({ id: item.id, domain: item.domain, ecoTask: item.eco_task, key: item.key, difficultyB: Number(item.difficulty_b), discriminationA: item.discrimination_a == null ? null : Number(item.discrimination_a) })) as ScoringItem[];
-    const result = new ColdStartScoringStrategy().score((responses || []).map((response) => ({ itemId: response.item_id, selectedOption: response.selected_option })), scoringItems);
+    const scoringItems = (items || []).map((item) => ({ id: item.id, domain: item.domain, ecoTask: item.eco_task, key: item.key, keys: item.answer_keys || [item.key], difficultyB: 0, discriminationA: null })) as ScoringItem[];
+    const result = new ColdStartScoringStrategy().score((responses || []).map((response) => ({ itemId: response.item_id, selectedOption: response.selected_option || '', selectedOptions: response.selected_options || (response.selected_option ? [response.selected_option] : []) })), scoringItems);
     const resultRow = {
       session_id: session.id, strategy: result.strategy, strategy_version: result.strategyVersion,
       weighted_score: result.weightedScore, theta: result.theta, standard_error: result.standardError,

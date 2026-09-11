@@ -13,16 +13,16 @@ async function snapshot(sessionId: string, candidateId: string) {
   const { data: formItems } = await admin.from('diagnostic_form_items').select('*').eq('form_id', session.form_id).order('position');
   const ids = (formItems || []).map((row) => row.item_id);
   const { data: items } = ids.length
-    ? await admin.from('diagnostic_items').select('id,stem,options,domain').in('id', ids)
+    ? await admin.from('diagnostic_items').select('id,stem,options,domain,item_type,visual_spec').in('id', ids)
     : { data: [] };
-  const { data: responses } = await admin.from('diagnostic_responses').select('item_id,selected_option,seconds_on_item').eq('session_id', session.id);
+  const { data: responses } = await admin.from('diagnostic_responses').select('item_id,selected_option,selected_options,seconds_on_item').eq('session_id', session.id);
   const itemMap = new Map((items || []).map((item) => [item.id, item]));
   return {
     session: { id: session.id, status: session.status, currentPosition: session.current_position, flaggedItemIds: session.flagged_item_ids, startedAt: session.started_at, locale: session.locale },
     form: { id: form.id, length: form.form_length, trackId: form.track_id },
     items: (formItems || []).map((entry) => {
       const item = itemMap.get(entry.item_id);
-      return item ? { position: entry.position, ...candidateItemPayload({ ...item, trackId: form.track_id, approach: 'predictive', difficultyB: 0, cognitiveLevel: 'analysis', exposureCount: 0 } as StoredDiagnosticItem, entry.option_order) } : null;
+      return item ? { position: entry.position, ...candidateItemPayload({ ...item, itemType: item.item_type, visualSpec: item.visual_spec, trackId: form.track_id, approach: 'predictive', difficultyB: 0, cognitiveLevel: 'analysis', exposureCount: 0 } as StoredDiagnosticItem, entry.option_order) } : null;
     }).filter(Boolean),
     responses: responses || [],
   };
@@ -37,10 +37,17 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as { length?: number; locale?: string; trackId?: string };
-    const length: DiagnosticFormLength = body.length === 60 ? 60 : 25;
+    const body = await req.json() as {
+      length?: number; locale?: string; trackId?: string; learnerName?: string;
+      learnerEmail?: string; marketingConsent?: boolean; acquisitionSource?: string;
+    };
+    const length: DiagnosticFormLength = body.length === 60 ? 60 : 32;
     const locale = body.locale === 'ar' ? 'ar' : 'en';
     const trackId = body.trackId || 'pmbok8';
+    if (!['pmbok8', 'bridge'].includes(trackId)) return NextResponse.json({ error: 'Invalid diagnostic pathway' }, { status: 400 });
+    const learnerName = String(body.learnerName || '').trim().slice(0, 120);
+    const learnerEmail = String(body.learnerEmail || '').trim().toLowerCase().slice(0, 254);
+    if (!learnerName || !/^\S+@\S+\.\S+$/.test(learnerEmail)) return NextResponse.json({ error: 'Name and valid email are required' }, { status: 400 });
     const { store, candidateId, sessionId } = await diagnosticIdentity();
     if (sessionId) {
       const existing = await snapshot(sessionId, candidateId);
@@ -49,8 +56,8 @@ export async function POST(req: NextRequest) {
 
     const admin = createAdminClient();
     const { data: rows, error } = await admin.from('diagnostic_items')
-      .select('id,track_id,domain,approach,difficulty_b,cognitive_level,exposure_count,stem,options')
-      .eq('track_id', trackId).eq('status', 'live').not('difficulty_b', 'is', null);
+      .select('id,track_id,domain,approach,eco_task_code,author_difficulty_band,cognitive_level,exposure_count,stem,options')
+      .eq('track_id', trackId).eq('status', 'live');
     if (error) throw error;
     const { data: priorSessions } = await admin.from('diagnostic_sessions').select('id').eq('candidate_id', candidateId);
     const priorIds = (priorSessions || []).map((item) => item.id);
@@ -61,7 +68,8 @@ export async function POST(req: NextRequest) {
     const lastSeen = new Map((exposures || []).map((item) => [item.item_id, item.answered_at]));
     const items = (rows || []).map((item) => ({
       id: item.id, trackId: item.track_id, domain: item.domain, approach: item.approach,
-      difficultyB: Number(item.difficulty_b), cognitiveLevel: item.cognitive_level,
+      difficultyB: item.author_difficulty_band === 'foundational' ? -0.8 : item.author_difficulty_band === 'advanced' ? 0.8 : 0,
+      cognitiveLevel: item.cognitive_level, ecoTaskCode: item.eco_task_code,
       exposureCount: Number(item.exposure_count || 0), lastSeenAt: lastSeen.get(item.id),
     })) as AssemblyItem[];
     const formSeed = randomUUID();
@@ -71,7 +79,13 @@ export async function POST(req: NextRequest) {
     const formItems = selected.map((item, index) => ({ form_id: form.id, item_id: item.id, position: index + 1, option_order: deterministicOptionOrder(item.id, formSeed) }));
     const { error: itemError } = await admin.from('diagnostic_form_items').insert(formItems);
     if (itemError) throw itemError;
-    const { data: session, error: sessionError } = await admin.from('diagnostic_sessions').insert({ candidate_id: candidateId, form_id: form.id, locale }).select('id').single();
+    const { data: session, error: sessionError } = await admin.from('diagnostic_sessions').insert({
+      candidate_id: candidateId, form_id: form.id, locale,
+      learner_name: learnerName, learner_email: learnerEmail,
+      marketing_consent: Boolean(body.marketingConsent),
+      marketing_consent_at: body.marketingConsent ? new Date().toISOString() : null,
+      acquisition_source: String(body.acquisitionSource || 'direct').slice(0, 80),
+    }).select('id').single();
     if (sessionError) throw sessionError;
     store.set(DIAGNOSTIC_CANDIDATE_COOKIE, candidateId, diagnosticCookieOptions());
     store.set(DIAGNOSTIC_SESSION_COOKIE, session.id, diagnosticCookieOptions());

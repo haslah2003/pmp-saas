@@ -7,6 +7,7 @@ export interface ScoringItem {
   domain: DiagnosticDomain;
   ecoTask: string;
   key: string;
+  keys?: string[];
   difficultyB: number;
   discriminationA?: number | null;
 }
@@ -14,6 +15,7 @@ export interface ScoringItem {
 export interface ScoringResponse {
   itemId: string;
   selectedOption: string;
+  selectedOptions?: string[];
 }
 
 export interface ScoringResult {
@@ -33,7 +35,9 @@ export interface ScoringStrategy {
   score(responses: ScoringResponse[], items: ScoringItem[]): ScoringResult;
 }
 
-const WEIGHTS: Record<DiagnosticDomain, number> = { people: 0.42, process: 0.5, business_environment: 0.08 };
+// PMP Examination Content Outline effective July 2026: People 33%, Process 41%,
+// Business Environment 26%.
+const WEIGHTS: Record<DiagnosticDomain, number> = { people: 0.33, process: 0.41, business_environment: 0.26 };
 
 export function readinessBandFor(weightedScore: number): ReadinessBand {
   if (weightedScore >= 0.8) return 'exam_ready';
@@ -50,7 +54,7 @@ function round(value: number, digits = 6) {
 export class ColdStartScoringStrategy implements ScoringStrategy {
   score(responses: ScoringResponse[], items: ScoringItem[]): ScoringResult {
     if (!items.length) throw new Error('Cannot score a diagnostic without items.');
-    const responseMap = new Map(responses.map((response) => [response.itemId, response.selectedOption]));
+    const responseMap = new Map(responses.map((response) => [response.itemId, response.selectedOptions?.length ? response.selectedOptions : [response.selectedOption].filter(Boolean)]));
     const correctByItem: Record<string, boolean> = {};
     const domainScores = {
       people: { correct: 0, total: 0, proportion: 0, weighted: 0 },
@@ -60,8 +64,9 @@ export class ColdStartScoringStrategy implements ScoringStrategy {
     const tasks = new Map<string, { correct: number; total: number }>();
 
     for (const item of items) {
-      const selected = responseMap.get(item.id);
-      const correct = Boolean(selected) && selected === item.key;
+      const selected = [...(responseMap.get(item.id) || [])].sort();
+      const keys = [...(item.keys?.length ? item.keys : [item.key])].sort();
+      const correct = selected.length === keys.length && selected.every((value, index) => value === keys[index]);
       correctByItem[item.id] = correct;
       const domain = domainScores[item.domain];
       domain.total += 1;
@@ -95,7 +100,7 @@ export class ColdStartScoringStrategy implements ScoringStrategy {
       domain.weighted = round(domain.weighted);
     }
     return {
-      strategy: 'cold_start_classical', strategyVersion: 'cold-start-v1-provisional',
+      strategy: 'cold_start_classical', strategyVersion: 'cold-start-v2-eco2026',
       theta: round(theta), standardError: round(standardError), weightedScore: round(weightedScore),
       domainScores, ecoTaskGaps: ecoTaskGaps.map((gap) => ({ ...gap, mastery: round(gap.mastery) })),
       readinessBand: readinessBandFor(weightedScore), passProbability: round(passProbability), correctByItem,

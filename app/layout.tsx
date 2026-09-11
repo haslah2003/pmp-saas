@@ -3,6 +3,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import MarketingAnalytics from "@/components/analytics/MarketingAnalytics";
+import DiagnosticInvitation from "@/components/DiagnosticInvitation";
 
 const SITE_URL = "https://pmpeco.com";
 const TITLE = "PMPeco — AI-Powered PMP Exam Prep";
@@ -56,6 +57,7 @@ export default function RootLayout({
         <Analytics />
         <SpeedInsights />
         <MarketingAnalytics />
+        <DiagnosticInvitation />
       </body>
     </html>
   );

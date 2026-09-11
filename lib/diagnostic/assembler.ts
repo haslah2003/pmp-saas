@@ -1,7 +1,7 @@
 export type DiagnosticDomain = 'people' | 'process' | 'business_environment';
 export type DiagnosticApproach = 'predictive' | 'agile' | 'hybrid';
 export type DifficultyBand = 'below' | 'average' | 'above';
-export type DiagnosticFormLength = 25 | 60;
+export type DiagnosticFormLength = 32 | 60;
 
 export interface AssemblyItem {
   id: string;
@@ -10,6 +10,7 @@ export interface AssemblyItem {
   approach: DiagnosticApproach;
   difficultyB: number;
   cognitiveLevel: 'recall' | 'application' | 'analysis';
+  ecoTaskCode?: string | null;
   exposureCount: number;
   lastSeenAt?: string | null;
 }
@@ -27,6 +28,7 @@ export interface BlueprintQuotas {
   approaches: Record<DiagnosticApproach, number>;
   difficulties: Record<DifficultyBand, number>;
   maxRecall: number;
+  maxPerEcoTask: number;
 }
 
 export class UnsatisfiableBlueprintError extends Error {
@@ -37,18 +39,20 @@ export class UnsatisfiableBlueprintError extends Error {
 }
 
 export function blueprintFor(length: DiagnosticFormLength): BlueprintQuotas {
-  return length === 25
+  return length === 32
     ? {
-        domains: { people: 10, process: 13, business_environment: 2 },
-        approaches: { predictive: 13, agile: 6, hybrid: 6 },
-        difficulties: { below: 6, average: 13, above: 6 },
-        maxRecall: 3,
+        domains: { people: 11, process: 13, business_environment: 8 },
+        approaches: { predictive: 13, agile: 10, hybrid: 9 },
+        difficulties: { below: 8, average: 16, above: 8 },
+        maxRecall: 0,
+        maxPerEcoTask: 2,
       }
     : {
-        domains: { people: 25, process: 30, business_environment: 5 },
-        approaches: { predictive: 30, agile: 15, hybrid: 15 },
+        domains: { people: 20, process: 25, business_environment: 15 },
+        approaches: { predictive: 24, agile: 18, hybrid: 18 },
         difficulties: { below: 15, average: 30, above: 15 },
-        maxRecall: 9,
+        maxRecall: 0,
+        maxPerEcoTask: 3,
       };
 }
 
@@ -107,11 +111,9 @@ function availability(items: AssemblyItem[]) {
 export function assembleDiagnosticForm(allItems: AssemblyItem[], request: AssemblyRequest): AssemblyItem[] {
   const quotas = blueprintFor(request.length);
   const now = request.now || new Date();
-  const eligible = allItems.filter((item) =>
-    item.trackId === request.trackId && !withinExposureWindow(item.lastSeenAt, now)
-  );
+  const eligible = allItems.filter((item) => item.trackId === request.trackId);
   if (eligible.length < request.length) {
-    throw new UnsatisfiableBlueprintError({ required: request.length, eligible: eligible.length, cells: availability(eligible) });
+    throw new UnsatisfiableBlueprintError({ required: request.length, available: eligible.length, cells: availability(eligible) });
   }
 
   for (let attempt = 0; attempt < 128; attempt += 1) {
@@ -120,7 +122,9 @@ export function assembleDiagnosticForm(allItems: AssemblyItem[], request: Assemb
     const remainingApproaches = { ...quotas.approaches };
     const remainingDifficulties = { ...quotas.difficulties };
     let recall = 0;
+    const ecoTaskCounts = new Map<string, number>();
     const pool = [...eligible].sort((a, b) =>
+      Number(withinExposureWindow(a.lastSeenAt, now)) - Number(withinExposureWindow(b.lastSeenAt, now)) ||
       a.exposureCount - b.exposureCount ||
       hash(`${request.candidateId}:${request.formSeed}:${attempt}:${a.id}`) - hash(`${request.candidateId}:${request.formSeed}:${attempt}:${b.id}`)
     );
@@ -131,6 +135,7 @@ export function assembleDiagnosticForm(allItems: AssemblyItem[], request: Assemb
         remainingDomains[item.domain] > 0 &&
         remainingApproaches[item.approach] > 0 &&
         remainingDifficulties[difficultyBand(item.difficultyB)] > 0 &&
+        (!item.ecoTaskCode || (ecoTaskCounts.get(item.ecoTaskCode) || 0) < quotas.maxPerEcoTask) &&
         (item.cognitiveLevel !== 'recall' || recall < quotas.maxRecall)
       );
       if (!candidates.length) break;
@@ -148,8 +153,8 @@ export function assembleDiagnosticForm(allItems: AssemblyItem[], request: Assemb
         const scarcity = domainSupply[item.domain] / remainingDomains[item.domain]
           + approachSupply[item.approach] / remainingApproaches[item.approach]
           + difficultySupply[band] / remainingDifficulties[band];
-        return { item, scarcity, tie: hash(`${request.formSeed}:${attempt}:${selected.length}:${item.id}`) };
-      }).sort((a, b) => a.scarcity - b.scarcity || a.item.exposureCount - b.item.exposureCount || a.tie - b.tie);
+        return { item, scarcity, recentlySeen: withinExposureWindow(item.lastSeenAt, now), tie: hash(`${request.formSeed}:${attempt}:${selected.length}:${item.id}`) };
+      }).sort((a, b) => Number(a.recentlySeen) - Number(b.recentlySeen) || a.scarcity - b.scarcity || a.item.exposureCount - b.item.exposureCount || a.tie - b.tie);
 
       const choiceWindow = Math.min(4, scored.length);
       const choice = scored[hash(`${request.candidateId}:${request.formSeed}:${attempt}:${selected.length}`) % choiceWindow].item;
@@ -158,6 +163,7 @@ export function assembleDiagnosticForm(allItems: AssemblyItem[], request: Assemb
       remainingApproaches[choice.approach] -= 1;
       remainingDifficulties[difficultyBand(choice.difficultyB)] -= 1;
       if (choice.cognitiveLevel === 'recall') recall += 1;
+      if (choice.ecoTaskCode) ecoTaskCounts.set(choice.ecoTaskCode, (ecoTaskCounts.get(choice.ecoTaskCode) || 0) + 1);
     }
 
     if (selected.length === request.length) return selected;
@@ -168,6 +174,6 @@ export function assembleDiagnosticForm(allItems: AssemblyItem[], request: Assemb
     eligible: eligible.length,
     quotas,
     cells: availability(eligible),
-    message: 'No allocation satisfied domain, approach, difficulty, exposure, and recall constraints after 128 deterministic attempts.',
+    message: 'No allocation satisfied domain, approach, difficulty, ECO-task diversity, exposure, and recall constraints after 128 deterministic attempts.',
   });
 }

@@ -15,7 +15,7 @@ create table if not exists public.diagnostic_tracks (
 
 insert into public.diagnostic_tracks (id, label, blueprint_version, domain_weights, approach_weights, active)
 values
-  ('pmbok8', 'PMBOK 8 / ECO 2026', 'provisional-2026-v1', '{"people":0.42,"process":0.50,"business_environment":0.08}', '{"predictive":0.50,"agile":0.25,"hybrid":0.25}', true),
+  ('pmbok8', 'PMBOK 8 / ECO 2026', 'official-2026-v1', '{"people":0.33,"process":0.41,"business_environment":0.26}', '{"predictive":0.40,"agile":0.30,"hybrid":0.30}', true),
   ('pmbok7', 'PMBOK 7 / ECO 2021', 'reserved', '{}', '{}', false),
   ('bridge', 'PMBOK 7 to PMBOK 8 Bridge', 'reserved', '{}', '{}', false)
 on conflict (id) do nothing;

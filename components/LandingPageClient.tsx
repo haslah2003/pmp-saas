@@ -299,6 +299,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
   const isAr = lang === "ar";
   const signupLang = isAr ? "ar" : "en";
   const defaultSignupHref = `/signup?mode=demo&lang=${signupLang}`;
+  const diagnosticHref = (source: string) => `/diagnostic?source=${source}&returnTo=%2F`;
   const dir = isAr ? "rtl" : "ltr";
   const bodyFont = isAr ? "'Cairo', sans-serif" : "'DM Sans', sans-serif";
   const displayFont = isAr ? "'Cairo', sans-serif" : "'DM Sans', sans-serif";
@@ -370,6 +371,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
             <a href="#features" style={{fontSize:14,color:C.muted,textDecoration:"none",fontWeight:500}}>{t.nav.pricing==="Pricing"?"Features":"\u0627\u0644\u0645\u0632\u0627\u064a\u0627"}</a>
             <a href="#pricing" style={{fontSize:14,color:C.muted,textDecoration:"none",fontWeight:500}}>{t.nav.pricing}</a>
             <a href="#faq" style={{fontSize:14,color:C.muted,textDecoration:"none",fontWeight:500}}>FAQ</a>
+            <Link href={diagnosticHref('nav')} style={{fontSize:14,color:C.purple,textDecoration:"none",fontWeight:700}}>{isAr?'اختبار الجاهزية المجاني':'Free Diagnostic'}</Link>
             <LandingLanguageSelector />
             <Link href={`/login?lang=${signupLang}`} style={{fontSize:14,color:C.muted,textDecoration:"none",fontWeight:500}}>{t.nav.login}</Link>
             <Link href={defaultSignupHref} style={{fontSize:13,fontWeight:600,color:"#fff",background:`linear-gradient(135deg,${C.teal},${C.tealDk})`,padding:"8px 22px",borderRadius:8,textDecoration:"none"}}>{t.nav.cta}</Link>
@@ -385,6 +387,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
             <a href="#features" onClick={()=>setMobileMenu(false)}>{t.nav.pricing==="Pricing"?"Features":"\u0627\u0644\u0645\u0632\u0627\u064a\u0627"}</a>
             <a href="#pricing" onClick={()=>setMobileMenu(false)}>{t.nav.pricing}</a>
             <a href="#faq" onClick={()=>setMobileMenu(false)}>FAQ</a>
+            <Link href={diagnosticHref('mobile_nav')} onClick={()=>setMobileMenu(false)}>{isAr?'اختبار الجاهزية المجاني':'Free Diagnostic'}</Link>
             <div className="lp-mob-item"><LandingLanguageSelector /></div>
             <Link href={`/login?lang=${signupLang}`} onClick={()=>setMobileMenu(false)}>{t.nav.login}</Link>
             <Link href={defaultSignupHref} onClick={()=>setMobileMenu(false)} style={{color:C.teal,fontWeight:700}}>{t.nav.cta}</Link>
@@ -408,6 +411,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
             <p style={{fontSize:"clamp(15px,2vw,17px)",lineHeight:1.7,color:C.muted,marginBottom:28,maxWidth:440}}>{t.hero.sub}</p>
             <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
               <Link href={defaultSignupHref} style={{fontSize:15,fontWeight:600,color:"#fff",background:`linear-gradient(135deg,${C.teal},${C.tealDk})`,padding:"14px 28px",borderRadius:10,textDecoration:"none"}}>{t.hero.cta1}</Link>
+              <Link href={diagnosticHref('hero')} style={{fontSize:15,fontWeight:700,color:C.purple,background:'#fff',border:`1px solid ${C.purple}33`,padding:'13px 24px',borderRadius:10,textDecoration:'none'}}>{isAr?'اختبر جاهزيتك مجانًا':'Take the Free Diagnostic'}</Link>
               <a href="#promo-demo" style={{fontSize:14,fontWeight:600,color:C.muted,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>
                 <span style={{width:36,height:36,borderRadius:"50%",border:`1.5px solid ${C.purple}33`,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:12,color:C.purple}}>▶</span>
                 {t.hero.cta2}
@@ -586,6 +590,11 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
       </section>
 
       {/* PRICING */}
+      <section style={{padding:'2.25rem 1rem',background:C.tealLt,textAlign:'center'}}>
+        <h2 style={{fontSize:'clamp(22px,3vw,28px)',fontWeight:800,color:C.dark}}>{isAr?'لست متأكدًا من مستوى جاهزيتك؟':'Not sure how ready you are?'}</h2>
+        <p style={{margin:'10px auto 20px',maxWidth:620,color:C.muted}}>{isAr?'احصل على تقرير جاهزية شخصي قبل اختيار خطتك.':'Get a personalized readiness report before choosing your preparation plan.'}</p>
+        <Link href={diagnosticHref('before_pricing')} style={{display:'inline-block',padding:'13px 28px',borderRadius:10,background:C.tealDk,color:'#fff',fontWeight:700,textDecoration:'none'}}>{isAr?'ابدأ الاختبار المجاني':'Start the Free Diagnostic'}</Link>
+      </section>
       <section id="pricing" style={{padding:"clamp(3rem,6vw,5rem) clamp(1rem,4vw,3rem)",background:"#fff"}}>
         <div style={{maxWidth:1140,margin:"0 auto"}}>
           <FadeIn><div style={{textAlign:"center",marginBottom:40}}>
@@ -651,6 +660,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
               <p style={{fontSize:14,color:C.muted,lineHeight:1.7,marginTop:10}}>{f.a}</p>
             </div>
           </div></FadeIn>))}</div>
+          <div style={{textAlign:'center',marginTop:28}}><Link href={diagnosticHref('faq')} style={{color:C.purple,fontWeight:700,textDecoration:'none'}}>{isAr?'اكتشف مستوى جاهزيتك الآن ←':'Discover your readiness now →'}</Link></div>
         </div>
       </section>
 
@@ -662,6 +672,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
           <h2 style={{fontSize:"clamp(26px,4vw,34px)",fontWeight:800,color:"#fff",letterSpacing:"-0.02em",marginBottom:12,fontFamily:displayFont}}>{t.finalCta.title}</h2>
           <p style={{fontSize:"clamp(14px,2vw,16px)",color:"rgba(255,255,255,0.6)",lineHeight:1.7,marginBottom:28}}>{t.finalCta.sub}</p>
           <Link href={defaultSignupHref} style={{display:"inline-block",fontSize:15,fontWeight:700,color:C.dark,background:`linear-gradient(135deg,${C.tealLt},#fff)`,padding:"14px 36px",borderRadius:10,textDecoration:"none"}}>{t.finalCta.btn}</Link>
+          <Link href={diagnosticHref('final_cta')} style={{display:'inline-block',marginInlineStart:12,fontSize:15,fontWeight:700,color:'#fff',border:'1px solid rgba(255,255,255,.45)',padding:'13px 30px',borderRadius:10,textDecoration:'none'}}>{isAr?'اختبار الجاهزية المجاني':'Free Readiness Diagnostic'}</Link>
         </div></FadeIn>
       </section>
 

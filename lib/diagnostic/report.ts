@@ -2,7 +2,7 @@ import type { DiagnosticApproach, DiagnosticDomain } from './assembler';
 import type { ReadinessBand } from './scoring';
 
 export interface ReportResponse {
-  itemId: string; selectedOption: string; correct: boolean; seconds: number;
+  itemId: string; selectedOption: string; selectedOptions?: string[]; correct: boolean; seconds: number;
 }
 export interface ReportItem {
   id: string; stem: string; domain: DiagnosticDomain; ecoTask: string;
@@ -71,8 +71,8 @@ export function buildIndividualReport(score: StoredScore, responses: ReportRespo
     return item ? {
       itemId: item.id, stem: item.stem, ecoTask: item.ecoTask, domain: item.domain,
       approach: item.approach, cognitiveLevel: item.cognitiveLevel, decisionType: decisionType(item.stem), correct: response.correct,
-      selectedOption: response.selectedOption, seconds: response.seconds,
-      misconception: response.correct ? null : item.rationaleDistractors[response.selectedOption] || 'Review the reasoning used for this scenario.',
+      selectedOption: response.selectedOption, selectedOptions: response.selectedOptions || [response.selectedOption].filter(Boolean), seconds: response.seconds,
+      misconception: response.correct ? null : (response.selectedOptions || [response.selectedOption]).map((option) => item.rationaleDistractors[option]).filter(Boolean).join(' ') || 'Review the reasoning used for this scenario.',
     } : null;
   }).filter((entry): entry is NonNullable<typeof entry> => entry !== null);
   const weakestTasks = score.ecoTaskGaps.slice(0, 3).map((gap) => ({
