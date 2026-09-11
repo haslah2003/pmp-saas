@@ -29,8 +29,8 @@ begin
   if cardinality(resolved_keys) < 1 or not (option_ids @> resolved_keys) then raise exception 'Answer keys must identify presented options'; end if;
   if new.item_type <> 'multiple_response' and cardinality(resolved_keys) <> 1 then raise exception 'Single-response items require exactly one key'; end if;
   if new.item_type = 'multiple_response' and cardinality(resolved_keys) < 2 then raise exception 'Multiple-response items require at least two keys'; end if;
-  if jsonb_object_length(new.rationale_distractors) <> cardinality(option_ids) - cardinality(resolved_keys) then raise exception 'Every distractor requires a rationale'; end if;
-  if jsonb_object_length(new.option_traps) <> cardinality(option_ids) - cardinality(resolved_keys) then raise exception 'Every distractor requires behavioral-trap metadata'; end if;
+  if (select count(*) from jsonb_object_keys(new.rationale_distractors)) <> cardinality(option_ids) - cardinality(resolved_keys) then raise exception 'Every distractor requires a rationale'; end if;
+  if (select count(*) from jsonb_object_keys(new.option_traps)) <> cardinality(option_ids) - cardinality(resolved_keys) then raise exception 'Every distractor requires behavioral-trap metadata'; end if;
   if new.item_type = 'graphic_single_response' and new.visual_spec is null then raise exception 'Graphic items require a visual specification'; end if;
   if new.eco_task_code is null then raise exception 'Canonical ECO 2026 task mapping is required'; end if;
   select domain into mapped_domain from public.diagnostic_eco_tasks where code = new.eco_task_code;

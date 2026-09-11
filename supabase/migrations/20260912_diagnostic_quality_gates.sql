@@ -98,7 +98,7 @@ begin
     raise exception 'Exactly four uniquely identified options are required';
   end if;
   if not (option_ids @> array[new.key]) then raise exception 'Item key does not identify an option'; end if;
-  if jsonb_object_length(new.rationale_distractors) <> 3 then raise exception 'Three distractor rationales are required'; end if;
+  if (select count(*) from jsonb_object_keys(new.rationale_distractors)) <> 3 then raise exception 'Three distractor rationales are required'; end if;
   if new.eco_task_code is null then raise exception 'Canonical ECO 2026 task mapping is required'; end if;
   select domain into mapped_domain from public.diagnostic_eco_tasks where code = new.eco_task_code;
   if mapped_domain is distinct from new.domain then raise exception 'ECO task domain does not match item domain'; end if;

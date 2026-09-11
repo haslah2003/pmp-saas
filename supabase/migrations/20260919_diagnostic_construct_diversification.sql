@@ -127,7 +127,7 @@ begin
   select count(*) into non_deliberative_count from public.diagnostic_items where track_id = 'pmbok8' and answer_construct <> 'deliberative_analysis';
   select count(*) into untagged_count from public.diagnostic_items
     where track_id = 'pmbok8'
-      and jsonb_object_length(option_traps) <> 4 - cardinality(answer_keys);
+      and (select count(*) from jsonb_object_keys(option_traps)) <> 4 - cardinality(answer_keys);
   if total_count <> 48 then raise exception 'Expected 48 PMBOK 8 diagnostic items, found %', total_count; end if;
   if ppl6_count < 1 then raise exception 'PPL-6 coverage is required'; end if;
   if non_deliberative_count < 12 then raise exception 'Answer-construct diversity is below the minimum'; end if;

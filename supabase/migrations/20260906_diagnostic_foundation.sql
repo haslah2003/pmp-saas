@@ -78,7 +78,7 @@ begin
     raise exception 'Exactly four uniquely identified options are required';
   end if;
   if not (option_ids @> array[new.key]) then raise exception 'Item key does not identify an option'; end if;
-  if jsonb_object_length(new.rationale_distractors) <> 3 then raise exception 'Three distractor rationales are required'; end if;
+  if (select count(*) from jsonb_object_keys(new.rationale_distractors)) <> 3 then raise exception 'Three distractor rationales are required'; end if;
   select count(*), max(rating_b) - min(rating_b) into rating_count, rating_spread
     from public.diagnostic_item_difficulty_ratings where item_id = new.id;
   if rating_count < 2 then raise exception 'Two independent difficulty ratings are required'; end if;
