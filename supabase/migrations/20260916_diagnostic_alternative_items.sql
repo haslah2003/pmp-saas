@@ -6,7 +6,7 @@ update public.diagnostic_items set
   stem = 'A predictive project needs a scarce testing facility shared with higher-priority programs. The baseline assumes uninterrupted access, but the portfolio office confirms only partial availability. Several critical activities depend on the facility. Which two actions together create the strongest basis for a feasible resource plan? Select two.',
   options = '[{"id":"A","text":"Model facility demand against the available time windows and affected schedule dependencies."},{"id":"B","text":"Negotiate access and evaluate qualified alternatives using the integrated impact analysis."},{"id":"C","text":"Retain the baseline dates and classify the confirmed shortage as a monitoring issue."},{"id":"D","text":"Authorize a replacement facility before comparing cost, lead time, and technical suitability."}]'::jsonb,
   key = 'A', answer_keys = array['A','B'],
-  rationale_key = 'Demand analysis and negotiated access or alternatives jointly establish a feasible resource plan.',
+  rationale_correct = 'Demand analysis and negotiated access or alternatives jointly establish a feasible resource plan.',
   rationale_distractors = '{"C":"Recording the constraint without replanning leaves the baseline infeasible.","D":"A major acquisition requires comparative analysis and appropriate authority."}'::jsonb
 where eco_task = 'Reserve-06';
 
@@ -16,7 +16,7 @@ update public.diagnostic_items set
   stem = 'A predictive project relies on a sole-source component from a region facing escalating trade restrictions. Delivery remains on schedule, while replacement qualification would take months and the next shipment is uncommitted. Which two actions best preserve decision options while the threat is still emerging? Select two.',
   options = '[{"id":"A","text":"Define exposure, triggers, and qualification lead-time scenarios in the risk analysis."},{"id":"B","text":"Develop response options with procurement and communicate decision thresholds through governance."},{"id":"C","text":"Delay action until a shipment misses its contractual date and becomes a confirmed issue."},{"id":"D","text":"Cancel the supplier now, before assessing replacement feasibility or transition exposure."}]'::jsonb,
   key = 'A', answer_keys = array['A','B'],
-  rationale_key = 'Early exposure analysis and governed response planning preserve options before the threat becomes an issue.',
+  rationale_correct = 'Early exposure analysis and governed response planning preserve options before the threat becomes an issue.',
   rationale_distractors = '{"C":"Waiting sacrifices scarce qualification lead time.","D":"Unassessed cancellation can create the disruption the response is intended to avoid."}'::jsonb
 where eco_task = 'Reserve-15';
 
@@ -27,7 +27,7 @@ update public.diagnostic_items set
   stem = 'The chart shows forecast currency exposure for a predictive project under progressively later purchasing dates. Available contingency is 85k, and the governance escalation threshold is 100k. The current purchasing plan remains inside the threshold, but delay changes the exposure profile. Which response best protects project value and governance compliance?',
   options = '[{"id":"A","text":"Model timing and hedging alternatives, update the forecast, and present the supported response at the applicable threshold."},{"id":"B","text":"Use the current contingency balance as evidence that purchasing dates need no further monitoring."},{"id":"C","text":"Move selected purchases to Month 1 without checking supply, cash-flow, or approval constraints."},{"id":"D","text":"Escalate the current exposure as a threshold breach even though the chart places it below 100k."}]'::jsonb,
   key = 'A', answer_keys = array['A'],
-  rationale_key = 'The trend requires evaluated response options and timely governance rather than ignoring or misclassifying exposure.',
+  rationale_correct = 'The trend requires evaluated response options and timely governance rather than ignoring or misclassifying exposure.',
   rationale_distractors = '{"B":"Current headroom does not remove the rising exposure.","C":"A date-only reaction can create supply and finance problems.","D":"The current value has not breached the stated escalation threshold."}'::jsonb
 where eco_task = 'Reserve-08';
 
