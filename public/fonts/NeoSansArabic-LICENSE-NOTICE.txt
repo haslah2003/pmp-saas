@@ -1,0 +1,7 @@
+Neo Sans Arabic is proprietary font software.
+
+The PMPeco project owner has confirmed that PMPeco holds the required license
+for its use in the application and for embedding in generated PDF reports.
+This file is a repository notice only; it does not grant any additional rights
+to copy, extract, redistribute, sublicense, or reuse the font files outside the
+scope of the owner's applicable font license.

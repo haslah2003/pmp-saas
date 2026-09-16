@@ -5,6 +5,14 @@ const nextConfig = {
       { protocol: "https", hostname: "**.supabase.co" },
     ],
   },
+  outputFileTracingIncludes: {
+    "/api/diagnostic/report/pdf": [
+      "./public/fonts/NeoSansArabic-Regular.ttf",
+      "./public/fonts/NeoSansArabic-Bold.ttf",
+      "./public/brand/pmpeco-white-logo.png",
+      "./public/brand/pmpeco-watermark.png",
+    ],
+  },
 };
 
 // Only engage the Sentry build plugin when a DSN is configured, so builds stay

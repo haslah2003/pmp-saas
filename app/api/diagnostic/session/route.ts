@@ -13,7 +13,7 @@ async function snapshot(sessionId: string, candidateId: string) {
   const { data: formItems } = await admin.from('diagnostic_form_items').select('*').eq('form_id', session.form_id).order('position');
   const ids = (formItems || []).map((row) => row.item_id);
   const { data: items } = ids.length
-    ? await admin.from('diagnostic_items').select('id,stem,options,domain,item_type,visual_spec').in('id', ids)
+    ? await admin.from('diagnostic_items').select('id,stem,options,stem_ar,options_ar,domain,item_type,visual_spec,visual_spec_ar').in('id', ids)
     : { data: [] };
   const { data: responses } = await admin.from('diagnostic_responses').select('item_id,selected_option,selected_options,seconds_on_item').eq('session_id', session.id);
   const itemMap = new Map((items || []).map((item) => [item.id, item]));
@@ -22,7 +22,7 @@ async function snapshot(sessionId: string, candidateId: string) {
     form: { id: form.id, length: form.form_length, trackId: form.track_id },
     items: (formItems || []).map((entry) => {
       const item = itemMap.get(entry.item_id);
-      return item ? { position: entry.position, ...candidateItemPayload({ ...item, itemType: item.item_type, visualSpec: item.visual_spec, trackId: form.track_id, approach: 'predictive', difficultyB: 0, cognitiveLevel: 'analysis', exposureCount: 0 } as StoredDiagnosticItem, entry.option_order) } : null;
+      return item ? { position: entry.position, ...candidateItemPayload({ ...item, stemAr: item.stem_ar, optionsAr: item.options_ar, itemType: item.item_type, visualSpec: item.visual_spec, visualSpecAr: item.visual_spec_ar, trackId: form.track_id, approach: 'predictive', difficultyB: 0, cognitiveLevel: 'analysis', exposureCount: 0 } as StoredDiagnosticItem, entry.option_order, session.locale === 'ar' ? 'ar' : 'en') } : null;
     }).filter(Boolean),
     responses: responses || [],
   };

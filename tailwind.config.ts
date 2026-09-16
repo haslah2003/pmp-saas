@@ -23,7 +23,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["DM Sans", "system-ui", "sans-serif"],
+        sans: ["DM Sans", "PMPeco Arabic", "system-ui", "sans-serif"],
       },
     },
   },

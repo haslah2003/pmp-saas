@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { assertReportHasNoPlaceholders, buildIndividualReport } from '../lib/diagnostic/report';
+import { preparePdfkitRtlText } from '../lib/diagnostic/arabic-report-pdf';
 
 const score = {
   readinessBand: 'developing' as const, weightedScore: 0.61, standardError: 0.08,
@@ -35,5 +36,18 @@ assert.equal(report.preparationTarget, 0.75);
 assert.equal(report.progress.label, 'Baseline attempt');
 assert.equal(report.metricDefinitions.measurementConfidence.includes('not another readiness score'), true);
 assert.equal(report.strengths.length > 0, false, 'Tiny fixtures should not manufacture strengths from inadequate evidence.');
+const arabicReport = buildIndividualReport(score, [
+  { itemId: 'one', selectedOption: 'B', correct: false, seconds: 30 },
+], [
+  { id: 'one', stem: 'ما الإجراء الأنسب؟', domain: 'people', approach: 'agile', ecoTask: 'People-1', cognitiveLevel: 'analysis', rationaleDistractors: { B: 'يعكس هذا الخيار التصعيد قبل التحليل التعاوني.' } },
+], 'ar');
+assert.equal(arabicReport.band.label, 'قيد التطوير');
+assert.equal(arabicReport.domains[0].label, 'الأفراد');
+assert.equal(arabicReport.review[0].misconception, 'يعكس هذا الخيار التصعيد قبل التحليل التعاوني.');
+assert.match(arabicReport.disclaimer, /\p{Script=Arabic}/u);
+assert.equal(
+  preparePdfkitRtlText('المسار الحالي - PMBOK 8 وECO 2026 | 90 ثانية | PMP-SAMPLE-AR-001'),
+  'المسار الحالي - KOBMP 8 وOCE 6202 | 09 ثانية | 100-RA-ELPMAS-PMP',
+);
 assert.throws(() => assertReportHasNoPlaceholders({ copy: 'TODO' }), /placeholder content/);
 console.log('Individual report interpretation, misconception redaction, timing, and study-priority checks passed.');

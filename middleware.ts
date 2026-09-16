@@ -127,6 +127,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  if (explicitLocale) {
+    supabaseResponse.cookies.set('pmp_locale', explicitLocale, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: 'lax',
+    })
+  }
+
   return supabaseResponse
 }
 

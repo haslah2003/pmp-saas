@@ -8,6 +8,11 @@ out/
 next-env.d.ts
 .vercel
 
+# Generated diagnostic previews and local tool state
+artifacts/
+output/
+supabase/.temp/
+
 # Sprint/hotfix backup snapshots (auto-cleaned, not committed)
 *.before-*
 *.bak

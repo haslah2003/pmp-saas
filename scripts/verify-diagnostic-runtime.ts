@@ -14,6 +14,10 @@ const payload = candidateItemPayload(item, order);
 assert.equal('key' in payload, false);
 assert.equal('rationaleCorrect' in payload, false);
 assert.deepEqual(payload.positionOptions.map((option) => option.id), order);
+const arabicPayload = candidateItemPayload({ ...item, stemAr: 'سؤال تجريبي', optionsAr: item.options.map((option) => ({ ...option, text: `خيار ${option.id}` })) }, order, 'ar');
+assert.equal(arabicPayload.stem, 'سؤال تجريبي');
+assert.equal(arabicPayload.positionOptions.every((option) => option.text.startsWith('خيار')), true);
+assert.throws(() => candidateItemPayload(item, order, 'ar'), /Arabic diagnostic content is incomplete/);
 assert.equal(clampItemSeconds(-5), 0);
 assert.equal(clampItemSeconds(99999), 7200);
 

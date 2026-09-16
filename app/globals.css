@@ -4,8 +4,24 @@
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
 
+@font-face {
+  font-family: 'PMPeco Arabic';
+  src: url('/fonts/NeoSansArabic-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PMPeco Arabic';
+  src: url('/fonts/NeoSansArabic-Bold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
 body {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'DM Sans', 'PMPeco Arabic', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -34,6 +50,7 @@ body {
 }
 /* RTL Support */
 [dir="rtl"] {
+  font-family: 'PMPeco Arabic', 'DM Sans', system-ui, sans-serif;
   text-align: right;
 }
 [dir="rtl"] .flex {
