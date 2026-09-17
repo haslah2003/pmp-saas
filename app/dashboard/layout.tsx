@@ -73,7 +73,14 @@ export default async function DashboardLayout({
         activeFramework={activeFramework}
       />
 
-      <main className="flex-1 overflow-y-auto p-8">{children}</main>
+      <main data-protected-learning-content className="flex-1 overflow-y-auto p-8">{children}</main>
+
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed bottom-2 right-3 z-[90] select-none rounded bg-white/70 px-2 py-1 text-[10px] font-semibold text-gray-500/70 backdrop-blur-sm"
+      >
+        © {new Date().getFullYear()} PMPeco · {profile?.email || user.id.slice(0, 8)} · Licensed for in-platform use only
+      </div>
 
       <CompanionChat activeFramework={activeFramework} />
     </DashboardLanguageWrapper>

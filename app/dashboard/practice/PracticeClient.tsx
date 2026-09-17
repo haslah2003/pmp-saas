@@ -64,16 +64,16 @@ interface Question {
   option_c_ar?: string;
   option_d: string;
   option_d_ar?: string;
-  correct_answer: string;
+  correct_answer?: string;
   question_type?: QuestionType;
   answer_data?: StructuredAnswerData;
   answer_data_ar?: StructuredAnswerData;
-  explanation: string;
+  explanation?: string;
   explanation_ar?: string;
-  rita_tip: string;
+  rita_tip?: string;
   rita_tip_ar?: string;
-  pmbok_reference: string;
-  eco_reference: string;
+  pmbok_reference?: string;
+  eco_reference?: string;
 }
 
 interface QuestionBankStatus {
@@ -253,14 +253,6 @@ function getFieldByLanguage(
   return englishValue;
 }
 
-function sanitizeFileName(value: string) {
-  return value
-    .trim()
-    .replace(/[\\/:*?"<>|]+/g, '-')
-    .replace(/\s+/g, '-')
-    .slice(0, 80) || 'mindmap';
-}
-
 function wrapSvgText(
   value: string,
   maxCharsPerLine: number,
@@ -334,7 +326,6 @@ function TreeMindMap({
     label: string;
     explanation: string;
   } | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const branchRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -359,47 +350,6 @@ const leafRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
       return next;
     });
     setTimeout(() => forceUpdate({}), 550);
-  };
-
-  const downloadPDF = async () => {
-    const container = containerRef.current;
-    if (!container || isExporting) return;
-    setIsExporting(true);
-    try {
-      const [{ jsPDF }, html2canvas] = await Promise.all([
-        import('jspdf'),
-        import('html2canvas').then((m) => m.default),
-      ]);
-      const canvas = await html2canvas(container, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 36;
-      const availableWidth = pageWidth - margin * 2;
-      const availableHeight = pageHeight - margin * 2;
-      const imgRatio = canvas.width / canvas.height;
-      let imgWidth = availableWidth;
-      let imgHeight = imgWidth / imgRatio;
-      if (imgHeight > availableHeight) {
-        imgHeight = availableHeight;
-        imgWidth = imgHeight * imgRatio;
-      }
-      const x = (pageWidth - imgWidth) / 2;
-      const y = (pageHeight - imgHeight) / 2;
-      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-      pdf.save(`${sanitizeFileName(center)}.pdf`);
-    } catch (error) {
-      console.error('Mind map PDF export failed:', error);
-      alert(isArabic ? 'تعذر تصدير الخريطة الذهنية بصيغة PDF.' : 'Could not export the mind map as PDF.');
-    } finally {
-      setIsExporting(false);
-    }
   };
 
   const getBezierPath = (fromEl: HTMLElement, toEl: HTMLElement, container: HTMLElement) => {
@@ -579,19 +529,7 @@ const leafRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
         </div>
       )}
 
-      <button
-        onClick={downloadPDF}
-        disabled={isExporting}
-        className="mt-4 text-xs text-gray-500 hover:text-violet-600 border border-gray-200 hover:border-violet-300 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-50"
-      >
-        {isExporting
-          ? isArabic
-            ? 'جارٍ تجهيز PDF…'
-            : 'Preparing PDF…'
-          : isArabic
-            ? '⬇️ تحميل الخريطة الذهنية PDF'
-            : '⬇️ Download Mind Map PDF'}
-      </button>
+      <p className="mt-4 text-xs font-semibold text-gray-400">© PMPeco · {isArabic ? 'للاستخدام داخل المنصة فقط' : 'In-platform use only'}</p>
     </div>
   );
 }
@@ -609,23 +547,6 @@ function GuruPanel({
   onLinkClick: (domain: string) => void;
   isArabic: boolean;
 }) {
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = () => {
-    const text = `${report.greeting}\n\n${report.overall_assessment}`;
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-
-    a.href = url;
-    a.download = 'guru-report.txt';
-    a.click();
-
-    URL.revokeObjectURL(url);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
   return (
     <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl border-l border-gray-200 z-50 flex flex-col overflow-hidden">
       <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-4 flex-shrink-0">
@@ -641,13 +562,6 @@ function GuruPanel({
           </div>
 
           <div className="flex gap-2">
-            <button
-              onClick={handleSave}
-              className="text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded-lg transition-all"
-            >
-              {saved ? (isArabic ? '✓ تم الحفظ' : '✓ Saved') : isArabic ? '⬇ حفظ' : '⬇ Save'}
-            </button>
-
             <button onClick={onClose} className="text-white/70 hover:text-white text-lg leading-none">
               ✕
             </button>
@@ -821,12 +735,6 @@ function getPullDownData(question: Question, isArabic: boolean) {
     : [];
 
   return { blanks };
-}
-
-function sameAnswerSet(selected: string[], correct: string[]) {
-  if (selected.length !== correct.length) return false;
-  const selectedSet = new Set(selected);
-  return correct.every((key) => selectedSet.has(key));
 }
 
 function formatMultipleAnswerSummary(keys: string[], options: Record<string, string>, isArabic: boolean) {
@@ -1299,22 +1207,20 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
     [domain, difficulty, framework, isArabic, debugQuestionId]
   );
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const question = questions[currentQ];
     const questionType = getQuestionType(question);
 
     let selectedAnswerText = selectedAnswer || '';
-    let correctAnswerText = question.correct_answer;
-    let isCorrect = false;
+    let response: string | string[] | Record<string, string> = selectedAnswer || '';
 
     if (questionType === 'multiple_response') {
       const multipleData = getMultipleResponseData(question, isArabic);
 
       if (selectedMultiAnswers.length !== multipleData.selectCount) return;
 
-      isCorrect = sameAnswerSet(selectedMultiAnswers, multipleData.correct);
       selectedAnswerText = formatMultipleAnswerSummary(selectedMultiAnswers, multipleData.options, isArabic);
-      correctAnswerText = formatMultipleAnswerSummary(multipleData.correct, multipleData.options, isArabic);
+      response = selectedMultiAnswers;
     } else if (questionType === 'pull_down') {
       const pullDownData = getPullDownData(question, isArabic);
       const allBlanksAnswered =
@@ -1323,27 +1229,62 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
 
       if (!allBlanksAnswered) return;
 
-      isCorrect = pullDownData.blanks.every((blank) => selectedPullDownAnswers[blank.id] === blank.correct);
       selectedAnswerText = formatPullDownSummary(pullDownData.blanks, selectedPullDownAnswers);
-      correctAnswerText = formatPullDownCorrectSummary(pullDownData.blanks);
+      response = selectedPullDownAnswers;
     } else if (questionType === 'matching') {
       const m = getMatchingData(question, isArabic);
       const allAssigned = m.items.length > 0 && m.items.every((it) => matchingAssignments[it.id]);
       if (!allAssigned) return;
 
-      isCorrect = m.items.every((it) => matchingAssignments[it.id] === m.correct[it.id]);
       selectedAnswerText = formatMatchingSummary(m.items, m.categories, matchingAssignments);
-      correctAnswerText = formatMatchingSummary(m.items, m.categories, m.correct);
+      response = matchingAssignments;
     } else if (questionType === 'ordering') {
       const o = getOrderingData(question, isArabic);
-      if (orderingSequence.length !== o.items.length || o.correctOrder.length !== o.items.length) return;
+      if (orderingSequence.length !== o.items.length) return;
 
-      isCorrect = o.correctOrder.every((id, i) => orderingSequence[i] === id);
       selectedAnswerText = formatOrderingSummary(orderingSequence, o.items);
-      correctAnswerText = formatOrderingSummary(o.correctOrder, o.items);
+      response = orderingSequence;
     } else {
       if (!selectedAnswer) return;
-      isCorrect = selectedAnswer === question.correct_answer;
+      response = selectedAnswer;
+    }
+
+    setError('');
+    const res = await fetch('/api/practice/answer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, blockNumber, questionId: question.id, language: isArabic ? 'ar' : 'en', response }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || dt('Could not record your answer. Please try again.', isArabic));
+      return;
+    }
+
+    const feedback = data.feedback || {};
+    const answeredQuestion: Question = {
+      ...question,
+      correct_answer: feedback.correctAnswer,
+      answer_data: feedback.answerData,
+      explanation: feedback.explanation,
+      rita_tip: feedback.ritaTip,
+      pmbok_reference: feedback.pmbokReference,
+      eco_reference: feedback.ecoReference,
+    };
+    setQuestions((previous) => previous.map((item, index) => index === currentQ ? answeredQuestion : item));
+
+    let correctAnswerText = String(feedback.correctAnswer || '');
+    if (questionType === 'multiple_response') {
+      const d = getMultipleResponseData(answeredQuestion, false);
+      correctAnswerText = formatMultipleAnswerSummary(d.correct, d.options, isArabic);
+    } else if (questionType === 'pull_down') {
+      correctAnswerText = formatPullDownCorrectSummary(getPullDownData(answeredQuestion, false).blanks);
+    } else if (questionType === 'matching') {
+      const d = getMatchingData(answeredQuestion, false);
+      correctAnswerText = formatMatchingSummary(d.items, d.categories, d.correct);
+    } else if (questionType === 'ordering') {
+      const d = getOrderingData(answeredQuestion, false);
+      correctAnswerText = formatOrderingSummary(d.correctOrder, d.items);
     }
 
     const result: QuestionResult = {
@@ -1355,9 +1296,9 @@ export default function PracticeClient({ initialFramework }: PracticeClientProps
       ),
       selectedAnswer: selectedAnswerText,
       correctAnswer: correctAnswerText,
-      isCorrect,
-      explanation: getFieldByLanguage(isArabic, question.explanation, question.explanation_ar),
-      ritaTip: getFieldByLanguage(isArabic, question.rita_tip, question.rita_tip_ar),
+      isCorrect: Boolean(data.isCorrect),
+      explanation: String(feedback.explanation || ''),
+      ritaTip: String(feedback.ritaTip || ''),
       domain: question.domain,
       difficulty: question.difficulty,
     };
@@ -1992,7 +1933,7 @@ Please be warm, encouraging, and focus on what I need to know to pass the exam.`
               <p className="text-blue-800 text-sm leading-relaxed">
                 {getFieldByLanguage(
                   isArabic,
-                  currentQuestion.explanation,
+                  currentQuestion.explanation || '',
                   currentQuestion.explanation_ar
                 )}
               </p>

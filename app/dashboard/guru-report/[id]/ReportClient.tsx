@@ -292,8 +292,6 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
 
   const normalizedDomains = normalizeDomainScores(report.domain_scores as Record<string, { correct: number; total: number }>);
   const domainEntries = Object.entries(normalizedDomains);
-  const handlePrint = () => window.print();
-
   return (
     <>
       <style jsx global>{`
@@ -320,10 +318,7 @@ export default function ReportClient({ report, learnerName, sessionNumber, targe
               <span>/</span>
               <span className="text-gray-700 font-medium">{L.guruReport}</span>
             </div>
-            <button onClick={handlePrint}
-              className="text-sm bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-xl font-semibold transition-all flex items-center gap-2">
-              {L.print}
-            </button>
+            <span className="text-xs font-semibold text-gray-400">© PMPeco · In-platform use only</span>
           </div>
         </div>
 

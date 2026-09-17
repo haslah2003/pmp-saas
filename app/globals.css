@@ -4,8 +4,24 @@
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
 
+@font-face {
+  font-family: 'PMPeco Arabic';
+  src: url('/fonts/NeoSansArabic-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PMPeco Arabic';
+  src: url('/fonts/NeoSansArabic-Bold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
 body {
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'DM Sans', 'PMPeco Arabic', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -16,12 +32,25 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-thumb { background: #c7c7c7; border-radius: 3px; }
 
+/* Learner content is intended for use inside PMPeco. This deters ordinary
+   browser printing; the billing receipt explicitly opts back in below. */
+@media print {
+  [data-protected-learning-content] > * {
+    display: none !important;
+  }
+
+  [data-protected-learning-content] > [data-print-allowed] {
+    display: block !important;
+  }
+}
+
 @keyframes pulse-dot {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
 }
 /* RTL Support */
 [dir="rtl"] {
+  font-family: 'PMPeco Arabic', 'DM Sans', system-ui, sans-serif;
   text-align: right;
 }
 [dir="rtl"] .flex {

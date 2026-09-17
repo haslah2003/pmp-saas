@@ -3,6 +3,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import MarketingAnalytics from "@/components/analytics/MarketingAnalytics";
+import DiagnosticInvitation from "@/components/DiagnosticInvitation";
 
 const SITE_URL = "https://pmpeco.com";
 const TITLE = "PMPeco — AI-Powered PMP Exam Prep";
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
 // Apply locale (lang + text direction) from the cookie BEFORE first paint, so the
 // document can be statically rendered (and served from the global edge CDN) without
 // a flash of the wrong direction. Reads pmp_locale first, then the legacy `lang` cookie.
-const LOCALE_INIT = `(function(){try{var m=document.cookie.match(/(?:^|; )pmp_locale=(ar|en)/)||document.cookie.match(/(?:^|; )lang=(ar|en)/);var l=m&&m[1]==='ar'?'ar':'en';var e=document.documentElement;e.lang=l;e.dir=l==='ar'?'rtl':'ltr';if(l==='ar'){e.classList.add('rtl');}else{e.classList.remove('rtl');}}catch(_){}})();`;
+const LOCALE_INIT = `(function(){try{var q=new URLSearchParams(location.search);var x=q.get('lang')||q.get('locale');var m=document.cookie.match(/(?:^|; )pmp_locale=(ar|en)/)||document.cookie.match(/(?:^|; )lang=(ar|en)/);var l=x==='ar'||x==='en'?x:(m&&m[1]==='ar'?'ar':'en');if(x==='ar'||x==='en'){document.cookie='pmp_locale='+l+'; path=/; max-age=31536000; SameSite=Lax';}var e=document.documentElement;e.lang=l;e.dir=l==='ar'?'rtl':'ltr';if(l==='ar'){e.classList.add('rtl');}else{e.classList.remove('rtl');}}catch(_){}})();`;
 
 export default function RootLayout({
   children,
@@ -56,6 +57,7 @@ export default function RootLayout({
         <Analytics />
         <SpeedInsights />
         <MarketingAnalytics />
+        <DiagnosticInvitation />
       </body>
     </html>
   );
