@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { requireAdminApi } from '@/lib/auth/require-admin-api'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -25,6 +26,9 @@ function fingerprint(value: string | undefined) {
 }
 
 export async function GET() {
+  const denied = await requireAdminApi()
+  if (denied) return denied
+
   return NextResponse.json({
     paypalEnv: process.env.PAYPAL_ENV || null,
     nodeEnv: process.env.NODE_ENV || null,
