@@ -24,7 +24,12 @@ export function preparePdfkitRtlText(value: unknown) {
 
 export async function generateArabicReadinessPdf(report: Report) {
   const chunks: Buffer[] = [];
-  const doc = new PDFDocument({ size: 'A4', margin: 0, bufferPages: true, info: { Title: 'تقرير تشخيص الجاهزية لاختبار PMP', Author: 'PMPeco' } });
+  const regularFont = path.join(process.cwd(), 'public/fonts/NeoSansArabic-Regular.ttf');
+  const boldFont = path.join(process.cwd(), 'public/fonts/NeoSansArabic-Bold.ttf');
+  // PDFKit otherwise initializes with Helvetica, which it resolves through a
+  // dynamic package import that Vercel's serverless bundler cannot execute.
+  // Starting with our embedded brand font avoids that runtime dependency.
+  const doc = new PDFDocument({ size: 'A4', margin: 0, bufferPages: true, font: regularFont, info: { Title: 'تقرير تشخيص الجاهزية لاختبار PMP', Author: 'PMPeco' } });
   doc.on('data', (chunk: Buffer) => chunks.push(chunk));
   const done = new Promise<Buffer>((resolve, reject) => {
     doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -33,8 +38,8 @@ export async function generateArabicReadinessPdf(report: Report) {
 
   const W = doc.page.width, H = doc.page.height, M = 48, CW = W - M * 2;
   const c = { purple: '#320f91', blue: '#244bab', teal: '#00aeae', ink: '#282d44', muted: '#4c5771', canvas: '#f6f5fc', green: '#15803d', amber: '#d97706', red: '#dc2626', track: '#e1e5f0' };
-  doc.registerFont('Arabic', path.join(process.cwd(), 'public/fonts/NeoSansArabic-Regular.ttf'));
-  doc.registerFont('ArabicBold', path.join(process.cwd(), 'public/fonts/NeoSansArabic-Bold.ttf'));
+  doc.registerFont('Arabic', regularFont);
+  doc.registerFont('ArabicBold', boldFont);
   const logo = path.join(process.cwd(), 'public/brand/pmpeco-white-logo.png');
   const watermark = path.join(process.cwd(), 'public/brand/pmpeco-watermark.png');
   let pageNumber = 1;
