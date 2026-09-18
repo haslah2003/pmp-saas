@@ -13,6 +13,7 @@ export async function saveBranding(data: {
   font_heading?: string;
   font_body?: string;
   landing_hero_image_url?: string;
+  landing_hero_image_visible?: boolean;
 }) {
   const supabase = await createClient();
   const { error } = await supabase
@@ -23,4 +24,4 @@ export async function saveBranding(data: {
 
   revalidatePath("/dashboard", "layout");
   revalidatePath("/admin", "layout");
-}   
+}

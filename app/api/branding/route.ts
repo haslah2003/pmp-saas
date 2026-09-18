@@ -43,7 +43,10 @@ export async function POST(request: Request) {
       dark_mode_primary: body.dark_mode_primary,
       font_heading: body.font_heading,
       font_body: body.font_body,
-      landing_hero_image_url: body.landing_hero_image_url || '/hero.png',
+      landing_hero_image_url: typeof body.landing_hero_image_url === 'string'
+        ? body.landing_hero_image_url.trim()
+        : '/hero.png',
+      landing_hero_image_visible: body.landing_hero_image_visible !== false,
       updated_at: new Date().toISOString(),
     });
 

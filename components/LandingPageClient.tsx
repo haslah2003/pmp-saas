@@ -135,7 +135,7 @@ const copy = {
       title: "Frequently asked questions",
       items: [
         { q: "Is this aligned with the current PMP exam?", a: "Yes. The platform is built on PMBOK 8 + ECO 2026, the current PMP exam." },
-        { q: "Does this cover the new 2026 PMP exam?", a: "Yes. The platform is fully aligned with PMBOK 8 + ECO 2026, the exam in effect now." },
+        { q: "How do I know where to begin my preparation?", a: "Start with the free 32-question readiness diagnostic. Your personalized report identifies priority gaps and recommends the most relevant preparation path." },
         { q: "How many questions are included?", a: "The PMBOK 8 + ECO 2026 bank includes 1,200+ bilingual practice questions with rationales and AI-supported explanations." },
         { q: "Is Arabic fully supported?", a: "Yes. The PMBOK 8 + ECO 2026 practice bank is available in Arabic and English, with bilingual explanations designed for exam preparation." },
         { q: "Do you guarantee that I will pass?", a: "No ethical PMP preparation platform should guarantee a pass. PMPeco helps you practice, diagnose weak areas, and improve readiness, but final performance depends on your preparation and exam-day execution." },
@@ -251,10 +251,10 @@ const copy = {
       title: "الأسئلة الأكثر شيوعًا",
       items: [
         { q: "هل المنصة متوافقة مع اختبار PMP الحالي؟", a: "نعم. المنصة مبنية على PMBOK 8 + ECO 2026، اختبار PMP الحالي." },
-        { q: "هل تغطي المنصة اختبار 2026 الجديد؟", a: "نعم. المنصة متوافقة بالكامل مع PMBOK 8 + ECO 2026، الاختبار الساري الآن." },
+        { q: "كيف أعرف من أين أبدأ تحضيري؟", a: "ابدأ باختبار الجاهزية المجاني المكوّن من 32 سؤالًا. يحدّد تقريرك الشخصي فجواتك ذات الأولوية ويوصي بمسار التحضير الأنسب لك." },
         { q: "كم عدد الأسئلة المتاحة؟", a: "يتضمن بنك PMBOK 8 + ECO 2026 أكثر من 1,200 سؤال ممارسة ثنائي اللغة مع تفسيرات وشروحات مدعومة بالذكاء الاصطناعي." },
         { q: "هل اللغة العربية مدعومة بالكامل؟", a: "نعم. بنك تمارين PMBOK 8 + ECO 2026 متاح بالعربية والإنجليزية مع شروحات ثنائية اللغة موجهة للتحضير للاختبار." },
-        { q: "هل تضمنون اجتياز الاختبار؟", a: "لا. لا ينبغي لأي منصة تحضير أخلاقية أن تضمن النجاح. يساعدك PMPeco على التدريب وتشخيص نقاط الضعف ورفع الجاهزية، لكن الأداء النهائي يعتمد على تحضيرك وتنفيذك يوم الاختبار." },
+        { q: "هل تضمنون اجتياز الاختبار؟", a: "لا. لا ينبغي لأي منصة تحضير أخلاقية أن تضمن النجاح. يساعدك PMPeco على التدريب وتشخيص نقاط الضعف ورفع الجاهزية، لكن الأداء النهائي يعتمد على تحضيرك وأدائك في الإختبار." },
         { q: "درست اختبار PMBOK 7 القديم، هل يفيدني هذا؟", a: "نعم. يركّز وضع الجسر (Bridge) على ما تغيّر من PMBOK 7 إلى PMBOK 8 لتحويل تحضيرك بسرعة." },
       ],
     },
@@ -308,13 +308,17 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
   const [annual, setAnnual] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
   const [heroImg, setHeroImg] = useState<string>("/hero.png");
+  const [heroImageVisible, setHeroImageVisible] = useState(true);
   const [promoPlaying, setPromoPlaying] = useState(false);
   useEffect(() => { const h = () => setScrolled(window.scrollY > 40); window.addEventListener("scroll", h); return () => window.removeEventListener("scroll", h); }, []);
   useEffect(() => {
     fetch("/api/branding", { cache: "no-store" })
       .then(r => r.json())
       .then(data => {
-        if (data?.landing_hero_image_url) setHeroImg(data.landing_hero_image_url);
+        if (typeof data?.landing_hero_image_url === "string") setHeroImg(data.landing_hero_image_url);
+        if (typeof data?.landing_hero_image_visible === "boolean") {
+          setHeroImageVisible(data.landing_hero_image_visible);
+        }
       })
       .catch(() => {});
   }, []);
@@ -399,7 +403,16 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
       <section style={{padding:"clamp(3rem,6vw,5rem) clamp(1rem,4vw,3rem) clamp(2rem,5vw,4rem)",background:`linear-gradient(170deg,${C.tealLt} 0%,#FFFFFF 40%,${C.purpleLt} 100%)`,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-120,[isAr?"left":"right"]:-120,width:340,height:340,borderRadius:"50%",background:`${C.teal}08`,pointerEvents:"none"}} />
         <div style={{position:"absolute",bottom:-80,[isAr?"right":"left"]:-80,width:260,height:260,borderRadius:"50%",background:`${C.purple}06`,pointerEvents:"none"}} />
-        <div style={{maxWidth:1140,margin:"0 auto",position:"relative"}} className="lp-hero-grid">
+        <div
+          style={{
+            maxWidth:1140,
+            margin:"0 auto",
+            position:"relative",
+            gridTemplateColumns:heroImageVisible ? undefined : "minmax(0, 680px)",
+            justifyContent:heroImageVisible ? undefined : "center"
+          }}
+          className="lp-hero-grid"
+        >
           <FadeIn>
             <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
               <span style={{fontSize:12,fontWeight:600,color:C.tealDk,background:C.tealLt,padding:"5px 14px",borderRadius:20,border:`1px solid ${C.teal}22`}}>{t.hero.badge1}</span>
@@ -423,7 +436,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
               <span><strong style={{color:C.amber,fontSize:16}}>{t.hero.s3v}</strong> {t.hero.s3l}</span>
             </div>
           </FadeIn>
-          <FadeIn delay={0.2} className="lp-hero-image">
+          {heroImageVisible && heroImg && <FadeIn delay={0.2} className="lp-hero-image">
             <div
               aria-label="PMP ECO 2026 hero image"
               style={{
@@ -440,7 +453,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
               }}
             >
               <img
-                src={heroImg || "/hero.png"}
+                src={heroImg}
                 alt="PMPeco PMP ECO 2026 hero"
                 style={{
                   width:"100%",
@@ -451,7 +464,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
                 }}
               />
             </div>
-          </FadeIn>
+          </FadeIn>}
         </div>
       </section>
       {/* PROMO DEMO VIDEO PLACEHOLDER */}
@@ -463,11 +476,11 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
           >
             <div className="p-6 sm:p-8 lg:p-10">
               <h2 className="text-3xl font-black tracking-tight sm:text-4xl" style={{ color: C.dark }}>
-                {isAr ? "شاهد PMPeco أثناء العمل" : "See PMPeco in Action"}
+                {isAr ? "شاهد كيف تصنع عقلية PMP الفارق" : "See How the PMP Mindset Makes the Difference"}
               </h2>
 
               <p className="mt-4 max-w-2xl text-base leading-7 sm:text-lg" style={{ color: C.muted }}>
-                {isAr ? "شاهد عرضًا مركزًا يوضح رحلة المتعلم داخل المنصة: معاينة درس، استكشاف الشروحات ثنائية اللغة، فهم كيف تدعم التمارين منطق الاختبار، ومقارنة الخطط قبل اختيار سباقك التحضيري." : "Watch a focused walkthrough of the PMPeco learner journey: preview a lesson, explore bilingual explanations, understand how practice supports exam reasoning, and compare plans before choosing your preparation sprint."}
+                {isAr ? "شاهد موقفًا واقعيًا في إدارة المشاريع، وقارن بين معالجة مدير مشروع غير معتمد للمشكلة وبين تعامل مدير معتمد بمنهجية وثقة. ثم اكتشف السر وراء هذا الفارق: PMPeco، حل التعلّم الذكي لمديري المشاريع المشغولين ولكل من يسعى إلى الحصول على شهادة PMP." : "Watch a realistic project-management scenario and compare how a non-certified project manager handles the problem with how a certified manager resolves it methodically and confidently. Then discover the advantage behind that difference: PMPeco, the smart learning solution for busy project managers and aspiring PMP professionals."}
               </p>
 
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
