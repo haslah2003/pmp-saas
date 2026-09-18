@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
 import { getPayPalBase } from '@/lib/paypal'
+import { requireAdminApi } from '@/lib/auth/require-admin-api'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
+  const denied = await requireAdminApi()
+  if (denied) return denied
+
   const baseUrl = getPayPalBase()
 
   const clientId = process.env.PAYPAL_CLIENT_ID

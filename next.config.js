@@ -7,6 +7,11 @@ const nextConfig = {
   },
   outputFileTracingIncludes: {
     "/api/diagnostic/report/pdf": [
+      // PDFKit resolves its built-in fonts dynamically through package imports.
+      // Next's file tracer cannot discover those modules from the dynamic lookup,
+      // so Vercel must be told to ship them with the report function.
+      "./node_modules/pdfkit/js/standard-fonts/**/*",
+      "./node_modules/pdfkit/js/data/**/*",
       "./public/fonts/NeoSansArabic-Regular.ttf",
       "./public/fonts/NeoSansArabic-Bold.ttf",
       "./public/brand/pmpeco-white-logo.png",
