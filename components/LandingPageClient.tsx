@@ -135,7 +135,7 @@ const copy = {
       title: "Frequently asked questions",
       items: [
         { q: "Is this aligned with the current PMP exam?", a: "Yes. The platform is built on PMBOK 8 + ECO 2026, the current PMP exam." },
-        { q: "Does this cover the new 2026 PMP exam?", a: "Yes. The platform is fully aligned with PMBOK 8 + ECO 2026, the exam in effect now." },
+        { q: "How do I know where to begin my preparation?", a: "Start with the free 32-question readiness diagnostic. Your personalized report identifies priority gaps and recommends the most relevant preparation path." },
         { q: "How many questions are included?", a: "The PMBOK 8 + ECO 2026 bank includes 1,200+ bilingual practice questions with rationales and AI-supported explanations." },
         { q: "Is Arabic fully supported?", a: "Yes. The PMBOK 8 + ECO 2026 practice bank is available in Arabic and English, with bilingual explanations designed for exam preparation." },
         { q: "Do you guarantee that I will pass?", a: "No ethical PMP preparation platform should guarantee a pass. PMPeco helps you practice, diagnose weak areas, and improve readiness, but final performance depends on your preparation and exam-day execution." },
@@ -251,10 +251,10 @@ const copy = {
       title: "الأسئلة الأكثر شيوعًا",
       items: [
         { q: "هل المنصة متوافقة مع اختبار PMP الحالي؟", a: "نعم. المنصة مبنية على PMBOK 8 + ECO 2026، اختبار PMP الحالي." },
-        { q: "هل تغطي المنصة اختبار 2026 الجديد؟", a: "نعم. المنصة متوافقة بالكامل مع PMBOK 8 + ECO 2026، الاختبار الساري الآن." },
+        { q: "كيف أعرف من أين أبدأ تحضيري؟", a: "ابدأ باختبار الجاهزية المجاني المكوّن من 32 سؤالًا. يحدّد تقريرك الشخصي فجواتك ذات الأولوية ويوصي بمسار التحضير الأنسب لك." },
         { q: "كم عدد الأسئلة المتاحة؟", a: "يتضمن بنك PMBOK 8 + ECO 2026 أكثر من 1,200 سؤال ممارسة ثنائي اللغة مع تفسيرات وشروحات مدعومة بالذكاء الاصطناعي." },
         { q: "هل اللغة العربية مدعومة بالكامل؟", a: "نعم. بنك تمارين PMBOK 8 + ECO 2026 متاح بالعربية والإنجليزية مع شروحات ثنائية اللغة موجهة للتحضير للاختبار." },
-        { q: "هل تضمنون اجتياز الاختبار؟", a: "لا. لا ينبغي لأي منصة تحضير أخلاقية أن تضمن النجاح. يساعدك PMPeco على التدريب وتشخيص نقاط الضعف ورفع الجاهزية، لكن الأداء النهائي يعتمد على تحضيرك وتنفيذك يوم الاختبار." },
+        { q: "هل تضمنون اجتياز الاختبار؟", a: "لا. لا ينبغي لأي منصة تحضير أخلاقية أن تضمن النجاح. يساعدك PMPeco على التدريب وتشخيص نقاط الضعف ورفع الجاهزية، لكن الأداء النهائي يعتمد على تحضيرك وأدائك في الإختبار." },
         { q: "درست اختبار PMBOK 7 القديم، هل يفيدني هذا؟", a: "نعم. يركّز وضع الجسر (Bridge) على ما تغيّر من PMBOK 7 إلى PMBOK 8 لتحويل تحضيرك بسرعة." },
       ],
     },
@@ -463,11 +463,11 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
           >
             <div className="p-6 sm:p-8 lg:p-10">
               <h2 className="text-3xl font-black tracking-tight sm:text-4xl" style={{ color: C.dark }}>
-                {isAr ? "شاهد PMPeco أثناء العمل" : "See PMPeco in Action"}
+                {isAr ? "شاهد كيف تصنع عقلية PMP الفارق" : "See How the PMP Mindset Makes the Difference"}
               </h2>
 
               <p className="mt-4 max-w-2xl text-base leading-7 sm:text-lg" style={{ color: C.muted }}>
-                {isAr ? "شاهد عرضًا مركزًا يوضح رحلة المتعلم داخل المنصة: معاينة درس، استكشاف الشروحات ثنائية اللغة، فهم كيف تدعم التمارين منطق الاختبار، ومقارنة الخطط قبل اختيار سباقك التحضيري." : "Watch a focused walkthrough of the PMPeco learner journey: preview a lesson, explore bilingual explanations, understand how practice supports exam reasoning, and compare plans before choosing your preparation sprint."}
+                {isAr ? "شاهد موقفًا واقعيًا في إدارة المشاريع، وقارن بين معالجة مدير مشروع غير معتمد للمشكلة وبين تعامل مدير معتمد بمنهجية وثقة. ثم اكتشف السر وراء هذا الفارق: PMPeco، حل التعلّم الذكي لمديري المشاريع المشغولين ولكل من يسعى إلى الحصول على شهادة PMP." : "Watch a realistic project-management scenario and compare how a non-certified project manager handles the problem with how a certified manager resolves it methodically and confidently. Then discover the advantage behind that difference: PMPeco, the smart learning solution for busy project managers and aspiring PMP professionals."}
               </p>
 
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
