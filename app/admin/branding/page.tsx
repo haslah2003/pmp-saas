@@ -16,6 +16,7 @@ interface BrandingConfig {
   font_heading: string;
   font_body: string;
   landing_hero_image_url: string;
+  landing_hero_image_visible: boolean;
 }
 
 const DEFAULT: BrandingConfig = {
@@ -23,6 +24,7 @@ const DEFAULT: BrandingConfig = {
   primary_color: '#0F172A', secondary_color: '#1E40AF', accent_color: '#F59E0B',
   dark_mode_primary: '#0F172A', font_heading: 'Plus Jakarta Sans', font_body: 'DM Sans',
   landing_hero_image_url: '/hero.png',
+  landing_hero_image_visible: true,
 };
 
 function ColorPicker({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
@@ -52,6 +54,11 @@ export default function BrandingPage() {
   }, []);
 
   const update = (key: keyof BrandingConfig, value: string) => {
+    setConfig(prev => ({ ...prev, [key]: value }));
+    setSaved(false);
+  };
+
+  const updateBoolean = (key: keyof BrandingConfig, value: boolean) => {
     setConfig(prev => ({ ...prev, [key]: value }));
     setSaved(false);
   };
@@ -118,6 +125,32 @@ export default function BrandingPage() {
           <Card padding="lg">
             <h3 className="font-bold mb-4">Landing Page Hero</h3>
             <div className="space-y-4">
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <div>
+                  <div className="text-sm font-semibold text-gray-900">Show hero image</div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Hide the image without removing its URL, then show it again whenever it is ready.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={config.landing_hero_image_visible}
+                  aria-label="Show hero image"
+                  onClick={() => updateBoolean('landing_hero_image_visible', !config.landing_hero_image_visible)}
+                  className={cn(
+                    'relative h-7 w-12 shrink-0 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/30',
+                    config.landing_hero_image_visible ? 'bg-emerald-500' : 'bg-gray-300'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-transform',
+                      config.landing_hero_image_visible ? 'left-6' : 'left-1'
+                    )}
+                  />
+                </button>
+              </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Hero Image URL</label>
                 <input
@@ -132,7 +165,12 @@ export default function BrandingPage() {
                 </p>
               </div>
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <div className="text-xs font-semibold text-gray-500 mb-3">Current Hero Preview</div>
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div className="text-xs font-semibold text-gray-500">Current Hero Preview</div>
+                  <Badge variant={config.landing_hero_image_visible ? 'success' : 'default'}>
+                    {config.landing_hero_image_visible ? 'Visible' : 'Hidden'}
+                  </Badge>
+                </div>
                 <div className="aspect-[4/3] rounded-xl bg-white border border-gray-100 overflow-hidden flex items-center justify-center">
                   {config.landing_hero_image_url ? (
                     <img

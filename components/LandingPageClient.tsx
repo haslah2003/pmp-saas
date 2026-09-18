@@ -308,13 +308,17 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
   const [annual, setAnnual] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
   const [heroImg, setHeroImg] = useState<string>("/hero.png");
+  const [heroImageVisible, setHeroImageVisible] = useState(true);
   const [promoPlaying, setPromoPlaying] = useState(false);
   useEffect(() => { const h = () => setScrolled(window.scrollY > 40); window.addEventListener("scroll", h); return () => window.removeEventListener("scroll", h); }, []);
   useEffect(() => {
     fetch("/api/branding", { cache: "no-store" })
       .then(r => r.json())
       .then(data => {
-        if (data?.landing_hero_image_url) setHeroImg(data.landing_hero_image_url);
+        if (typeof data?.landing_hero_image_url === "string") setHeroImg(data.landing_hero_image_url);
+        if (typeof data?.landing_hero_image_visible === "boolean") {
+          setHeroImageVisible(data.landing_hero_image_visible);
+        }
       })
       .catch(() => {});
   }, []);
@@ -399,7 +403,16 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
       <section style={{padding:"clamp(3rem,6vw,5rem) clamp(1rem,4vw,3rem) clamp(2rem,5vw,4rem)",background:`linear-gradient(170deg,${C.tealLt} 0%,#FFFFFF 40%,${C.purpleLt} 100%)`,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-120,[isAr?"left":"right"]:-120,width:340,height:340,borderRadius:"50%",background:`${C.teal}08`,pointerEvents:"none"}} />
         <div style={{position:"absolute",bottom:-80,[isAr?"right":"left"]:-80,width:260,height:260,borderRadius:"50%",background:`${C.purple}06`,pointerEvents:"none"}} />
-        <div style={{maxWidth:1140,margin:"0 auto",position:"relative"}} className="lp-hero-grid">
+        <div
+          style={{
+            maxWidth:1140,
+            margin:"0 auto",
+            position:"relative",
+            gridTemplateColumns:heroImageVisible ? undefined : "minmax(0, 680px)",
+            justifyContent:heroImageVisible ? undefined : "center"
+          }}
+          className="lp-hero-grid"
+        >
           <FadeIn>
             <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
               <span style={{fontSize:12,fontWeight:600,color:C.tealDk,background:C.tealLt,padding:"5px 14px",borderRadius:20,border:`1px solid ${C.teal}22`}}>{t.hero.badge1}</span>
@@ -423,7 +436,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
               <span><strong style={{color:C.amber,fontSize:16}}>{t.hero.s3v}</strong> {t.hero.s3l}</span>
             </div>
           </FadeIn>
-          <FadeIn delay={0.2} className="lp-hero-image">
+          {heroImageVisible && heroImg && <FadeIn delay={0.2} className="lp-hero-image">
             <div
               aria-label="PMP ECO 2026 hero image"
               style={{
@@ -440,7 +453,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
               }}
             >
               <img
-                src={heroImg || "/hero.png"}
+                src={heroImg}
                 alt="PMPeco PMP ECO 2026 hero"
                 style={{
                   width:"100%",
@@ -451,7 +464,7 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
                 }}
               />
             </div>
-          </FadeIn>
+          </FadeIn>}
         </div>
       </section>
       {/* PROMO DEMO VIDEO PLACEHOLDER */}
