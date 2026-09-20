@@ -39,6 +39,22 @@ export default async function BillingPage() {
         <p className="text-sm text-gray-500 mt-1">{dt("Manage your plan, payment method, and view billing history.", isArabic)}</p>
       </div>
 
+      {profile?.role === 'admin' && (
+        <div className="rounded-2xl border border-violet-200 bg-violet-50 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="text-sm font-bold text-violet-900">
+              {isArabic ? 'أنت تعرض فوترة حسابك الشخصي' : 'You are viewing your personal learner billing'}
+            </p>
+            <p className="text-xs text-violet-700 mt-1">
+              {isArabic ? 'انتقل إلى لوحة الإدارة لعرض جميع المعاملات والمبيعات والمبالغ المستردة.' : 'Open the admin dashboard to review all transactions, sales, refunds, and receipts.'}
+            </p>
+          </div>
+          <Link href="/admin/billing" className="shrink-0 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700">
+            {isArabic ? 'افتح الفوترة والمبيعات' : 'Open Admin Billing & Sales'}
+          </Link>
+        </div>
+      )}
+
       {/* {dt("Current Plan", isArabic)} Card */}
       <div className="bg-white rounded-2xl border-2 overflow-hidden shadow-sm" style={{ borderColor: currentPlan ? undefined : '#e5e7eb' }}>
         <div className={`px-6 py-5 ${isFreePlan ? 'bg-gray-50' : 'bg-gradient-to-r from-violet-600 to-purple-600 text-white'}`}>
@@ -70,7 +86,7 @@ export default async function BillingPage() {
           </div>
           {!isFreePlan && expiresAt && (
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">{isExpired ? 'Expired on' : 'Renews on'}</span>
+              <span className="text-sm text-gray-500">{isExpired ? 'Expired on' : 'Access until'}</span>
               <span className="text-sm font-semibold text-gray-900">
                 {expiresAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                 {!isExpired && <span className="text-xs text-gray-400 ml-2">({daysLeft} days left)</span>}

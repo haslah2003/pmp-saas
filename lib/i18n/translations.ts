@@ -55,6 +55,7 @@ export type TranslationKeys = {
   'nav.processes': string
   'nav.artifacts': string
   'nav.billing': string
+  'nav.billing_sales': string
   'nav.readiness_report': string
   'nav.admin': string
   'nav.branding': string
@@ -286,6 +287,7 @@ const en: TranslationKeys = {
   'nav.processes': 'Processes',
   'nav.artifacts': 'Artifacts',
   'nav.billing': 'Billing',
+  'nav.billing_sales': 'Billing & Sales',
   'nav.readiness_report': 'Readiness Report',
   'nav.admin': 'Admin',
   'nav.branding': 'Branding',
@@ -517,6 +519,7 @@ const ar: TranslationKeys = {
   'nav.processes': 'العمليات',
   'nav.artifacts': 'المخرجات',
   'nav.billing': 'الفواتير',
+  'nav.billing_sales': 'الفوترة والمبيعات',
   'nav.readiness_report': 'تقرير الجاهزية',
   'nav.admin': 'الإدارة',
   'nav.branding': 'العلامة التجارية',

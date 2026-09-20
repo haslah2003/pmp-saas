@@ -59,7 +59,7 @@ const ADMIN_ITEMS = [
   { href: '/admin/media', icon: '🖼️', key: 'nav.media' as const },
   { href: '/admin/resources', icon: '📚', key: 'nav.resources' as const },
   { href: '/admin/questions', icon: '🧠', key: 'nav.questions' as const },
-  { href: '/admin/billing', icon: '💰', key: 'nav.billing' as const },
+  { href: '/admin/billing', icon: '💰', key: 'nav.billing_sales' as const },
 ]
 
 export default function Sidebar({
