@@ -285,7 +285,15 @@ const planGradients = [`linear-gradient(135deg, ${C.teal}, ${C.tealDk})`,`linear
 const planBtnColors = [C.teal, C.purple, C.purpleDk];
 
 
-export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "ar" }) {
+export default function LandingPageClient({
+  lang: langProp,
+  initialHeroImageUrl = "/hero.png",
+  initialHeroImageVisible = false,
+}: {
+  lang?: "en" | "ar";
+  initialHeroImageUrl?: string;
+  initialHeroImageVisible?: boolean;
+}) {
   // When rendered statically (no server prop), resolve locale from the cookie on the
   // client. Default 'en' keeps the static HTML stable; returning Arabic users switch on mount.
   const [lang, setLang] = useState<"en" | "ar">(langProp ?? "en");
@@ -307,8 +315,8 @@ export default function LandingPageClient({ lang: langProp }: { lang?: "en" | "a
   const [mobileMenu, setMobileMenu] = useState(false);
   const [annual, setAnnual] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
-  const [heroImg, setHeroImg] = useState<string>("/hero.png");
-  const [heroImageVisible, setHeroImageVisible] = useState(true);
+  const [heroImg, setHeroImg] = useState<string>(initialHeroImageUrl);
+  const [heroImageVisible, setHeroImageVisible] = useState(initialHeroImageVisible);
   const [promoPlaying, setPromoPlaying] = useState(false);
   useEffect(() => { const h = () => setScrolled(window.scrollY > 40); window.addEventListener("scroll", h); return () => window.removeEventListener("scroll", h); }, []);
   useEffect(() => {
