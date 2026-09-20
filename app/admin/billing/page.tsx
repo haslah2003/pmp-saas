@@ -73,7 +73,7 @@ export default async function AdminBillingPage() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div id="all-users" className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden scroll-mt-6">
         <div className="px-6 py-4 border-b border-gray-100"><h3 className="font-bold text-gray-900">All Users</h3></div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -90,25 +90,35 @@ export default async function AdminBillingPage() {
               {allProfiles?.map(p => {
                 const isExpired = p.plan_expires_at ? new Date(p.plan_expires_at) < new Date() : false;
                 const isFree = !p.plan || p.plan === 'free';
+                const userHref = `/admin/billing/users/${p.id}`;
                 return (
-                  <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={p.id} className="hover:bg-violet-50/60 transition-colors group cursor-pointer">
                     <td className="px-6 py-3.5">
-                      <p className="font-semibold text-gray-900">{p.full_name || 'No name'}</p>
-                      <p className="text-xs text-gray-400">{p.email}</p>
+                      <Link href={userHref} className="block">
+                        <p className="font-semibold text-gray-900 group-hover:text-violet-700">{p.full_name || 'No name'}</p>
+                        <p className="text-xs text-gray-400">{p.email}</p>
+                      </Link>
                     </td>
                     <td className="px-6 py-3.5">
-                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${isFree ? 'bg-gray-100 text-gray-500' : 'bg-violet-100 text-violet-700'}`}>
-                        {isFree ? 'Free' : (p.plan || 'free')}
-                      </span>
+                      <Link href={userHref} className="block">
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${isFree ? 'bg-gray-100 text-gray-500' : 'bg-violet-100 text-violet-700'}`}>
+                          {isFree ? 'Free' : (p.plan || 'free')}
+                        </span>
+                      </Link>
                     </td>
-                    <td className="px-6 py-3.5 text-gray-600 capitalize">{p.plan_period || '—'}</td>
+                    <td className="px-6 py-3.5 text-gray-600 capitalize"><Link href={userHref} className="block">{p.plan_period || '—'}</Link></td>
                     <td className="px-6 py-3.5">
-                      <span className={`text-xs font-semibold ${isFree ? 'text-gray-400' : isExpired ? 'text-red-600' : 'text-emerald-600'}`}>
-                        {isFree ? '—' : isExpired ? 'Expired' : 'Active'}
-                      </span>
+                      <Link href={userHref} className="block">
+                        <span className={`text-xs font-semibold ${isFree ? 'text-gray-400' : isExpired ? 'text-red-600' : 'text-emerald-600'}`}>
+                          {isFree ? '—' : isExpired ? 'Expired' : 'Active'}
+                        </span>
+                      </Link>
                     </td>
                     <td className="px-6 py-3.5 text-xs text-gray-500">
-                      {p.plan_expires_at ? new Date(p.plan_expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                      <Link href={userHref} className="flex items-center justify-between gap-3">
+                        <span>{p.plan_expires_at ? new Date(p.plan_expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</span>
+                        <span className="text-violet-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">View →</span>
+                      </Link>
                     </td>
                   </tr>
                 );
@@ -118,7 +128,7 @@ export default async function AdminBillingPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div id="transactions" className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden scroll-mt-6">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <h3 className="font-bold text-gray-900">Recent Transactions</h3>
           {testReceiptCount > 0 && (
