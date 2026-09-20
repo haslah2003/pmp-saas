@@ -67,6 +67,11 @@ export async function createPayPalOrder(
       application_context: {
         brand_name: 'PMPeco',
         locale: 'en-US',
+        // PMPeco access is delivered digitally. Do not ask PayPal buyers for
+        // shipping details, and prefer the guest-card experience when PayPal
+        // considers the buyer eligible for it.
+        shipping_preference: 'NO_SHIPPING',
+        landing_page: 'GUEST_CHECKOUT',
         user_action: 'PAY_NOW',
         return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/payment/success`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/pricing`,
