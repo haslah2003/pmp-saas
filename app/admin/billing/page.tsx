@@ -3,7 +3,17 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
-export default async function AdminBillingPage() {
+type BillingView = 'users' | 'paid' | 'active' | 'revenue' | 'refunded';
+
+export default async function AdminBillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  const { view } = await searchParams;
+  const selectedView: BillingView | null = ['users', 'paid', 'active', 'revenue', 'refunded'].includes(view || '')
+    ? (view as BillingView)
+    : null;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -46,15 +56,20 @@ export default async function AdminBillingPage() {
     .filter(r => !isTestReceipt(r))
     .reduce((sum, r) => sum + parseFloat(r.amount || '0'), 0);
 
-  const metrics = [
-    { label: 'Total Users', value: totalUsers, icon: '👥', color: 'bg-blue-50 text-blue-700' },
-    { label: 'Paid Subscribers', value: paidUsers, icon: '💎', color: 'bg-purple-50 text-purple-700' },
-    { label: 'Active Now', value: activeUsers, icon: '✅', color: 'bg-emerald-50 text-emerald-700' },
-    { label: 'Net Revenue', value: `$${totalRevenue.toFixed(2)}`, icon: '💰', color: 'bg-amber-50 text-amber-700' },
-    { label: 'Refunded', value: `$${totalRefunded.toFixed(2)}`, icon: '↩️', color: 'bg-rose-50 text-rose-700' },
+  const metrics: Array<{ label: string; value: string | number; icon: string; color: string; view: BillingView }> = [
+    { label: 'Total Users', value: totalUsers, icon: '👥', color: 'bg-blue-50 text-blue-700', view: 'users' },
+    { label: 'Paid Subscribers', value: paidUsers, icon: '💎', color: 'bg-purple-50 text-purple-700', view: 'paid' },
+    { label: 'Active Now', value: activeUsers, icon: '✅', color: 'bg-emerald-50 text-emerald-700', view: 'active' },
+    { label: 'Net Revenue', value: `$${totalRevenue.toFixed(2)}`, icon: '💰', color: 'bg-amber-50 text-amber-700', view: 'revenue' },
+    { label: 'Refunded', value: `$${totalRefunded.toFixed(2)}`, icon: '↩️', color: 'bg-rose-50 text-rose-700', view: 'refunded' },
   ];
 
   const emailById = new Map((allProfiles || []).map(p => [p.id, p.email] as const));
+  const paidProfiles = (allProfiles || []).filter(p => p.plan && p.plan !== 'free');
+  const activeProfiles = paidProfiles.filter(p => p.plan_expires_at && new Date(p.plan_expires_at) > new Date());
+  const metricProfiles = selectedView === 'users' ? (allProfiles || []) : selectedView === 'paid' ? paidProfiles : selectedView === 'active' ? activeProfiles : [];
+  const metricReceipts = selectedView === 'revenue' ? realReceipts : selectedView === 'refunded' ? refundedReceipts.filter(r => !isTestReceipt(r)) : [];
+  const selectedMetric = metrics.find(metric => metric.view === selectedView);
 
   return (
     <div className="space-y-8">
@@ -65,13 +80,85 @@ export default async function AdminBillingPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {metrics.map(m => (
-          <div key={m.label} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+          <Link
+            key={m.label}
+            href={selectedView === m.view ? '/admin/billing' : `/admin/billing?view=${m.view}#metric-details`}
+            aria-expanded={selectedView === m.view}
+            className={`group bg-white rounded-2xl border shadow-sm p-4 transition-all hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-violet-400 ${selectedView === m.view ? 'border-violet-400 ring-2 ring-violet-100' : 'border-gray-200'}`}
+          >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-3 ${m.color}`}>{m.icon}</div>
             <p className="text-2xl font-bold text-gray-900">{m.value}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{m.label}</p>
-          </div>
+            <div className="flex items-center justify-between gap-2 mt-0.5">
+              <p className="text-xs text-gray-400">{m.label}</p>
+              <span className="text-xs font-bold text-violet-600">{selectedView === m.view ? 'Close ↑' : 'View ↓'}</span>
+            </div>
+          </Link>
         ))}
       </div>
+
+      {selectedView && selectedMetric && (
+        <section id="metric-details" className="bg-white rounded-2xl border border-violet-200 shadow-sm overflow-hidden scroll-mt-6">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="font-bold text-gray-900">{selectedMetric.label} details</h2>
+              <p className="text-xs text-gray-500 mt-1">
+                {selectedView === 'revenue' || selectedView === 'refunded'
+                  ? 'Select a transaction to inspect PayPal data and its receipt/invoice.'
+                  : 'Select a learner to inspect account access and complete payment history.'}
+              </p>
+            </div>
+            <Link href="/admin/billing" className="text-sm font-semibold text-gray-400 hover:text-gray-700">Close ×</Link>
+          </div>
+
+          {selectedView === 'revenue' || selectedView === 'refunded' ? (
+            metricReceipts.length ? (
+              <div className="divide-y divide-gray-100">
+                {metricReceipts.map(receipt => {
+                  const isRefunded = receipt.status === 'refunded';
+                  return (
+                    <Link key={receipt.id} href={`/admin/billing/${receipt.id}`} className="flex items-center gap-4 px-6 py-4 hover:bg-violet-50/60 transition-colors group">
+                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${isRefunded ? 'bg-rose-100' : 'bg-emerald-100'}`}>{isRefunded ? '↩️' : '✅'}</div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-gray-900 capitalize">{receipt.plan} · {receipt.plan_period}</p>
+                        <p className="text-xs text-gray-400 truncate">{emailById.get(receipt.user_id) || receipt.payer_email || 'Unknown learner'} · {receipt.receipt_number || receipt.paypal_order_id || '—'} · {new Date(receipt.created_at).toLocaleDateString('en-US')}</p>
+                      </div>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${isRefunded ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}`}>{receipt.status}</span>
+                      <p className={`text-sm font-bold ${isRefunded ? 'text-rose-700' : 'text-gray-900'}`}>${Number(receipt.amount || 0).toFixed(2)} <span className="text-xs font-normal text-gray-400">{receipt.currency}</span></p>
+                      <span className="text-violet-600 opacity-0 group-hover:opacity-100">View →</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="px-6 py-10 text-center text-sm text-gray-500">No matching transactions.</div>
+            )
+          ) : metricProfiles.length ? (
+            <div className="divide-y divide-gray-100">
+              {metricProfiles.map(profileItem => {
+                const expires = profileItem.plan_expires_at ? new Date(profileItem.plan_expires_at) : null;
+                const isFree = !profileItem.plan || profileItem.plan === 'free';
+                const isExpired = Boolean(expires && expires < new Date());
+                return (
+                  <Link key={profileItem.id} href={`/admin/billing/users/${profileItem.id}`} className="flex items-center gap-4 px-6 py-4 hover:bg-violet-50/60 transition-colors group">
+                    <div className="h-10 w-10 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-bold">{(profileItem.full_name || profileItem.email || 'U')[0].toUpperCase()}</div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-gray-900">{profileItem.full_name || 'Unnamed learner'}</p>
+                      <p className="text-xs text-gray-400 truncate">{profileItem.email}</p>
+                    </div>
+                    <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${isFree ? 'bg-gray-100 text-gray-600' : isExpired ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                      {isFree ? 'Free' : isExpired ? 'Expired' : 'Active'}
+                    </span>
+                    <p className="text-sm capitalize text-gray-600">{profileItem.plan || 'free'}{profileItem.plan_period ? ` · ${profileItem.plan_period}` : ''}</p>
+                    <span className="text-violet-600 opacity-0 group-hover:opacity-100">View →</span>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="px-6 py-10 text-center text-sm text-gray-500">No matching learners.</div>
+          )}
+        </section>
+      )}
 
       <div id="all-users" className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden scroll-mt-6">
         <div className="px-6 py-4 border-b border-gray-100"><h3 className="font-bold text-gray-900">All Users</h3></div>
