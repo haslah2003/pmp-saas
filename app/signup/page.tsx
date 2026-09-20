@@ -75,7 +75,7 @@ function SignupForm() {
       await supabase
         .from("profiles")
         .update({
-          active_framework: "pmbok7",
+          active_framework: "pmbok8",
           selected_plan: planId,
           selected_period: period,
         })

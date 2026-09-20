@@ -15,7 +15,7 @@ export type ExamPathConfig = {
   copy: Record<AppLocale, ExamPathCopy>
 }
 
-export const EXAM_PATH_ORDER: ExamPathId[] = ['pmbok7', 'pmbok8', 'bridge']
+export const EXAM_PATH_ORDER: ExamPathId[] = ['pmbok8', 'bridge', 'pmbok7']
 
 export const EXAM_PATHS: Record<ExamPathId, ExamPathConfig> = {
   pmbok7: {
@@ -23,25 +23,25 @@ export const EXAM_PATHS: Record<ExamPathId, ExamPathConfig> = {
     color: '#2563eb',
     copy: {
       en: {
-        label: 'Current PMP Path',
+        label: 'Retired PMP Path',
         shortLabel: 'PMBOK 7 + ECO 2021',
-        badge: 'Current Path',
-        description: 'For candidates taking the PMP exam before 9 July 2026.',
-        seoHint: 'PMP exam preparation aligned with PMBOK 7 and ECO 2021.',
+        badge: 'Legacy Path',
+        description: 'Archived PMBOK 7 and ECO 2021 preparation retained for transition reference.',
+        seoHint: 'Archived PMP preparation aligned with PMBOK 7 and ECO 2021.',
       },
       ar: {
-        label: 'المسار الحالي لاختبار PMP',
+        label: 'مسار PMP المتقاعد',
         shortLabel: 'PMBOK 7 + ECO 2021',
-        badge: 'المسار الحالي',
-        description: 'مناسب للمرشحين الذين سيجتازون اختبار PMP قبل 9 يوليو 2026.',
-        seoHint: 'تحضير لاختبار PMP وفق PMBOK 7 ومخطط ECO 2021.',
+        badge: 'المسار السابق',
+        description: 'محتوى مؤرشف وفق PMBOK 7 وECO 2021، محفوظ كمرجع للانتقال.',
+        seoHint: 'تحضير PMP مؤرشف وفق PMBOK 7 ومخطط ECO 2021.',
       },
       fr: {
-        label: 'Parcours PMP actuel',
+        label: 'Parcours PMP retiré',
         shortLabel: 'PMBOK 7 + ECO 2021',
-        badge: 'Parcours actuel',
-        description: 'Pour les candidats qui passent l’examen PMP avant le 9 juillet 2026.',
-        seoHint: 'Préparation PMP alignée sur PMBOK 7 et ECO 2021.',
+        badge: 'Ancien parcours',
+        description: 'Préparation PMBOK 7 et ECO 2021 archivée comme référence de transition.',
+        seoHint: 'Préparation PMP archivée alignée sur PMBOK 7 et ECO 2021.',
       },
     },
   },
@@ -50,24 +50,24 @@ export const EXAM_PATHS: Record<ExamPathId, ExamPathConfig> = {
     color: '#7c3aed',
     copy: {
       en: {
-        label: 'New PMP Path',
+        label: 'Current PMP Path',
         shortLabel: 'PMBOK 8 + ECO 2026',
-        badge: 'New Exam Path',
-        description: 'For candidates taking the PMP exam on or after 9 July 2026.',
+        badge: 'Current Exam Path',
+        description: 'The current PMP preparation path, aligned with PMBOK 8 and ECO 2026.',
         seoHint: 'PMP exam preparation aligned with PMBOK 8 and ECO 2026.',
       },
       ar: {
-        label: 'المسار الجديد لاختبار PMP',
+        label: 'المسار الحالي لاختبار PMP',
         shortLabel: 'PMBOK 8 + ECO 2026',
-        badge: 'مسار الاختبار الجديد',
-        description: 'مناسب للمرشحين الذين سيجتازون اختبار PMP في 9 يوليو 2026 أو بعده.',
+        badge: 'مسار الاختبار الحالي',
+        description: 'مسار التحضير الحالي لاختبار PMP، والمتوافق مع PMBOK 8 وECO 2026.',
         seoHint: 'تحضير لاختبار PMP وفق PMBOK 8 ومخطط ECO 2026.',
       },
       fr: {
-        label: 'Nouveau parcours PMP',
+        label: 'Parcours PMP actuel',
         shortLabel: 'PMBOK 8 + ECO 2026',
-        badge: 'Nouveau parcours',
-        description: 'Pour les candidats qui passent l’examen PMP à partir du 9 juillet 2026.',
+        badge: 'Parcours actuel',
+        description: 'Le parcours PMP actuel, aligné sur PMBOK 8 et ECO 2026.',
         seoHint: 'Préparation PMP alignée sur PMBOK 8 et ECO 2026.',
       },
     },
@@ -106,7 +106,7 @@ export function isExamPathId(value: unknown): value is ExamPathId {
 }
 
 export function normalizeExamPath(value: unknown): ExamPathId {
-  return isExamPathId(value) ? value : 'pmbok7'
+  return isExamPathId(value) ? value : 'pmbok8'
 }
 
 export function normalizeAppLocale(value: unknown): AppLocale {

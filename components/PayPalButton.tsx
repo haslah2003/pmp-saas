@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { PlanId, Period } from '@/lib/plans'
 import { trackBeginCheckout } from '@/lib/analytics/track'
 
@@ -50,7 +49,6 @@ export default function PayPalButton({
   amount,
   planName,
 }: PayPalButtonProps) {
-  const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
 
   const [loaded, setLoaded] = useState(false)
@@ -175,7 +173,9 @@ export default function PayPalButton({
               ...(result.receiptId ? { receiptId: result.receiptId } : {}),
             })
 
-            router.push(`/dashboard/payment/success?${params.toString()}`)
+            // Reload the dashboard shell after activation. A client-side
+            // transition would preserve the pre-payment (free-tier) sidebar.
+            window.location.assign(`/dashboard/payment/success?${params.toString()}`)
           } catch (err) {
             const msg = err instanceof Error ? err.message : 'Payment failed'
             setError(msg)
@@ -213,7 +213,7 @@ export default function PayPalButton({
     return () => {
       cancelled = true
     }
-  }, [loaded, planId, period, router, containerId])
+  }, [loaded, planId, period, amount, containerId])
 
   return (
     <div className="w-full">
