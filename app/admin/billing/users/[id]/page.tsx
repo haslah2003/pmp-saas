@@ -53,6 +53,7 @@ export default async function AdminBillingUserPage({ params }: Props) {
   const refundedTotal = refunded.reduce((sum, item) => sum + Number(item.amount || 0), 0)
   const expiry = learner.plan_expires_at ? new Date(learner.plan_expires_at) : null
   const active = learner.plan !== 'free' && expiry && expiry > new Date()
+  const accountType = learner.role === 'admin' ? 'Administrator' : 'Learner'
 
   return (
     <div className="space-y-6">
@@ -80,7 +81,7 @@ export default async function AdminBillingUserPage({ params }: Props) {
         <h2 className="font-bold text-gray-900">Account &amp; access details</h2>
         <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <Field label="User ID" value={<span className="font-mono text-xs">{learner.id}</span>} />
-          <Field label="Role" value={learner.role} />
+          <Field label="Account type" value={accountType} />
           <Field label="Current plan" value={learner.plan || 'free'} />
           <Field label="Plan period" value={learner.plan_period} />
           <Field label="Access expires" value={formatDate(learner.plan_expires_at)} />
