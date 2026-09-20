@@ -25,6 +25,7 @@ interface Props {
   learnerEmail: string
   logoUrl: string | null
   siteName: string
+  adminView?: boolean
 }
 
 const PLAN_NAMES: Record<string, string> = {
@@ -48,7 +49,7 @@ const PLAN_ICONS: Record<string, string> = {
 const RECEIPT_STRINGS = {
   en: {
     dashboard: 'Dashboard', billing: 'Billing', receipt: 'Receipt', print: '🖨️ Print / Save PDF',
-    platform: 'PMPeco Learning Platform', paymentReceipt: 'Payment Receipt', paid: 'PAID',
+    platform: 'PMPeco Learning Platform', paymentReceipt: 'Payment Receipt / Invoice', paid: 'PAID', refunded: 'REFUNDED',
     billedTo: 'Billed To', from: 'From', description: 'Description', period: 'Period', amount: 'Amount',
     totalPaid: 'Total Paid', transactionDetails: 'Transaction Details', paymentMethod: 'Payment Method',
     dateTime: 'Date & Time', orderId: 'Order ID', transactionId: 'Transaction ID',
@@ -60,7 +61,7 @@ const RECEIPT_STRINGS = {
   },
   ar: {
     dashboard: 'لوحة التحكم', billing: 'الفوترة', receipt: 'الإيصال', print: '🖨️ طباعة / حفظ PDF',
-    platform: 'منصة PMPeco التعليمية', paymentReceipt: 'إيصال الدفع', paid: 'مدفوع',
+    platform: 'منصة PMPeco التعليمية', paymentReceipt: 'إيصال الدفع / الفاتورة', paid: 'مدفوع', refunded: 'مسترد',
     billedTo: 'فاتورة إلى', from: 'من', description: 'الوصف', period: 'الفترة', amount: 'المبلغ',
     totalPaid: 'إجمالي المدفوع', transactionDetails: 'تفاصيل المعاملة', paymentMethod: 'طريقة الدفع',
     dateTime: 'التاريخ والوقت', orderId: 'رقم الطلب', transactionId: 'رقم المعاملة',
@@ -72,7 +73,7 @@ const RECEIPT_STRINGS = {
   },
 }
 
-export default function ReceiptClient({ receipt, learnerName, learnerEmail, logoUrl, siteName }: Props) {
+export default function ReceiptClient({ receipt, learnerName, learnerEmail, logoUrl, siteName, adminView = false }: Props) {
   const { isArabic, dir } = useLanguage()
   const L = RECEIPT_STRINGS[isArabic ? 'ar' : 'en']
   const dateLocale = isArabic ? 'ar' : 'en-US'
@@ -92,6 +93,8 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
     ? ['📖 مكتبة الدروس', '🤖 مدرّس Zane الذكي', '🎯 محرّك التدريب', '📊 لوحة متابعة التقدم']
     : ['📖 Course Library', '🤖 Zane AI Tutor', '🎯 Practice Engine', '📊 Progress Dashboard'])
   const periodLabel = receipt.plan_period === 'annual' || receipt.plan_period === 'sprint90' ? L.sprint : L.monthly
+  const isRefunded = receipt.status === 'refunded'
+  const backHref = adminView ? `/admin/billing/${receipt.id}` : '/dashboard/billing'
 
   const handlePrint = () => window.print()
 
@@ -115,7 +118,7 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
           <div className="flex items-center gap-2 text-sm text-gray-400" dir={dir}>
             <Link href="/dashboard" className="hover:text-gray-700">{L.dashboard}</Link>
             <span>/</span>
-            <Link href="/dashboard/billing" className="hover:text-gray-700">{L.billing}</Link>
+            <Link href={backHref} className="hover:text-gray-700">{adminView ? 'Admin transaction' : L.billing}</Link>
             <span>/</span>
             <span className="text-gray-700 font-medium">{L.receipt}</span>
           </div>
@@ -153,12 +156,12 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
             </div>
 
             {/* ═══ Status + Date ═══ */}
-            <div className="px-6 py-3 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between">
+            <div className={`px-6 py-3 border-b flex items-center justify-between ${isRefunded ? 'bg-rose-50 border-rose-100' : 'bg-emerald-50 border-emerald-100'}`}>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-emerald-500 rounded-full" />
-                <span className="text-xs font-bold text-emerald-700">{L.paid}</span>
+                <span className={`w-2 h-2 rounded-full ${isRefunded ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                <span className={`text-xs font-bold ${isRefunded ? 'text-rose-700' : 'text-emerald-700'}`}>{isRefunded ? L.refunded : L.paid}</span>
               </div>
-              <span className="text-xs text-emerald-600">{formattedDate} · {formattedTime}</span>
+              <span className={`text-xs ${isRefunded ? 'text-rose-600' : 'text-emerald-600'}`}>{formattedDate} · {formattedTime}</span>
             </div>
 
             {/* ═══ Bill To / From ═══ */}
@@ -261,7 +264,7 @@ export default function ReceiptClient({ receipt, learnerName, learnerEmail, logo
 
           {/* Actions — no print */}
           <div className="mt-4 flex justify-center gap-4 no-print">
-            <Link href="/dashboard/billing" className="text-sm text-violet-500 hover:underline font-medium">{L.backBilling}</Link>
+            <Link href={backHref} className="text-sm text-violet-500 hover:underline font-medium">{adminView ? '← Transaction details' : L.backBilling}</Link>
             <Link href="/dashboard" className="text-sm text-gray-400 hover:underline font-medium">{L.toDashboard}</Link>
           </div>
         </div>

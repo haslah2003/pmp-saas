@@ -16,19 +16,23 @@ export default async function ReceiptPage({ params }: Props) {
 
   const adminSupabase = createAdminClient()
 
-  const { data: receipt } = await adminSupabase
-    .from('payment_receipts')
-    .select('*')
-    .eq('id', id)
-    .eq('user_id', user.id)
+  const { data: requester } = await adminSupabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
     .single()
+
+  let receiptQuery = adminSupabase.from('payment_receipts').select('*').eq('id', id)
+  if (requester?.role !== 'admin') receiptQuery = receiptQuery.eq('user_id', user.id)
+
+  const { data: receipt } = await receiptQuery.single()
 
   if (!receipt) notFound()
 
   const { data: profile } = await adminSupabase
     .from('profiles')
     .select('full_name, email')
-    .eq('id', user.id)
+    .eq('id', receipt.user_id)
     .single()
 
   // Get branding logo
@@ -45,6 +49,7 @@ export default async function ReceiptPage({ params }: Props) {
       learnerEmail={profile?.email || ''}
       logoUrl={branding?.logo_url || null}
       siteName={branding?.site_name || 'PMPeco'}
+      adminView={requester?.role === 'admin'}
     />
   )
 }

@@ -25,7 +25,7 @@ export default async function AdminBillingPage() {
   // not billing_history. Read the real source of truth.
   const { data: allReceipts } = await admin
     .from("payment_receipts")
-    .select("id, user_id, receipt_number, plan, plan_period, amount, currency, status, payer_email, payer_name, paypal_order_id, created_at")
+    .select("id, user_id, receipt_number, plan, plan_period, amount, currency, status, payer_email, payer_name, paypal_order_id, paypal_capture_id, created_at")
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -34,6 +34,7 @@ export default async function AdminBillingPage() {
   const isTestReceipt = (r: { payer_email?: string | null; paypal_order_id?: string | null }) =>
     (r.payer_email || "").includes(".example.com") || (r.paypal_order_id || "").toUpperCase().startsWith("TEST-");
   const paidReceipts = (allReceipts || []).filter(r => r.status === "paid");
+  const refundedReceipts = (allReceipts || []).filter(r => r.status === "refunded");
   const realReceipts = paidReceipts.filter(r => !isTestReceipt(r));
   const testReceiptCount = paidReceipts.length - realReceipts.length;
 
@@ -41,12 +42,16 @@ export default async function AdminBillingPage() {
   const paidUsers = allProfiles?.filter(p => p.plan && p.plan !== 'free').length || 0;
   const activeUsers = allProfiles?.filter(p => p.plan && p.plan !== 'free' && p.plan_expires_at && new Date(p.plan_expires_at) > new Date()).length || 0;
   const totalRevenue = realReceipts.reduce((sum, r) => sum + parseFloat(r.amount || '0'), 0);
+  const totalRefunded = refundedReceipts
+    .filter(r => !isTestReceipt(r))
+    .reduce((sum, r) => sum + parseFloat(r.amount || '0'), 0);
 
   const metrics = [
     { label: 'Total Users', value: totalUsers, icon: '👥', color: 'bg-blue-50 text-blue-700' },
     { label: 'Paid Subscribers', value: paidUsers, icon: '💎', color: 'bg-purple-50 text-purple-700' },
     { label: 'Active Now', value: activeUsers, icon: '✅', color: 'bg-emerald-50 text-emerald-700' },
-    { label: 'Real Revenue', value: `$${totalRevenue.toFixed(2)}`, icon: '💰', color: 'bg-amber-50 text-amber-700' },
+    { label: 'Net Revenue', value: `$${totalRevenue.toFixed(2)}`, icon: '💰', color: 'bg-amber-50 text-amber-700' },
+    { label: 'Refunded', value: `$${totalRefunded.toFixed(2)}`, icon: '↩️', color: 'bg-rose-50 text-rose-700' },
   ];
 
   const emailById = new Map((allProfiles || []).map(p => [p.id, p.email] as const));
@@ -58,7 +63,7 @@ export default async function AdminBillingPage() {
         <p className="text-sm text-gray-500 mt-1">Revenue overview, subscriber management, and payment history.</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {metrics.map(m => (
           <div key={m.label} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-3 ${m.color}`}>{m.icon}</div>
@@ -123,18 +128,30 @@ export default async function AdminBillingPage() {
           )}
         </div>
         <div className="divide-y divide-gray-50">
-          {paidReceipts.length > 0 ? paidReceipts.map((r) => {
+          {(allReceipts || []).length > 0 ? (allReceipts || []).map((r) => {
             const isTest = isTestReceipt(r);
+            const isRefunded = r.status === 'refunded';
             return (
-              <Link key={r.id} href={`/dashboard/receipt/${r.id}`} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-base ${isTest ? 'bg-amber-100' : 'bg-emerald-100'}`}>{isTest ? '🧪' : '✅'}</div>
+              <Link key={r.id} href={`/admin/billing/${r.id}`} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors group">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-base ${isTest ? 'bg-amber-100' : isRefunded ? 'bg-rose-100' : 'bg-emerald-100'}`}>
+                  {isTest ? '🧪' : isRefunded ? '↩️' : '✅'}
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 capitalize">{r.plan} ({r.plan_period}) {isTest && <span className="text-[10px] font-bold text-amber-600 uppercase ml-1">test</span>}</p>
+                  <p className="text-sm font-semibold text-gray-900 capitalize flex items-center gap-2">
+                    {r.plan} ({r.plan_period})
+                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${isRefunded ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                      {r.status}
+                    </span>
+                    {isTest && <span className="text-[10px] font-bold text-amber-600 uppercase">test</span>}
+                  </p>
                   <p className="text-xs text-gray-400 truncate">
                     {r.receipt_number || r.paypal_order_id || '—'} · {emailById.get(r.user_id) || r.payer_email || 'unknown'} · {new Date(r.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </p>
                 </div>
-                <p className="text-sm font-bold text-gray-900">${r.amount} <span className="text-xs text-gray-400 font-normal">{r.currency}</span></p>
+                <div className="text-right">
+                  <p className={`text-sm font-bold ${isRefunded ? 'text-rose-700' : 'text-gray-900'}`}>${r.amount} <span className="text-xs text-gray-400 font-normal">{r.currency}</span></p>
+                  <p className="text-xs text-violet-600 opacity-0 group-hover:opacity-100 transition-opacity">View details →</p>
+                </div>
               </Link>
             );
           }) : (
