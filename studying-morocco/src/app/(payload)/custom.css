@@ -1,0 +1,286 @@
+/* Contact fields read left-to-right even when the content locale is Arabic. */
+input#field-phone,
+input#field-email,
+input#field-reference,
+input#field-website,
+input#field-whatsapp,
+input#field-slug,
+input#field-link,
+input#field-href {
+  direction: ltr;
+  text-align: left;
+}
+
+/* ── Admin dashboard (Payload theme variables keep it right in light & dark) ── */
+.sim-dash {
+  --sim-s1: #00806b;
+  --sim-s2: #b8862e;
+  --sim-radius: 14px;
+  margin-bottom: calc(var(--base) * 2);
+  display: grid;
+  gap: calc(var(--base) * 1.25);
+}
+[data-theme='dark'] .sim-dash {
+  --sim-s1: #1fa088;
+  --sim-s2: #b98a30;
+}
+.sim-dash h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+.sim-dash h2 {
+  margin: 0 0 calc(var(--base) * 0.75);
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.sim-dash h2 a {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.sim-dash__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--base);
+}
+.sim-dash__head p {
+  margin: 4px 0 0;
+  color: var(--theme-elevation-600);
+}
+.sim-range {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--theme-elevation-100);
+}
+.sim-range a {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  text-decoration: none;
+  color: var(--theme-elevation-700);
+}
+.sim-range a[aria-current='true'] {
+  background: var(--theme-elevation-0);
+  color: var(--theme-text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+}
+.sim-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: calc(var(--base) * 0.75);
+}
+.sim-tile,
+.sim-card {
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--sim-radius);
+  padding: calc(var(--base) * 0.9);
+}
+.sim-tile__label {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--theme-elevation-600);
+}
+.sim-tile__value {
+  margin: 6px 0 4px;
+  font-size: 1.9rem;
+  font-weight: 650;
+  line-height: 1.1;
+}
+.sim-delta {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.sim-delta--up {
+  color: var(--theme-success-600, #15803d);
+}
+.sim-delta--down {
+  color: var(--theme-error-600, #b42318);
+}
+.sim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: calc(var(--base) * 0.75);
+}
+.sim-chart {
+  position: relative;
+}
+.sim-chart__plot {
+  position: relative;
+}
+.sim-chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  touch-action: none;
+}
+.sim-grid line,
+.sim-chart .sim-grid {
+  stroke: var(--theme-elevation-100);
+  stroke-width: 1;
+}
+.sim-axis {
+  fill: var(--theme-elevation-500);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+.sim-crosshair {
+  stroke: var(--theme-elevation-400);
+  stroke-width: 1;
+}
+.sim-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 0.82rem;
+  color: var(--theme-elevation-700);
+  margin-bottom: 6px;
+}
+.sim-legend i,
+.sim-tooltip i {
+  display: inline-block;
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-inline-end: 4px;
+}
+.sim-tooltip {
+  position: absolute;
+  top: 4px;
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  background: var(--theme-elevation-900);
+  color: var(--theme-elevation-0);
+  border-radius: 10px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+}
+.sim-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.sim-bars li {
+  display: grid;
+  grid-template-columns: minmax(0, 9rem) 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+.sim-bars__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--theme-elevation-800);
+}
+.sim-bars__track {
+  height: 12px;
+}
+.sim-bars__fill {
+  display: block;
+  height: 100%;
+  background: var(--sim-s1);
+  border-start-end-radius: 4px;
+  border-end-end-radius: 4px;
+}
+.sim-bars__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  min-width: 2.5ch;
+  text-align: end;
+}
+.sim-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.sim-table td {
+  padding: 8px 6px;
+  border-top: 1px solid var(--theme-elevation-100);
+}
+.sim-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--theme-elevation-100);
+}
+.sim-status--new {
+  background: color-mix(in oklab, var(--sim-s2) 22%, transparent);
+}
+.sim-status--offer,
+.sim-status--enrolled {
+  background: color-mix(in oklab, var(--sim-s1) 22%, transparent);
+}
+.sim-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.sim-split ul,
+.sim-issues {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  font-size: 0.86rem;
+}
+.sim-split li {
+  display: flex;
+  justify-content: space-between;
+  text-transform: capitalize;
+}
+.sim-issues a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--theme-elevation-50);
+  text-decoration: none;
+  color: var(--theme-text);
+}
+.sim-issues strong {
+  color: var(--theme-error-600, #b42318);
+}
+.sim-ok {
+  color: var(--theme-success-600, #15803d);
+  margin: 0;
+}
+.sim-empty {
+  margin: 0;
+  color: var(--theme-elevation-500);
+  font-size: 0.86rem;
+}
+.sim-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.sim-actions a {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--theme-elevation-150);
+  text-decoration: none;
+  color: var(--theme-text);
+  font-weight: 500;
+  font-size: 0.88rem;
+}
+.sim-actions a:hover {
+  border-color: var(--sim-s1);
+}
+.sim-card--wide {
+  overflow: hidden;
+}
