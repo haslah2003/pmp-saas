@@ -5,7 +5,7 @@
   "description": "Studying in Morocco — bilingual (Arabic/English) study-abroad platform with a Payload CMS back-office, by KNO Academy.",
   "type": "module",
   "engines": {
-    "node": "^22.23.4 || >=24.22.1"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "next dev",
@@ -18,7 +18,7 @@
     "migrate": "payload migrate",
     "migrate:create": "payload migrate:create",
     "seed": "payload run src/seed/run.ts",
-    "ci": "payload migrate && next build"
+    "ci": "sh scripts/build.sh"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.92.0",

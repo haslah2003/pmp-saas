@@ -89,9 +89,9 @@ In development the database schema is synced automatically. When you change coll
 1. **Database** — create a PostgreSQL database (Supabase or Neon both work). With Supabase use the *Session pooler* connection string.
 2. **Media storage** — in Vercel → Storage, create a **Blob** store and copy its `BLOB_READ_WRITE_TOKEN`.
 3. **New Vercel project** — import this repository (framework: Next.js, root directory: the repository root).
-4. **Build command** — `npm run ci` (runs database migrations, then builds).
+4. **Build settings** — already in `vercel.json`: build command `npm run ci` (applies database migrations on production builds only, then builds) and functions in Frankfurt (`fra1`); put the database in the same region.
 5. **Environment variables** — `DATABASE_URL`, `PAYLOAD_SECRET` (`openssl rand -hex 32`), `NEXT_PUBLIC_SITE_URL` (e.g. `https://studyinmorocco.com`), `BLOB_READ_WRITE_TOKEN`, and optionally `SMTP_*` for email notifications. See `.env.example`.
-6. **Node version** — Project Settings → Node.js 24.x.
+6. **Node version** — 24.x (set by `engines` in `package.json`).
 7. Deploy, then load the starter content once from your computer:
    ```bash
    DATABASE_URL="<production url>" PAYLOAD_SECRET="<same secret>" NODE_ENV=production npm run seed

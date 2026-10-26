@@ -4,8 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { withPayload } from '@payloadcms/next/withPayload'
 import type { NextConfig } from 'next'
 
-// This app lives inside another repository; pin the root so Next.js does not
-// pick up the parent project's files (instrumentation, lockfile, etc.).
+// Pin the project root so Turbopack and output file tracing never look above this app.
 const root = path.dirname(fileURLToPath(import.meta.url))
 
 const securityHeaders = [
