@@ -32,14 +32,12 @@ export function LanguageSwitch({
         document.cookie = `NEXT_LOCALE=${target};path=/;max-age=31536000;samesite=lax`
       }}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition hover:bg-ink/5',
+        'inline-flex min-h-11 items-center gap-1.5 rounded-control px-3 text-small font-semibold text-primary transition-colors hover:bg-canvas',
         className,
       )}
     >
       <Globe className="size-4" aria-hidden="true" />
-      <span className={target === 'ar' ? 'font-[family-name:var(--font-plex-arabic)]' : 'font-[family-name:var(--font-jakarta)]'}>
-        {label}
-      </span>
+      {label}
     </Link>
   )
 }

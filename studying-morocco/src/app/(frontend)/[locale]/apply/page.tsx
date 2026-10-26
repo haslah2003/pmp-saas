@@ -1,8 +1,10 @@
-import { Clock, Lock, MessageCircle, ShieldCheck } from 'lucide-react'
+import { Clock, Lock, ShieldCheck } from 'lucide-react'
 import type { Metadata } from 'next'
 
-import { StarOrnament } from '@/components/art/Ornaments'
 import { ApplyWizard, type ApplyInitial } from '@/components/forms/ApplyWizard'
+import { buttonClass } from '@/components/ui/Button'
+import { Eyebrow } from '@/components/ui/Section'
+import { SocialIcon } from '@/components/ui/SocialIcon'
 import { serviceKeys, studyLevels } from '@/lib/options'
 import { param, resolveLocale, type LocaleParams, type SearchParams } from '@/lib/page'
 import { getCities, getDisciplines, getPrograms, getSettings, getUniversities } from '@/lib/queries'
@@ -50,14 +52,12 @@ export default async function ApplyPage({ params, searchParams }: { params: Loca
   const reassurance = t.apply.reassure.map((text, i) => ({ icon: icons[i] ?? ShieldCheck, text }))
 
   return (
-    <div className="pattern-zellige text-primary [--pattern-opacity:0.035]">
-      <div className="container-page grid gap-10 py-12 text-ink lg:grid-cols-[1fr_20rem] lg:py-16">
+    <div className="bg-canvas">
+      <div className="container-page grid gap-10 py-section lg:grid-cols-[1fr_20rem]">
         <div>
-          <p className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
-            <StarOrnament className="size-3.5 text-accent" /> {t.meta.siteName}
-          </p>
-          <h1 className="mt-3 text-4xl sm:text-5xl">{t.apply.title}</h1>
-          <p className="mt-4 max-w-2xl text-lg text-ink/75">{t.apply.intro}</p>
+          <Eyebrow>{t.meta.siteName}</Eyebrow>
+          <h1 className="mt-3">{t.apply.title}</h1>
+          <p className="mt-4 max-w-2xl text-body text-ink">{t.apply.intro}</p>
           <div className="mt-8">
             <ApplyWizard
               locale={locale}
@@ -77,8 +77,8 @@ export default async function ApplyPage({ params, searchParams }: { params: Loca
         </div>
         <aside className="space-y-4 lg:pt-36">
           {reassurance.map((r, i) => (
-            <div key={i} className="flex items-start gap-3 rounded-2xl border border-line bg-surface p-4 text-sm leading-relaxed text-ink/80">
-              <r.icon className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" /> {r.text}
+            <div key={i} className="flex items-start gap-3 rounded-card border border-line bg-surface p-4 text-small text-ink">
+              <r.icon className="mt-1 size-5 shrink-0 text-primary" aria-hidden="true" /> {r.text}
             </div>
           ))}
           {settings.whatsapp && (
@@ -87,9 +87,9 @@ export default async function ApplyPage({ params, searchParams }: { params: Loca
               target="_blank"
               rel="noopener noreferrer"
               data-track="whatsapp_apply"
-              className="flex items-center gap-3 rounded-2xl bg-[#1f9d55] p-4 text-sm font-semibold text-white"
+              className={buttonClass('secondary', 'md', 'w-full')}
             >
-              <MessageCircle className="size-5" aria-hidden="true" /> {t.whatsapp.label}
+              <SocialIcon name="whatsapp" className="size-5" /> {t.whatsapp.label}
             </a>
           )}
         </aside>

@@ -10,7 +10,14 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Studying in Morocco — project guidance
 
-A self-contained app that lives in `studying-morocco/` inside the PMPeco repository. It shares nothing with PMPeco: its own `package.json`, `node_modules`, database and deployment. The root `tsconfig.json` excludes this folder.
+A standalone app for KNO Academy with its own repository, database, media storage and Vercel project.
+
+## Brand rules (KNO Academy Web Branding & UI Governance Guidelines)
+
+- Only the brand tokens in `src/app/(frontend)/globals.css` exist (`primary`, `cta`, `cta-hover`, `cta-active`, `ink`, `muted`, `line`, `surface`, `canvas`, `white`). Never add colours, gradients, blur blobs, patterns behind text or illustrations.
+- Sizes come from `text-h1`…`text-h4`, `text-body`, `text-small`, `text-btn`; headings take their size from the element. Breakpoints are `md`/`lg`/`xl` only; never 3 columns below `lg`.
+- Use `LinkButton`/`Button`/`buttonClass` for every button (`primary` amber or `secondary` outline; `light` on purple). Text is start-aligned; never centre reading text.
+- Spacing: `py-section`, `p-card`, `gap-grid`. Mark purple bands with `on-dark` so headings and focus rings switch colour.
 
 ## Stack
 

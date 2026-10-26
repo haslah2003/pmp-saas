@@ -12,25 +12,24 @@ export function ServiceCard({ service, locale, t, compact = false }: { service: 
   return (
     <Link
       href={`/${locale}/services/${service.slug}`}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface p-6 shadow-soft transition duration-300 hover:-translate-y-1 hover:border-primary-200 hover:shadow-lift"
+      className="group flex h-full flex-col rounded-card border border-line bg-surface p-card transition-colors hover:border-primary"
     >
-      <span className="absolute -end-10 -top-10 size-32 rounded-full bg-primary-50 transition duration-500 group-hover:scale-125" aria-hidden="true" />
-      <span className="relative inline-flex size-12 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_10px_24px_-10px_var(--color-primary)]">
+      <span className="inline-flex size-12 items-center justify-center rounded-control bg-canvas text-primary">
         <Icon name={service.icon} className="size-6" />
       </span>
-      <h3 className="relative mt-5 text-lg font-bold text-ink">{service.title}</h3>
-      {service.summary && <p className="relative mt-2 text-[0.95rem] leading-relaxed text-ink/75">{service.summary}</p>}
+      <h3 className="mt-5 text-h4">{service.title}</h3>
+      {service.summary && <p className="mt-2 text-ink">{service.summary}</p>}
       {!compact && !!service.features?.length && (
-        <ul className="relative mt-4 space-y-2 text-sm text-ink/80">
+        <ul className="mt-4 space-y-2 text-small text-ink">
           {service.features.slice(0, 3).map((f) => (
             <li key={f.id ?? f.text} className="flex items-start gap-2">
-              <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+              <Check className="mt-1 size-4 shrink-0 text-primary" aria-hidden="true" />
               {f.text}
             </li>
           ))}
         </ul>
       )}
-      <div className={cn('relative mt-auto flex items-center justify-between pt-5 text-sm', !compact && 'border-t border-line mt-5')}>
+      <div className={cn('mt-auto flex items-center justify-between pt-5 text-small', !compact && 'mt-5 border-t border-line')}>
         <span className="text-muted">
           {service.priceFrom != null ? (
             <>
@@ -40,7 +39,7 @@ export function ServiceCard({ service, locale, t, compact = false }: { service: 
             t.common.learnMore
           )}
         </span>
-        <ArrowUpRight className="size-5 text-primary transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 rtl:-scale-x-100" aria-hidden="true" />
+        <ArrowUpRight className="size-5 text-primary rtl:-scale-x-100" aria-hidden="true" />
       </div>
     </Link>
   )

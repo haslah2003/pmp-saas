@@ -8,6 +8,8 @@ import type { Dictionary } from '@/i18n'
 import type { Locale } from '@/lib/options'
 
 import { trackEvent } from '../layout/Tracker'
+import { buttonClass } from '@/components/ui/Button'
+
 import { Honeypot, inputClass } from './fields'
 
 export function NewsletterForm({ locale, t }: { locale: Locale; t: Pick<Dictionary, 'newsletter' | 'errors'> }) {
@@ -18,7 +20,7 @@ export function NewsletterForm({ locale, t }: { locale: Locale; t: Pick<Dictiona
 
   if (status === 'done')
     return (
-      <p className="flex items-center gap-2 rounded-2xl bg-primary-50 p-4 font-semibold text-primary-800" role="status">
+      <p className="flex items-center gap-2 rounded-card bg-canvas p-4 font-semibold text-primary" role="status">
         <CheckCircle2 className="size-5" aria-hidden="true" /> {t.newsletter.success}
       </p>
     )
@@ -38,7 +40,7 @@ export function NewsletterForm({ locale, t }: { locale: Locale; t: Pick<Dictiona
       }}
     >
       <Honeypot value={website} onChange={setWebsite} />
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="flex flex-col gap-2 md:flex-row">
         <label htmlFor="newsletter-email" className="sr-only">
           {t.newsletter.placeholder}
         </label>
@@ -55,14 +57,14 @@ export function NewsletterForm({ locale, t }: { locale: Locale; t: Pick<Dictiona
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-primary px-6 font-semibold text-white transition hover:bg-primary-700 disabled:opacity-60"
+          className={buttonClass('primary', 'md', 'min-h-12')}
         >
           <Send className="size-4 rtl:-scale-x-100" aria-hidden="true" />
           {t.newsletter.submit}
         </button>
       </div>
       {status !== 'idle' && (
-        <p className="mt-2 text-sm text-clay-700" role="alert">
+        <p className="mt-2 text-small font-semibold text-primary" role="alert">
           {status}
         </p>
       )}

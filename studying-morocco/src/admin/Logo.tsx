@@ -1,19 +1,19 @@
-import { BrandMark } from '@/components/brand/BrandMark'
+/* eslint-disable @next/next/no-img-element -- static brand files in the admin panel */
 
-const brand = { primary: '#0F6E5F', accent: '#D4A24C', inner: '#FBF8F2' }
-
+/** Login-screen logo: KNO Academy logo (light/dark admin themes) and the platform name. */
 export function Logo() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-      <BrandMark size={56} {...brand} />
-      <div style={{ lineHeight: 1.15 }}>
-        <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.01em' }}>Studying in Morocco</div>
-        <div style={{ fontSize: 15, opacity: 0.75 }}>الدراسة في المغرب · KNO Academy</div>
+    <div className="sim-logo">
+      <img className="sim-logo__light" src="/brand/kno-academy-logo.png" alt="KNO Academy" width={240} height={80} />
+      <img className="sim-logo__dark" src="/brand/kno-academy-logo-on-dark.png" alt="KNO Academy" width={240} height={80} />
+      <div className="sim-logo__name">
+        Studying in Morocco <span>· الدراسة في المغرب</span>
       </div>
     </div>
   )
 }
 
+/** Navigation icon: the KNO Academy mark. */
 export function Icon() {
-  return <BrandMark size={28} {...brand} />
+  return <img src="/brand/kno-academy-mark.svg" alt="KNO Academy" width={30} height={23} />
 }

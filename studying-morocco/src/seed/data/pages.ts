@@ -41,7 +41,6 @@ export const homePage = {
       variant: 'home',
       eyebrow: L('الدراسة في المغرب · نستقبل طلبات العام الجامعي 2027–2028', 'Study in Morocco · Now advising for the 2027–28 academic year'),
       heading: L('تعليم بمستوى عالمي، وثقافة قريبة منك، بجزء بسيط من التكلفة.', 'World-class study, a welcoming culture, at a fraction of the cost.'),
-      highlight: L('بجزء بسيط من التكلفة.', 'at a fraction of the cost.'),
       subheading: L(
         'نساعد الطلبة والعائلات من الخليج والمشرق وأوروبا وإفريقيا على الالتحاق بالجامعات المغربية — ونتولى كل ما يحيط بالدراسة: السكن، والاستقبال في المطار، والتنقل، والدعم الأكاديمي.',
         'We place students and families from the Gulf, the Levant, Europe and Africa at Moroccan universities — and handle everything around it: housing, airport pickup, transport and academic support.',
@@ -58,7 +57,6 @@ export const homePage = {
     { blockType: 'stats' },
     {
       blockType: 'featureGrid',
-      layout: 'bento',
       eyebrow: L('لماذا المغرب', 'Why Morocco'),
       heading: L('خيار ذكي لمستقبلك — ولميزانية عائلتك', 'A smart choice for your future — and your family’s budget'),
       intro: L('جامعات عريقة، وبيئة عربية مسلمة آمنة، وكلفة أقل بكثير من أوروبا وأمريكا الشمالية.', 'Respected universities, a safe Arab-Muslim environment and costs far below Europe and North America.'),
@@ -104,7 +102,7 @@ export const homePage = {
     },
     {
       blockType: 'citiesShowcase',
-      limit: 8,
+      limit: 6,
       eyebrow: L('المدن', 'Cities'),
       heading: L('اختر المدينة التي تناسب حياتك', 'Choose the city that fits your life'),
       intro: L('من الرباط الهادئة إلى الدار البيضاء النابضة وفاس العلمية وإفران الجبلية.', 'From calm Rabat to buzzing Casablanca, scholarly Fes and mountain Ifrane.'),
@@ -143,7 +141,6 @@ export const audiencePages = [
         variant: 'page',
         eyebrow: L('عُمان · الإمارات · قطر · السعودية · الكويت · البحرين', 'Oman · UAE · Qatar · Saudi Arabia · Kuwait · Bahrain'),
         heading: L('ادرس في المغرب، وعُد بشهادة معترف بها في بلدك', 'Study in Morocco — and come home with a recognised degree'),
-        highlight: L('معترف بها في بلدك', 'a recognised degree'),
         subheading: L(
           'القبول في المغرب أصبح أسهل منذ 2026. التحدي الحقيقي هو المعادلة عند العودة — ونحن نبدأ من هنا: الموافقة المسبقة، والقائمة الموصى بها، والدراسة الحضورية المنتظمة.',
           'Admission in Morocco became easier in 2026. The real challenge is recognition back home — and that is where we start: prior approval, the recommended list and regular in-person study.',
@@ -153,7 +150,6 @@ export const audiencePages = [
       },
       {
         blockType: 'featureGrid',
-        layout: 'grid',
         eyebrow: L('لماذا يختار طلبة الخليج المغرب', 'Why Gulf students choose Morocco'),
         heading: L('قريب منك ثقافيًا، وأقل كلفة بكثير', 'Culturally close, and far more affordable'),
         items: [
@@ -192,7 +188,6 @@ export const audiencePages = [
         variant: 'page',
         eyebrow: L('للعائلات من بريطانيا وأوروبا', 'For families in the UK & Europe'),
         heading: L('حياة أهدأ، وكلفة أقل، ومستقبل أفضل لأطفالكم', 'A calmer life, lower costs and a brighter future for your children'),
-        highlight: L('مستقبل أفضل لأطفالكم', 'a brighter future'),
         subheading: L(
           'ارتفاع كلفة المعيشة ورسوم المدارس، والشعور بالغربة أو التمييز — أسباب تدفع عائلات كثيرة إلى التفكير في المغرب. نساعدكم على اتخاذ القرار بالأرقام، ثم ننفذه معكم خطوة بخطوة.',
           'Rising living costs and school fees, and the feeling of not belonging or facing discrimination, lead many families to consider Morocco. We help you decide with real numbers — then make it happen, step by step.',
@@ -218,7 +213,6 @@ export const audiencePages = [
       },
       {
         blockType: 'featureGrid',
-        layout: 'grid',
         eyebrow: L('ما نقدمه للعائلات', 'What we do for families'),
         heading: L('انتقال منظم دون مفاجآت', 'A well-planned move without surprises'),
         items: [
@@ -248,14 +242,12 @@ export const audiencePages = [
         variant: 'page',
         eyebrow: L('الأردن · لبنان · سوريا · العراق · فلسطين', 'Jordan · Lebanon · Syria · Iraq · Palestine'),
         heading: L('شهادة جامعية مرموقة، بالعربية، وبكلفة في المتناول', 'A respected degree, in Arabic, at an affordable cost'),
-        highlight: L('بكلفة في المتناول', 'an affordable cost'),
         subheading: L('الجامعات العمومية المغربية مجانية في التوقيت العادي، وتقدم مسالك بالعربية في الآداب والشريعة والقانون. نرافقك في القبول والتأشيرة والسكن.', 'Moroccan public universities are free on the regular track and offer Arabic-taught tracks in letters, Sharia and law. We support you with admission, visas and housing.'),
         primaryCta: { label: L('احجز استشارة مجانية', 'Book a free consultation'), href: '/consultation' },
         secondaryCta: { label: L('تصفح البرامج العربية', 'Browse Arabic-taught programmes'), href: '/programs?lang=ar' },
       },
       {
         blockType: 'featureGrid',
-        layout: 'grid',
         eyebrow: L('لماذا المغرب', 'Why Morocco'),
         heading: L('الخيار الأقرب لغةً وثقافةً', 'The closest choice in language and culture'),
         items: [
@@ -282,14 +274,12 @@ export const audiencePages = [
         variant: 'page',
         eyebrow: L('السنغال · كوت ديفوار · مالي · غينيا · نيجيريا · وغيرها', 'Senegal · Côte d’Ivoire · Mali · Guinea · Nigeria · and more'),
         heading: L('المغرب، بوابتك إلى تعليم عالٍ إفريقي متميز', 'Morocco: your gateway to excellent African higher education'),
-        highlight: L('تعليم عالٍ إفريقي متميز', 'excellent African higher education'),
         subheading: L('منح المملكة المغربية عبر الوكالة المغربية للتعاون الدولي، ومنح سخية في جامعات مثل UM6P والجامعة الدولية للرباط، وبرامج بالفرنسية والإنجليزية.', 'Kingdom of Morocco scholarships through AMCI, generous scholarships at universities such as UM6P and UIR, and French- and English-taught programmes.'),
         primaryCta: { label: L('اكتشف المنح', 'Explore scholarships'), href: '/scholarships' },
         secondaryCta: { label: L('احجز استشارة مجانية', 'Book a free consultation'), href: '/consultation' },
       },
       {
         blockType: 'featureGrid',
-        layout: 'grid',
         eyebrow: L('فرص التمويل', 'Funding opportunities'),
         heading: L('منح مصممة للطلبة الأفارقة', 'Scholarships designed for African students'),
         items: [
@@ -319,7 +309,6 @@ export const corePages = [
         variant: 'page',
         eyebrow: L('من نحن', 'About us'),
         heading: L('نرافق الطلبة إلى المغرب بأمانة ووضوح', 'Guiding students to Morocco with honesty and clarity'),
-        highlight: L('بأمانة ووضوح', 'honesty and clarity'),
         subheading: L('«الدراسة في المغرب» خدمة من أكاديمية KNO، تجمع الإرشاد الأكاديمي والدعم العملي في مكان واحد.', 'Studying in Morocco is a KNO Academy service that brings academic guidance and practical support together.'),
       },
       {

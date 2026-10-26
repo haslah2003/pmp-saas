@@ -16,7 +16,7 @@ export function ProgramCard({ program, locale, t }: { program: Program; locale: 
   return (
     <Link
       href={`/${locale}/programs/${program.slug}`}
-      className="group flex h-full flex-col rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-soft transition duration-300 hover:-translate-y-1 hover:border-primary-200 hover:shadow-lift"
+      className="group flex h-full flex-col rounded-card border border-line bg-surface p-card transition-colors hover:border-primary"
     >
       <div className="flex flex-wrap items-center gap-1.5">
         <Badge tone="primary">
@@ -24,21 +24,21 @@ export function ProgramCard({ program, locale, t }: { program: Program; locale: 
           {optionLabel(studyLevels, program.level, locale)}
         </Badge>
         {program.languages?.map((l) => <Badge key={l}>{optionLabel(teachingLanguages, l, locale)}</Badge>)}
-        {program.scholarshipAvailable && <Badge tone="gold">{t.programs.scholarshipAvailable}</Badge>}
+        {program.scholarshipAvailable && <Badge tone="highlight">{t.programs.scholarshipAvailable}</Badge>}
       </div>
-      <h3 className="mt-4 text-[1.08rem] leading-snug font-bold text-ink group-hover:text-primary-800">{program.title}</h3>
-      {discipline && <p className="mt-1 text-sm text-muted">{discipline.name}</p>}
+      <h3 className="mt-4 text-h4">{program.title}</h3>
+      {discipline && <p className="mt-1 text-small text-muted">{discipline.name}</p>}
       {university && (
-        <p className="mt-3 text-sm font-medium text-ink/80">
+        <p className="mt-3 text-small font-medium text-ink">
           {university.name}
           {city && (
             <span className="ms-1 inline-flex items-center gap-1 font-normal text-muted">
-              · <MapPin className="size-3.5 text-clay" aria-hidden="true" /> {city.name}
+              · <MapPin className="size-3.5 text-primary" aria-hidden="true" /> {city.name}
             </span>
           )}
         </p>
       )}
-      <div className="mt-auto flex items-center justify-between gap-3 border-t border-line pt-4 text-sm">
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-line pt-4 text-small">
         <span className="flex items-center gap-3">
           {program.durationYears ? (
             <span className="inline-flex items-center gap-1 text-muted">
@@ -46,11 +46,11 @@ export function ProgramCard({ program, locale, t }: { program: Program; locale: 
               {formatNumber(program.durationYears, locale, 1)} {t.common.years}
             </span>
           ) : null}
-          <span className={free ? 'font-semibold text-primary' : 'font-semibold'}>
+          <span className="font-semibold text-primary">
             {free ? t.common.free : program.tuitionPerYear != null ? `${formatMoney(program.tuitionPerYear, 'MAD', locale)} ${t.common.perYear}` : t.common.onRequest}
           </span>
         </span>
-        <ArrowUpRight className="size-5 shrink-0 text-primary transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 rtl:-scale-x-100" aria-hidden="true" />
+        <ArrowUpRight className="size-5 shrink-0 text-primary rtl:-scale-x-100" aria-hidden="true" />
       </div>
     </Link>
   )

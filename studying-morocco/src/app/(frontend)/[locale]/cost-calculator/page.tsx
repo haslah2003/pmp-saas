@@ -26,7 +26,7 @@ export default async function CalculatorPage({ params }: { params: LocaleParams 
         ]}
         crumbLabel={t.common.breadcrumb}
       />
-      <div className="container-page py-14 lg:py-20">
+      <div className="container-page py-section">
         <CostCalculator
           locale={locale}
           t={{ calculator: t.calculator, common: t.common, nav: t.nav }}

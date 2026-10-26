@@ -1,12 +1,13 @@
 'use client'
 
-import { Check } from 'lucide-react'
+import { AlertCircle, Check } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 
-export const inputClass =
-  'h-12 w-full rounded-2xl border border-line bg-surface px-4 text-[0.98rem] text-ink transition outline-none placeholder:text-ink/40 hover:border-primary-200 focus:border-primary focus:ring-4 focus:ring-primary-100 aria-[invalid=true]:border-clay aria-[invalid=true]:ring-clay-50'
+import { inputClass } from './styles'
+
+export { inputClass }
 
 export function Field({
   id,
@@ -29,20 +30,21 @@ export function Field({
 }) {
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
-      <label htmlFor={id} className="text-sm font-semibold text-ink">
+      <label htmlFor={id} className="text-small font-semibold text-ink">
         {label}
         {required ? (
-          <span className="ms-0.5 text-clay" aria-hidden="true">
+          <span className="ms-0.5 text-primary" aria-hidden="true">
             *
           </span>
         ) : (
-          optionalLabel && <span className="ms-1.5 text-xs font-normal text-muted">({optionalLabel})</span>
+          optionalLabel && <span className="ms-1.5 text-small font-normal text-muted">({optionalLabel})</span>
         )}
       </label>
       {children}
-      {hint && !error && <p className="text-xs text-muted">{hint}</p>}
+      {hint && !error && <p className="text-small text-muted">{hint}</p>}
       {error && (
-        <p id={`${id}-error`} className="text-xs font-medium text-clay-700" role="alert">
+        <p id={`${id}-error`} className="flex items-start gap-1.5 text-small font-semibold text-primary" role="alert">
+          <AlertCircle className="mt-1 size-4 shrink-0 text-cta-active" aria-hidden="true" />
           {error}
         </p>
       )}
@@ -55,7 +57,7 @@ export function TextInput({ invalid, className, ...props }: ComponentProps<'inpu
 }
 
 export function TextArea({ invalid, className, ...props }: ComponentProps<'textarea'> & { invalid?: boolean }) {
-  return <textarea {...props} aria-invalid={invalid || undefined} className={cn(inputClass, 'h-auto min-h-28 py-3 leading-relaxed', className)} />
+  return <textarea {...props} aria-invalid={invalid || undefined} className={cn(inputClass, 'min-h-28 py-3', className)} />
 }
 
 export function Select({
@@ -117,8 +119,8 @@ export function ChipGroup<V extends string | number>({
             disabled={disabled}
             onClick={() => onChange(active ? value.filter((v) => v !== o.value) : [...value, o.value])}
             className={cn(
-              'inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium transition disabled:opacity-40',
-              active ? 'border-primary bg-primary text-white shadow-soft' : 'border-line bg-surface text-ink/85 hover:border-primary-200 hover:bg-primary-50',
+              'inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-small font-medium transition-colors disabled:opacity-40',
+              active ? 'border-primary bg-primary text-white' : 'border-muted bg-surface text-ink hover:border-primary hover:bg-canvas',
             )}
           >
             {active ? <Check className="size-4" aria-hidden="true" /> : o.icon}
@@ -143,20 +145,20 @@ export function ChoiceCards<V extends string>({
   onChange: (v: V) => void
 }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
       {options.map((o) => (
         <label
           key={o.value}
           className={cn(
-            'flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition',
-            value === o.value ? 'border-primary bg-primary-50 ring-2 ring-primary-100' : 'border-line bg-surface hover:border-primary-200',
+            'flex min-h-16 cursor-pointer items-center gap-3 rounded-card border p-4 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary',
+            value === o.value ? 'border-2 border-primary bg-canvas' : 'border-muted bg-surface hover:border-primary',
           )}
         >
           <input type="radio" name={name} value={o.value} checked={value === o.value} onChange={() => onChange(o.value)} className="sr-only" />
-          <span className={cn('inline-flex size-10 items-center justify-center rounded-xl', value === o.value ? 'bg-primary text-white' : 'bg-ink/5 text-ink/70')}>
+          <span className={cn('inline-flex size-10 items-center justify-center rounded-control', value === o.value ? 'bg-primary text-white' : 'bg-canvas text-primary')}>
             {o.icon}
           </span>
-          <span className="font-semibold">{o.label}</span>
+          <span className="font-semibold text-primary">{o.label}</span>
         </label>
       ))}
     </div>

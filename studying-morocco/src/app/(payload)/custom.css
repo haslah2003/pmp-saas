@@ -13,15 +13,16 @@ input#field-href {
 
 /* ── Admin dashboard (Payload theme variables keep it right in light & dark) ── */
 .sim-dash {
-  --sim-s1: #00806b;
-  --sim-s2: #b8862e;
+  /* KNO logo purple and CTA amber; validated for contrast and colour-blind separation. */
+  --sim-s1: #673d98;
+  --sim-s2: #d9981f;
   --sim-radius: 14px;
   margin-bottom: calc(var(--base) * 2);
   display: grid;
   gap: calc(var(--base) * 1.25);
 }
 [data-theme='dark'] .sim-dash {
-  --sim-s1: #1fa088;
+  --sim-s1: #9b72cf;
   --sim-s2: #b98a30;
 }
 .sim-dash h1 {
@@ -283,4 +284,31 @@ input#field-href {
 }
 .sim-card--wide {
   overflow: hidden;
+}
+
+/* Login-screen logo (light and dark admin themes). */
+.sim-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.sim-logo img {
+  height: 80px;
+  width: auto;
+}
+.sim-logo__dark,
+[data-theme='dark'] .sim-logo__light {
+  display: none;
+}
+[data-theme='dark'] .sim-logo__dark {
+  display: block;
+}
+.sim-logo__name {
+  font-size: 18px;
+  font-weight: 600;
+}
+.sim-logo__name span {
+  font-weight: 400;
+  opacity: 0.75;
 }

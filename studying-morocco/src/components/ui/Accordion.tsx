@@ -5,16 +5,16 @@ import { splitParagraphs } from '@/lib/utils'
 /** Zero-JS accessible accordion built on <details>. */
 export function FAQList({ items }: { items: { id: string | number; question: string; answer: string }[] }) {
   return (
-    <div className="divide-y divide-line overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface shadow-soft">
+    <div className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
       {items.map((item) => (
-        <details key={item.id} className="group px-6 py-1 open:bg-primary-50/40">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-start text-[1.05rem] font-semibold text-ink [&::-webkit-details-marker]:hidden">
+        <details key={item.id} className="group px-card">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 min-h-12 py-4 text-start text-body font-semibold text-primary [&::-webkit-details-marker]:hidden">
             {item.question}
-            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary transition group-open:rotate-45 group-open:bg-primary group-open:text-white">
+            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-line text-primary transition-transform group-open:rotate-45">
               <Plus className="size-4" aria-hidden="true" />
             </span>
           </summary>
-          <div className="space-y-3 pb-5 text-[0.98rem] leading-relaxed text-ink/80">
+          <div className="space-y-3 pb-5 text-body text-ink">
             {splitParagraphs(item.answer).map((p, i) => (
               <p key={i}>{p}</p>
             ))}

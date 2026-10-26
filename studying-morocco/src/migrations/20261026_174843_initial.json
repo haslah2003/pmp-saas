@@ -412,13 +412,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "color": {
-          "name": "color",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'#0F6E5F'"
-        },
         "last_verified": {
           "name": "last_verified",
           "type": "timestamp(3) with time zone",
@@ -1930,14 +1923,6 @@
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
-        },
-        "art_variant": {
-          "name": "art_variant",
-          "type": "enum_cities_art_variant",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'imperial'"
         },
         "image_id": {
           "name": "image_id",
@@ -4459,12 +4444,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "highlight": {
-          "name": "highlight",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
         "subheading": {
           "name": "subheading",
           "type": "varchar",
@@ -5047,14 +5026,6 @@
           "type": "varchar",
           "primaryKey": true,
           "notNull": true
-        },
-        "layout": {
-          "name": "layout",
-          "type": "enum_pages_blocks_feature_grid_layout",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'bento'"
         },
         "block_name": {
           "name": "block_name",
@@ -9459,12 +9430,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "highlight": {
-          "name": "highlight",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
         "subheading": {
           "name": "subheading",
           "type": "varchar",
@@ -10065,14 +10030,6 @@
           "type": "serial",
           "primaryKey": true,
           "notNull": true
-        },
-        "layout": {
-          "name": "layout",
-          "type": "enum__pages_v_blocks_feature_grid_layout",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'bento'"
         },
         "_uuid": {
           "name": "_uuid",
@@ -20242,47 +20199,11 @@
           "primaryKey": false,
           "notNull": false
         },
-        "brand_primary": {
-          "name": "brand_primary",
+        "adobe_fonts_kit_id": {
+          "name": "adobe_fonts_kit_id",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'#0F6E5F'"
-        },
-        "brand_secondary": {
-          "name": "brand_secondary",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'#13253D'"
-        },
-        "brand_accent": {
-          "name": "brand_accent",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'#D4A24C'"
-        },
-        "brand_clay": {
-          "name": "brand_clay",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'#C2603F'"
-        },
-        "brand_ink": {
-          "name": "brand_ink",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'#18202B'"
-        },
-        "brand_canvas": {
-          "name": "brand_canvas",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'#FBF8F2'"
+          "notNull": false
         },
         "og_image_id": {
           "name": "og_image_id",
@@ -21860,17 +21781,6 @@
         "flexible"
       ]
     },
-    "public.enum_cities_art_variant": {
-      "name": "enum_cities_art_variant",
-      "schema": "public",
-      "values": [
-        "imperial",
-        "coast",
-        "mountain",
-        "desert",
-        "modern"
-      ]
-    },
     "public.enum_disciplines_icon": {
       "name": "enum_disciplines_icon",
       "schema": "public",
@@ -22065,14 +21975,6 @@
         "baby"
       ]
     },
-    "public.enum_pages_blocks_feature_grid_layout": {
-      "name": "enum_pages_blocks_feature_grid_layout",
-      "schema": "public",
-      "values": [
-        "bento",
-        "grid"
-      ]
-    },
     "public.enum_pages_blocks_audiences_items_icon": {
       "name": "enum_pages_blocks_audiences_items_icon",
       "schema": "public",
@@ -22180,14 +22082,6 @@
         "leaf",
         "compass",
         "baby"
-      ]
-    },
-    "public.enum__pages_v_blocks_feature_grid_layout": {
-      "name": "enum__pages_v_blocks_feature_grid_layout",
-      "schema": "public",
-      "values": [
-        "bento",
-        "grid"
       ]
     },
     "public.enum__pages_v_blocks_audiences_items_icon": {
@@ -22800,6 +22694,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "a5db98c2-bde6-4e6a-a994-d09715d21cc4",
+  "id": "afce1a86-7497-4801-97e5-5905eb22ad11",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

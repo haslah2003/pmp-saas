@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { isContentManager, publishedOrStaff } from '@/access'
-import { featuredField, hexColorField, orderField, publishedField } from '@/fields/common'
+import { featuredField, orderField, publishedField } from '@/fields/common'
 import { slug } from '@/fields/slug'
 import { revalidateHooks } from '@/hooks/revalidate'
 import { admissionChannels, teachingLanguages, toPayloadOptions, universityTypes } from '@/lib/options'
@@ -104,7 +104,6 @@ export const Universities: CollectionConfig = {
     { name: 'city', type: 'relationship', relationTo: 'cities', required: true, index: true, label: { en: 'City', ar: 'المدينة' }, admin: { position: 'sidebar' } },
     { name: 'logo', type: 'upload', relationTo: 'media', label: { en: 'Logo', ar: 'الشعار' }, admin: { position: 'sidebar' } },
     { name: 'cover', type: 'upload', relationTo: 'media', label: { en: 'Cover photo', ar: 'صورة الغلاف' }, admin: { position: 'sidebar' } },
-    { ...hexColorField('color', { en: 'Crest colour', ar: 'لون الشعار' }, '#0F6E5F'), admin: { position: 'sidebar' } },
     {
       name: 'lastVerified',
       type: 'date',

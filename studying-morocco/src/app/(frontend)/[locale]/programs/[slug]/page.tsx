@@ -78,15 +78,15 @@ export default async function ProgramPage({ params }: { params: SlugParams }) {
         <div className="mt-6 flex flex-wrap gap-2">
           <Badge tone="dark">{optionLabel(studyLevels, program.level, locale)}</Badge>
           {discipline && <Badge tone="dark">{discipline.name}</Badge>}
-          {program.scholarshipAvailable && <Badge tone="gold">{t.programs.scholarshipAvailable}</Badge>}
+          {program.scholarshipAvailable && <Badge tone="highlight">{t.programs.scholarshipAvailable}</Badge>}
         </div>
         {university && (
-          <Link href={`/${locale}/universities/${university.slug}`} className="mt-6 inline-flex items-center gap-3 rounded-2xl bg-white/8 p-2 pe-4 ring-1 ring-white/15 transition hover:bg-white/15">
-            <UniversityLogo university={university} className="size-11 text-sm" />
+          <Link href={`/${locale}/universities/${university.slug}`} className="mt-6 inline-flex items-center gap-3 rounded-card p-2 pe-4 ring-1 ring-white/40 transition-colors hover:bg-white/10">
+            <UniversityLogo university={university} className="size-11 text-small" />
             <span>
               <span className="block font-semibold text-white">{university.name}</span>
               {city && (
-                <span className="inline-flex items-center gap-1 text-sm text-white/70">
+                <span className="inline-flex items-center gap-1 text-small text-line">
                   <MapPin className="size-3.5" aria-hidden="true" /> {city.name}
                 </span>
               )}
@@ -95,20 +95,20 @@ export default async function ProgramPage({ params }: { params: SlugParams }) {
         )}
       </PageHeader>
 
-      <div className="container-page grid gap-10 py-14 lg:grid-cols-[1fr_21rem] lg:py-20">
+      <div className="container-page grid gap-10 lg:grid-cols-[1fr_21rem] py-section">
         <div className="min-w-0 space-y-12">
           {program.description && (
             <section>
-              <h2 className="text-2xl sm:text-3xl">{t.programs.overview}</h2>
+              <h2>{t.programs.overview}</h2>
               <RichText data={program.description} locale={locale} className="mt-5" />
             </section>
           )}
           {!!program.requirements?.length && (
             <section>
-              <h2 className="text-2xl sm:text-3xl">{t.programs.requirements}</h2>
+              <h2>{t.programs.requirements}</h2>
               <ul className="mt-5 space-y-3">
                 {program.requirements.map((r) => (
-                  <li key={r.id ?? r.text} className="flex items-start gap-3 rounded-2xl border border-line bg-surface p-4">
+                  <li key={r.id ?? r.text} className="flex items-start gap-3 rounded-card border border-line bg-surface p-4">
                     <Check className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" /> {r.text}
                   </li>
                 ))}
@@ -117,26 +117,26 @@ export default async function ProgramPage({ params }: { params: SlugParams }) {
           )}
           {!!program.careerOutcomes?.length && (
             <section>
-              <h2 className="text-2xl sm:text-3xl">{t.programs.careers}</h2>
+              <h2>{t.programs.careers}</h2>
               <ul className="mt-5 flex flex-wrap gap-2">
                 {program.careerOutcomes.map((c) => (
-                  <li key={c.id ?? c.text} className="rounded-full bg-primary-50 px-4 py-2 text-sm font-medium text-primary-800 ring-1 ring-primary-100">
+                  <li key={c.id ?? c.text} className="rounded-full bg-canvas px-4 py-2 text-small font-medium text-primary ring-1 ring-line">
                     {c.text}
                   </li>
                 ))}
               </ul>
             </section>
           )}
-          {program.tuitionNote && <p className="rounded-2xl bg-sand p-5 text-sm leading-relaxed text-ink/80">{program.tuitionNote}</p>}
+          {program.tuitionNote && <p className="rounded-card bg-canvas p-card text-small text-ink">{program.tuitionNote}</p>}
         </div>
         <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-[var(--radius-card)] border border-line bg-surface p-6 shadow-soft">
+          <div className="rounded-card border border-line bg-surface p-card">
             <dl className="space-y-4">
               {facts.map((f) => (
                 <div key={f.label} className="flex gap-3">
                   <f.icon className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
                   <div>
-                    <dt className="text-xs text-muted">{f.label}</dt>
+                    <dt className="text-small text-muted">{f.label}</dt>
                     <dd className="font-medium">{f.value}</dd>
                   </div>
                 </div>
@@ -145,19 +145,19 @@ export default async function ProgramPage({ params }: { params: SlugParams }) {
             <LinkButton href={`/${locale}/apply?program=${slug}`} size="lg" className="mt-6 w-full">
               {t.programs.applyNow}
             </LinkButton>
-            <LinkButton href={`/${locale}/consultation`} variant="outline" className="mt-2 w-full">
+            <LinkButton href={`/${locale}/consultation`} variant="secondary" className="mt-2 w-full">
               {t.nav.consultation}
             </LinkButton>
-            <p className="mt-4 text-xs text-muted">{t.common.indicative}</p>
+            <p className="mt-4 text-small text-muted">{t.common.indicative}</p>
           </div>
         </aside>
       </div>
 
       {related.length > 0 && (
-        <section className="border-t border-line bg-sand py-16">
+        <section className="border-t border-line bg-canvas py-section">
           <div className="container-page">
-            <h2 className="mb-8 text-2xl sm:text-3xl">{t.programs.related}</h2>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <h2 className="mb-8">{t.programs.related}</h2>
+            <div className="grid gap-grid md:grid-cols-2 lg:grid-cols-3">
               {related.map((p) => (
                 <ProgramCard key={p.id} program={p} locale={locale} t={t} />
               ))}

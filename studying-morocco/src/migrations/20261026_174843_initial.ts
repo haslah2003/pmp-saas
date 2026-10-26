@@ -9,7 +9,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE TYPE "public"."enum_programs_languages" AS ENUM('ar', 'fr', 'en');
   CREATE TYPE "public"."enum_programs_level" AS ENUM('foundation', 'language', 'bachelor', 'master', 'doctorate', 'medicine', 'executive');
   CREATE TYPE "public"."enum_programs_study_mode" AS ENUM('full-time', 'flexible');
-  CREATE TYPE "public"."enum_cities_art_variant" AS ENUM('imperial', 'coast', 'mountain', 'desert', 'modern');
   CREATE TYPE "public"."enum_disciplines_icon" AS ENUM('graduation-cap', 'building', 'home', 'plane', 'bus', 'book-open', 'languages', 'badge-check', 'shield-check', 'heart-pulse', 'users', 'briefcase', 'scale', 'stethoscope', 'cpu', 'landmark', 'calculator', 'globe', 'wallet', 'sun', 'map-pin', 'sparkles', 'clock', 'message-circle', 'file-check', 'moon-star', 'palette', 'leaf', 'compass', 'baby');
   CREATE TYPE "public"."enum_scholarships_levels" AS ENUM('foundation', 'language', 'bachelor', 'master', 'doctorate', 'medicine', 'executive');
   CREATE TYPE "public"."enum_services_currency" AS ENUM('MAD', 'USD', 'EUR', 'GBP', 'OMR', 'AED', 'SAR', 'QAR', 'KWD', 'BHD', 'JOD', 'IQD', 'XOF');
@@ -19,14 +18,12 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE TYPE "public"."enum_packages_currency" AS ENUM('MAD', 'USD', 'EUR', 'GBP', 'OMR', 'AED', 'SAR', 'QAR', 'KWD', 'BHD', 'JOD', 'IQD', 'XOF');
   CREATE TYPE "public"."enum_pages_blocks_hero_variant" AS ENUM('home', 'page');
   CREATE TYPE "public"."enum_pages_blocks_feature_grid_items_icon" AS ENUM('graduation-cap', 'building', 'home', 'plane', 'bus', 'book-open', 'languages', 'badge-check', 'shield-check', 'heart-pulse', 'users', 'briefcase', 'scale', 'stethoscope', 'cpu', 'landmark', 'calculator', 'globe', 'wallet', 'sun', 'map-pin', 'sparkles', 'clock', 'message-circle', 'file-check', 'moon-star', 'palette', 'leaf', 'compass', 'baby');
-  CREATE TYPE "public"."enum_pages_blocks_feature_grid_layout" AS ENUM('bento', 'grid');
   CREATE TYPE "public"."enum_pages_blocks_audiences_items_icon" AS ENUM('graduation-cap', 'building', 'home', 'plane', 'bus', 'book-open', 'languages', 'badge-check', 'shield-check', 'heart-pulse', 'users', 'briefcase', 'scale', 'stethoscope', 'cpu', 'landmark', 'calculator', 'globe', 'wallet', 'sun', 'map-pin', 'sparkles', 'clock', 'message-circle', 'file-check', 'moon-star', 'palette', 'leaf', 'compass', 'baby');
   CREATE TYPE "public"."enum_pages_blocks_faq_category" AS ENUM('general', 'admissions', 'costs', 'gcc', 'visa', 'living', 'families');
   CREATE TYPE "public"."enum_pages_blocks_cta_variant" AS ENUM('dark', 'light');
   CREATE TYPE "public"."enum_pages_status" AS ENUM('draft', 'published');
   CREATE TYPE "public"."enum__pages_v_blocks_hero_variant" AS ENUM('home', 'page');
   CREATE TYPE "public"."enum__pages_v_blocks_feature_grid_items_icon" AS ENUM('graduation-cap', 'building', 'home', 'plane', 'bus', 'book-open', 'languages', 'badge-check', 'shield-check', 'heart-pulse', 'users', 'briefcase', 'scale', 'stethoscope', 'cpu', 'landmark', 'calculator', 'globe', 'wallet', 'sun', 'map-pin', 'sparkles', 'clock', 'message-circle', 'file-check', 'moon-star', 'palette', 'leaf', 'compass', 'baby');
-  CREATE TYPE "public"."enum__pages_v_blocks_feature_grid_layout" AS ENUM('bento', 'grid');
   CREATE TYPE "public"."enum__pages_v_blocks_audiences_items_icon" AS ENUM('graduation-cap', 'building', 'home', 'plane', 'bus', 'book-open', 'languages', 'badge-check', 'shield-check', 'heart-pulse', 'users', 'briefcase', 'scale', 'stethoscope', 'cpu', 'landmark', 'calculator', 'globe', 'wallet', 'sun', 'map-pin', 'sparkles', 'clock', 'message-circle', 'file-check', 'moon-star', 'palette', 'leaf', 'compass', 'baby');
   CREATE TYPE "public"."enum__pages_v_blocks_faq_category" AS ENUM('general', 'admissions', 'costs', 'gcc', 'visa', 'living', 'families');
   CREATE TYPE "public"."enum__pages_v_blocks_cta_variant" AS ENUM('dark', 'light');
@@ -105,7 +102,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"city_id" integer NOT NULL,
   	"logo_id" integer,
   	"cover_id" integer,
-  	"color" varchar DEFAULT '#0F6E5F',
   	"last_verified" timestamp(3) with time zone,
   	"published" boolean DEFAULT true,
   	"featured" boolean DEFAULT false,
@@ -222,7 +218,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"leisure" numeric DEFAULT 700,
   	"generate_slug" boolean DEFAULT true,
   	"slug" varchar NOT NULL,
-  	"art_variant" "enum_cities_art_variant" DEFAULT 'imperial',
   	"image_id" integer,
   	"published" boolean DEFAULT true,
   	"featured" boolean DEFAULT false,
@@ -429,7 +424,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE TABLE "pages_blocks_hero_locales" (
   	"eyebrow" varchar,
   	"heading" varchar,
-  	"highlight" varchar,
   	"subheading" varchar,
   	"primary_cta_label" varchar,
   	"secondary_cta_label" varchar,
@@ -481,7 +475,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"_parent_id" integer NOT NULL,
   	"_path" text NOT NULL,
   	"id" varchar PRIMARY KEY NOT NULL,
-  	"layout" "enum_pages_blocks_feature_grid_layout" DEFAULT 'bento',
   	"block_name" varchar
   );
   
@@ -849,7 +842,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE TABLE "_pages_v_blocks_hero_locales" (
   	"eyebrow" varchar,
   	"heading" varchar,
-  	"highlight" varchar,
   	"subheading" varchar,
   	"primary_cta_label" varchar,
   	"secondary_cta_label" varchar,
@@ -904,7 +896,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"_parent_id" integer NOT NULL,
   	"_path" text NOT NULL,
   	"id" serial PRIMARY KEY NOT NULL,
-  	"layout" "enum__pages_v_blocks_feature_grid_layout" DEFAULT 'bento',
   	"_uuid" varchar,
   	"block_name" varchar
   );
@@ -1703,12 +1694,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"whatsapp" varchar,
   	"map_url" varchar,
   	"notification_emails" varchar,
-  	"brand_primary" varchar DEFAULT '#0F6E5F',
-  	"brand_secondary" varchar DEFAULT '#13253D',
-  	"brand_accent" varchar DEFAULT '#D4A24C',
-  	"brand_clay" varchar DEFAULT '#C2603F',
-  	"brand_ink" varchar DEFAULT '#18202B',
-  	"brand_canvas" varchar DEFAULT '#FBF8F2',
+  	"adobe_fonts_kit_id" varchar,
   	"og_image_id" integer,
   	"google_site_verification" varchar,
   	"bing_site_verification" varchar,
@@ -2790,7 +2776,6 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP TYPE "public"."enum_programs_languages";
   DROP TYPE "public"."enum_programs_level";
   DROP TYPE "public"."enum_programs_study_mode";
-  DROP TYPE "public"."enum_cities_art_variant";
   DROP TYPE "public"."enum_disciplines_icon";
   DROP TYPE "public"."enum_scholarships_levels";
   DROP TYPE "public"."enum_services_currency";
@@ -2800,14 +2785,12 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP TYPE "public"."enum_packages_currency";
   DROP TYPE "public"."enum_pages_blocks_hero_variant";
   DROP TYPE "public"."enum_pages_blocks_feature_grid_items_icon";
-  DROP TYPE "public"."enum_pages_blocks_feature_grid_layout";
   DROP TYPE "public"."enum_pages_blocks_audiences_items_icon";
   DROP TYPE "public"."enum_pages_blocks_faq_category";
   DROP TYPE "public"."enum_pages_blocks_cta_variant";
   DROP TYPE "public"."enum_pages_status";
   DROP TYPE "public"."enum__pages_v_blocks_hero_variant";
   DROP TYPE "public"."enum__pages_v_blocks_feature_grid_items_icon";
-  DROP TYPE "public"."enum__pages_v_blocks_feature_grid_layout";
   DROP TYPE "public"."enum__pages_v_blocks_audiences_items_icon";
   DROP TYPE "public"."enum__pages_v_blocks_faq_category";
   DROP TYPE "public"."enum__pages_v_blocks_cta_variant";

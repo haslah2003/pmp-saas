@@ -113,11 +113,9 @@ export const siteSettings = {
     text: L('جديد 2026-2027: لا معادلة ولا مباراة للطلبة الدوليين الجدد في الجامعات العمومية', 'New for 2026–27: no equivalence and no entrance exam for new international students at public universities'),
     href: '/blog/admission-moroccan-public-universities-2026-2027',
   },
-  // Placeholders — replace with the real KNO Academy contact details before launch.
-  email: 'admissions@example.com',
-  phone: '+212 600 000 000',
-  whatsapp: '212600000000',
-  address: L('الرباط، المغرب', 'Rabat, Morocco'),
+  // KNO Academy contact line. Add the public email and office address in Admin → Site settings → Contact.
+  phone: '+968 9588 5074',
+  whatsapp: '96895885074',
   officeHours: L('الاثنين – الجمعة، 9:00 – 18:00 (بتوقيت المغرب)', 'Monday – Friday, 9:00 – 18:00 (Morocco time)'),
   defaultDescription: L(
     'ادرس في المغرب بثقة: قبول جامعي، وسكن، واستقبال في المطار، ودعم أكاديمي للطلبة والعائلات من الخليج والمشرق وأوروبا وإفريقيا.',

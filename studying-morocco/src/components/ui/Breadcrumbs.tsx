@@ -9,8 +9,8 @@ export type Crumb = { name: string; href: string }
 export function Breadcrumbs({ items, label, dark = false }: { items: Crumb[]; label: string; dark?: boolean }) {
   return (
     <>
-      <nav aria-label={label} className="text-sm">
-        <ol className={cn('flex flex-wrap items-center gap-1.5', dark ? 'text-white/65' : 'text-muted')}>
+      <nav aria-label={label} className="text-small">
+        <ol className={cn('flex flex-wrap items-center gap-1.5', dark ? 'text-line' : 'text-muted')}>
           {items.map((item, i) => (
             <li key={item.href} className="inline-flex items-center gap-1.5">
               {i > 0 && <ChevronRight className="size-3.5 opacity-60 rtl:-scale-x-100" aria-hidden="true" />}

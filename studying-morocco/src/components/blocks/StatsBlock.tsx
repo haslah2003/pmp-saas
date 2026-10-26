@@ -19,12 +19,12 @@ export async function StatsBlock({ block, locale, t }: BlockProps<'stats'>) {
     ]
   }
   return (
-    <section className="border-y border-line bg-surface">
-      <dl className="container-page grid grid-cols-2 divide-line py-8 sm:py-10 lg:grid-cols-4 lg:divide-x rtl:lg:divide-x-reverse">
+    <section className="border-b border-line bg-surface">
+      <dl className="container-page grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4 py-section">
         {items.map((item, i) => (
-          <div key={i} className="flex flex-col-reverse px-4 py-4 text-center lg:py-2">
-            <dt className="mt-1 text-sm text-muted">{item.label}</dt>
-            <dd className="font-sans text-3xl font-bold tracking-tight text-primary-800 sm:text-4xl">{item.value}</dd>
+          <div key={i} className="flex flex-col-reverse justify-end border-s-2 border-cta ps-4">
+            <dt className="mt-1 text-small text-muted">{item.label}</dt>
+            <dd className="text-h2 font-semibold text-primary">{item.value}</dd>
           </div>
         ))}
       </dl>

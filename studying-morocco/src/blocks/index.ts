@@ -48,7 +48,6 @@ export const HeroBlock: Block = {
     },
     { name: 'eyebrow', type: 'text', localized: true, label: L('Eyebrow', 'عنوان صغير') },
     { name: 'heading', type: 'text', localized: true, required: true, label: L('Heading', 'العنوان') },
-    { name: 'highlight', type: 'text', localized: true, label: L('Highlighted words (part of heading)', 'كلمات مميزة من العنوان') },
     { name: 'subheading', type: 'textarea', localized: true, label: L('Sub-heading', 'العنوان الفرعي') },
     link('primaryCta', L('Primary button', 'الزر الرئيسي')),
     link('secondaryCta', L('Secondary button', 'الزر الثانوي')),
@@ -87,16 +86,6 @@ export const FeatureGridBlock: Block = {
   labels: { singular: L('Feature grid', 'شبكة مزايا'), plural: L('Feature grids', 'شبكات مزايا') },
   fields: [
     ...sectionIntro,
-    {
-      name: 'layout',
-      type: 'select',
-      defaultValue: 'bento',
-      label: L('Layout', 'التخطيط'),
-      options: [
-        { value: 'bento', label: L('Bento (mixed sizes)', 'بينتو (أحجام متنوعة)') },
-        { value: 'grid', label: L('Even grid', 'شبكة متساوية') },
-      ],
-    },
     {
       name: 'items',
       type: 'array',

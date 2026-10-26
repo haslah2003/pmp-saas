@@ -4,7 +4,10 @@ import { Search, SlidersHorizontal, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRef } from 'react'
 
+import { buttonClass } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
+
+import { inputClass } from './styles'
 
 type FilterSelect = { name: string; label: string; value?: string; options: { value: string; label: string }[]; anyLabel: string }
 
@@ -33,9 +36,9 @@ export function FilterBar({
   const submit = () => formRef.current?.requestSubmit()
 
   return (
-    <form ref={formRef} action={action} method="get" className="rounded-[1.75rem] border border-line bg-surface p-4 shadow-soft sm:p-5" role="search">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <label className="relative flex-1">
+    <form ref={formRef} action={action} method="get" className="rounded-card border border-line bg-surface p-4 shadow-card md:p-5" role="search">
+      <div className="grid gap-3 md:grid-cols-2 lg:flex lg:flex-wrap lg:items-center">
+        <label className="relative md:col-span-2 lg:min-w-64 lg:flex-1">
           <span className="sr-only">{searchPlaceholder}</span>
           <Search className="pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-muted" aria-hidden="true" />
           <input
@@ -47,21 +50,22 @@ export function FilterBar({
               if (timer.current) clearTimeout(timer.current)
               timer.current = setTimeout(submit, 450)
             }}
-            className="h-12 w-full rounded-2xl border border-line bg-canvas ps-12 pe-4 outline-none focus:border-primary focus:ring-4 focus:ring-primary-100"
+            className={cn(inputClass, 'ps-12')}
           />
         </label>
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
-          <SlidersHorizontal className="hidden size-5 shrink-0 text-muted sm:block" aria-hidden="true" />
+        <div className="contents">
+          <SlidersHorizontal className="hidden size-5 shrink-0 text-primary lg:block" aria-hidden="true" />
           {selects.map((s) => (
-            <label key={s.name} className="shrink-0">
+            <label key={s.name} className="block lg:shrink-0">
               <span className="sr-only">{s.label}</span>
               <select
                 name={s.name}
                 defaultValue={s.value ?? ''}
                 onChange={submit}
                 className={cn(
-                  'h-12 rounded-2xl border bg-canvas px-4 text-sm font-medium outline-none focus:ring-4 focus:ring-primary-100',
-                  s.value ? 'border-primary bg-primary-50 text-primary-800' : 'border-line',
+                  inputClass,
+                  'appearance-none pe-8 text-small font-medium lg:w-auto',
+                  s.value && 'border-2 border-primary text-primary',
                 )}
               >
                 <option value="">
@@ -76,18 +80,18 @@ export function FilterBar({
             </label>
           ))}
           {checkbox && (
-            <label className="inline-flex h-12 shrink-0 cursor-pointer items-center gap-2 rounded-2xl border border-line bg-canvas px-4 text-sm font-medium">
+            <label className="inline-flex min-h-12 shrink-0 cursor-pointer items-center gap-2 rounded-control border border-muted px-4 text-small font-medium">
               <input type="checkbox" name={checkbox.name} value="1" defaultChecked={checkbox.checked} onChange={submit} className="size-4 accent-[var(--color-primary)]" />
               {checkbox.label}
             </label>
           )}
           <noscript>
-            <button type="submit" className="h-12 rounded-2xl bg-primary px-4 text-sm font-semibold text-white">
+            <button type="submit" className={buttonClass('primary', 'md', undefined, true)}>
               {submitLabel}
             </button>
           </noscript>
           {hasFilters && (
-            <Link href={action} className="inline-flex h-12 shrink-0 items-center gap-1 rounded-2xl px-3 text-sm font-semibold text-clay-700 hover:bg-clay-50">
+            <Link href={action} className="inline-flex min-h-12 shrink-0 items-center gap-1 rounded-control px-3 text-small font-semibold text-primary hover:bg-canvas">
               <X className="size-4" aria-hidden="true" /> {clearLabel}
             </Link>
           )}

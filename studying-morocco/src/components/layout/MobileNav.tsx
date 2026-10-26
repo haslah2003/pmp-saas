@@ -33,7 +33,7 @@ export function MobileNav({ locale, t, nav }: { locale: Locale; t: Dictionary; n
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex size-10 items-center justify-center rounded-full text-ink transition hover:bg-ink/5 lg:hidden"
+        className="inline-flex size-11 items-center justify-center rounded-control text-primary transition-colors hover:bg-canvas lg:hidden"
         aria-label={t.nav.menu}
         aria-expanded={open}
       >
@@ -43,7 +43,7 @@ export function MobileNav({ locale, t, nav }: { locale: Locale; t: Dictionary; n
         ref={dialogRef}
         onClose={() => setOpen(false)}
         onClick={(e) => e.target === e.currentTarget && setOpen(false)}
-        className="m-0 ms-auto h-dvh max-h-dvh w-[min(24rem,100vw)] max-w-none bg-canvas p-0 text-ink shadow-lift backdrop:bg-secondary/60 backdrop:backdrop-blur-sm"
+        className="m-0 ms-auto h-dvh max-h-dvh w-[min(24rem,100vw)] max-w-none bg-surface p-0 text-ink backdrop:bg-primary/60"
         aria-label={t.nav.menu}
       >
         <div className="flex h-full flex-col">
@@ -52,7 +52,7 @@ export function MobileNav({ locale, t, nav }: { locale: Locale; t: Dictionary; n
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="inline-flex size-10 items-center justify-center rounded-full hover:bg-ink/5"
+              className="inline-flex size-11 items-center justify-center rounded-control text-primary hover:bg-canvas"
               aria-label={t.nav.close}
             >
               <X className="size-6" aria-hidden="true" />
@@ -64,14 +64,14 @@ export function MobileNav({ locale, t, nav }: { locale: Locale; t: Dictionary; n
                 item.children?.length ? (
                   <li key={item.label}>
                     <details className="group" open>
-                      <summary className="flex cursor-pointer list-none items-center justify-between rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-ink/5">
+                      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between rounded-control px-4 text-body font-semibold text-primary hover:bg-canvas">
                         {item.label}
                         <ChevronDown className="size-5 transition-transform group-open:rotate-180" aria-hidden="true" />
                       </summary>
-                      <ul className="mt-1 space-y-0.5 border-s-2 border-primary-100 ps-3 ms-4">
+                      <ul className="ms-4 mt-1 space-y-0.5 border-s-2 border-line ps-3">
                         {item.children.map((child) => (
                           <li key={child.href}>
-                            <Link href={href(child.href)} className="block rounded-xl px-3 py-2.5 text-[0.98rem] text-ink/85 hover:bg-primary-50">
+                            <Link href={href(child.href)} className="flex min-h-11 items-center rounded-control px-3 text-body text-ink hover:bg-canvas">
                               {child.label}
                             </Link>
                           </li>
@@ -81,29 +81,29 @@ export function MobileNav({ locale, t, nav }: { locale: Locale; t: Dictionary; n
                   </li>
                 ) : (
                   <li key={item.href}>
-                    <Link href={href(item.href)} className="block rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-ink/5">
+                    <Link href={href(item.href)} className="flex min-h-12 items-center rounded-control px-4 text-body font-semibold text-primary hover:bg-canvas">
                       {item.label}
                     </Link>
                   </li>
                 ),
               )}
               <li>
-                <Link href={href('/track')} className="block rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-ink/5">
+                <Link href={href('/track')} className="flex min-h-12 items-center rounded-control px-4 text-body font-semibold text-primary hover:bg-canvas">
                   {t.nav.track}
                 </Link>
               </li>
               <li>
-                <Link href={href('/search')} className="flex items-center gap-2 rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-ink/5">
+                <Link href={href('/search')} className="flex min-h-12 items-center gap-2 rounded-control px-4 text-body font-semibold text-primary hover:bg-canvas">
                   <Search className="size-5" aria-hidden="true" /> {t.nav.search}
                 </Link>
               </li>
             </ul>
           </nav>
           <div className="grid gap-2 border-t border-line p-5">
-            <Link href={href('/apply')} className={buttonClass('primary', 'lg')}>
+            <Link href={href('/apply')} className={buttonClass('primary', 'lg', 'w-full')}>
               {t.nav.apply}
             </Link>
-            <Link href={href('/consultation')} className={buttonClass('outline', 'lg')}>
+            <Link href={href('/consultation')} className={buttonClass('secondary', 'lg', 'w-full')}>
               {t.nav.consultation}
             </Link>
           </div>

@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { CTABlock } from '@/components/blocks/MiscBlocks'
 import { PostCard, PostCover } from '@/components/cards/PostCard'
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs'
+import { asMedia } from '@/components/ui/MediaImage'
 import { RichText } from '@/components/ui/RichText'
 import { formatDate, readingTimeLabel } from '@/lib/format'
 import { redirectOrNotFound, resolveLocale, type SlugParams } from '@/lib/page'
@@ -35,32 +36,32 @@ export default async function PostPage({ params }: { params: SlugParams }) {
   return (
     <>
       <article>
-        <header className="container-page max-w-4xl pt-10 pb-8 text-center sm:pt-14">
-          <div className="flex justify-center">
-            <Breadcrumbs
-              label={t.common.breadcrumb}
-              items={[
-                { name: t.nav.home, href: `/${locale}` },
-                { name: t.nav.guides, href: `/${locale}/blog` },
-                { name: post.title, href: `/${locale}/blog/${slug}` },
-              ]}
-            />
-          </div>
-          {category && <p className="mt-8 text-sm font-bold text-primary">{category.name}</p>}
-          <h1 className="mt-3 text-4xl leading-tight sm:text-5xl">{post.title}</h1>
-          {post.excerpt && <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-ink/75">{post.excerpt}</p>}
-          <p className="mt-6 text-sm text-muted">
+        <header className="container-page max-w-4xl pt-10 pb-8 md:pt-14">
+          <Breadcrumbs
+            label={t.common.breadcrumb}
+            items={[
+              { name: t.nav.home, href: `/${locale}` },
+              { name: t.nav.guides, href: `/${locale}/blog` },
+              { name: post.title, href: `/${locale}/blog/${slug}` },
+            ]}
+          />
+          {category && <p className="mt-8 text-small font-semibold text-primary">{category.name}</p>}
+          <h1 className="mt-3">{post.title}</h1>
+          {post.excerpt && <p className="mt-5 max-w-2xl text-body text-ink">{post.excerpt}</p>}
+          <p className="mt-6 text-small text-muted">
             {author && `${t.blog.by} ${author.name} · `}
             {t.blog.published} {formatDate(post.publishedAt, locale)}
             {post.readingTime ? ` · ${readingTimeLabel(post.readingTime, locale)}` : ''}
           </p>
         </header>
-        <div className="container-page max-w-5xl">
-          <div className="relative aspect-[21/9] overflow-hidden rounded-[2rem] shadow-soft">
-            <PostCover post={post} priority />
+        {asMedia(post.cover) && (
+          <div className="container-page max-w-4xl">
+            <div className="relative aspect-video overflow-hidden rounded-card bg-canvas">
+              <PostCover post={post} priority sizes="(min-width: 1024px) 56rem, 100vw" />
+            </div>
           </div>
-        </div>
-        <div className="container-page max-w-3xl py-12 sm:py-16">
+        )}
+        <div className="container-page max-w-4xl py-section">
           <RichText data={post.content} locale={locale} />
         </div>
       </article>
@@ -70,10 +71,10 @@ export default async function PostPage({ params }: { params: SlugParams }) {
         block={{ blockType: 'cta', heading: t.consultation.title, text: t.consultation.intro, primaryCta: { label: t.nav.consultation, href: '/consultation' }, variant: 'dark' }}
       />
       {related.length > 0 && (
-        <section className="bg-sand py-16">
+        <section className="bg-canvas py-section">
           <div className="container-page">
-            <h2 className="mb-8 text-2xl sm:text-3xl">{t.blog.related}</h2>
-            <div className="grid gap-6 md:grid-cols-3">
+            <h2 className="mb-8">{t.blog.related}</h2>
+            <div className="grid gap-grid md:grid-cols-2 lg:grid-cols-3">
               {related.map((p) => (
                 <PostCard key={p.id} post={p} locale={locale} t={t} />
               ))}

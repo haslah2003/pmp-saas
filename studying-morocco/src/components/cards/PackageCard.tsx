@@ -1,7 +1,6 @@
 import { Check, Minus } from 'lucide-react'
 import Link from 'next/link'
 
-import { StarOrnament } from '@/components/art/Ornaments'
 import { buttonClass } from '@/components/ui/Button'
 import type { Dictionary } from '@/i18n'
 import { formatMoney } from '@/lib/format'
@@ -14,37 +13,34 @@ export function PackageCard({ pkg, locale, t }: { pkg: Package; locale: Locale; 
   return (
     <div
       className={cn(
-        'relative flex h-full flex-col rounded-[1.75rem] p-7 transition duration-300',
-        hi
-          ? 'pattern-zellige bg-secondary text-white shadow-lift ring-2 ring-accent [--pattern-opacity:0.06] lg:-my-4 lg:py-11'
-          : 'border border-line bg-surface shadow-soft hover:shadow-lift',
+        'relative flex h-full flex-col rounded-card p-card',
+        hi ? 'on-dark bg-primary text-white ring-2 ring-cta' : 'border border-line bg-surface',
       )}
     >
       {(pkg.badge || hi) && (
-        <span className="absolute -top-3.5 start-7 inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-bold text-secondary-900">
-          <StarOrnament className="size-3" />
+        <span className="absolute -top-3.5 start-6 inline-flex items-center rounded-full bg-cta px-3 py-0.5 text-small font-semibold text-primary">
           {pkg.badge || t.services.popular}
         </span>
       )}
-      <h3 className={cn('text-xl font-bold', hi && 'text-white')}>{pkg.name}</h3>
-      {pkg.tagline && <p className={cn('mt-1.5 text-sm', hi ? 'text-white/70' : 'text-muted')}>{pkg.tagline}</p>}
+      <h3 className={cn('text-h4', hi && 'text-white')}>{pkg.name}</h3>
+      {pkg.tagline && <p className={cn('mt-1.5 text-small', hi ? 'text-line' : 'text-muted')}>{pkg.tagline}</p>}
       <p className="mt-6 flex items-baseline gap-2">
         {pkg.price != null ? (
           <>
-            <span className={cn('font-display text-4xl font-bold', hi ? 'text-accent' : 'text-ink')}>{formatMoney(pkg.price, pkg.currency || 'USD', locale)}</span>
-            {pkg.priceSuffix && <span className={cn('text-sm', hi ? 'text-white/60' : 'text-muted')}>{pkg.priceSuffix}</span>}
+            <span className={cn('text-h2 font-semibold', hi ? 'text-white' : 'text-primary')}>{formatMoney(pkg.price, pkg.currency || 'USD', locale)}</span>
+            {pkg.priceSuffix && <span className={cn('text-small', hi ? 'text-line' : 'text-muted')}>{pkg.priceSuffix}</span>}
           </>
         ) : (
-          <span className="font-display text-3xl font-bold">{t.common.onRequest}</span>
+          <span className={cn('text-h3 font-semibold', hi ? 'text-white' : 'text-primary')}>{t.common.onRequest}</span>
         )}
       </p>
-      <ul className="mt-6 space-y-3 text-[0.95rem]">
+      <ul className="mt-6 space-y-3">
         {pkg.features?.map((f) => (
-          <li key={f.id ?? f.text} className={cn('flex items-start gap-2.5', !f.included && 'opacity-50')}>
+          <li key={f.id ?? f.text} className={cn('flex items-start gap-2.5', !f.included && (hi ? 'text-line' : 'text-muted'))}>
             {f.included ? (
-              <Check className={cn('mt-0.5 size-4.5 shrink-0', hi ? 'text-accent' : 'text-primary')} aria-hidden="true" />
+              <Check className={cn('mt-1 size-4.5 shrink-0', hi ? 'text-cta' : 'text-primary')} aria-hidden="true" />
             ) : (
-              <Minus className="mt-0.5 size-4.5 shrink-0" aria-hidden="true" />
+              <Minus className="mt-1 size-4.5 shrink-0" aria-hidden="true" />
             )}
             <span className={!f.included ? 'line-through' : undefined}>{f.text}</span>
           </li>
@@ -52,7 +48,7 @@ export function PackageCard({ pkg, locale, t }: { pkg: Package; locale: Locale; 
       </ul>
       <Link
         href={`/${locale}/apply?package=${encodeURIComponent(pkg.name)}`}
-        className={cn(buttonClass(hi ? 'gold' : 'outline', 'lg'), 'mt-8 w-full')}
+        className={buttonClass(hi ? 'primary' : 'secondary', 'lg', 'mt-8 w-full')}
       >
         {t.services.choose}
       </Link>

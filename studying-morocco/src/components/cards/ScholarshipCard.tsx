@@ -7,14 +7,14 @@ import type { Scholarship } from '@/payload-types'
 
 export function ScholarshipCard({ scholarship: s, locale, t }: { scholarship: Scholarship; locale: Locale; t: Dictionary }) {
   return (
-    <article id={s.slug ?? undefined} className="flex h-full scroll-mt-28 flex-col rounded-[var(--radius-card)] border border-line bg-surface p-6 shadow-soft">
+    <article id={s.slug ?? undefined} className="flex h-full scroll-mt-28 flex-col rounded-card border border-line bg-surface p-card">
       <div className="flex items-start gap-4">
-        <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl bg-accent-50 text-accent-700 ring-1 ring-accent-100">
+        <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-control bg-canvas text-primary">
           <Landmark className="size-6" aria-hidden="true" />
         </span>
         <div>
-          <h3 className="text-lg leading-snug font-bold">{s.name}</h3>
-          {s.provider && <p className="mt-0.5 text-sm text-muted">{s.provider}</p>}
+          <h3 className="text-h4">{s.name}</h3>
+          {s.provider && <p className="mt-0.5 text-small text-muted">{s.provider}</p>}
         </div>
       </div>
       {!!s.levels?.length && (
@@ -26,29 +26,29 @@ export function ScholarshipCard({ scholarship: s, locale, t }: { scholarship: Sc
           ))}
         </div>
       )}
-      <dl className="mt-4 space-y-3 text-[0.95rem]">
+      <dl className="mt-4 space-y-3">
         {s.coverage && (
           <div>
-            <dt className="text-xs font-bold tracking-wide text-ink/60 uppercase rtl:normal-case">{t.scholarships.coverage}</dt>
-            <dd className="mt-0.5 text-ink/85">{s.coverage}</dd>
+            <dt className="text-small font-semibold text-primary">{t.scholarships.coverage}</dt>
+            <dd className="mt-0.5 text-ink">{s.coverage}</dd>
           </div>
         )}
         {s.eligibility && (
           <div>
-            <dt className="text-xs font-bold tracking-wide text-ink/60 uppercase rtl:normal-case">{t.scholarships.eligibility}</dt>
-            <dd className="mt-0.5 text-ink/85">{s.eligibility}</dd>
+            <dt className="text-small font-semibold text-primary">{t.scholarships.eligibility}</dt>
+            <dd className="mt-0.5 text-ink">{s.eligibility}</dd>
           </div>
         )}
         {s.howToApply && (
           <div>
-            <dt className="text-xs font-bold tracking-wide text-ink/60 uppercase rtl:normal-case">{t.scholarships.howToApply}</dt>
-            <dd className="mt-0.5 text-ink/85">{s.howToApply}</dd>
+            <dt className="text-small font-semibold text-primary">{t.scholarships.howToApply}</dt>
+            <dd className="mt-0.5 text-ink">{s.howToApply}</dd>
           </div>
         )}
       </dl>
-      <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-sm">
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-small">
         <span className="flex flex-wrap gap-x-4 gap-y-1">
-          {s.amount && <span className="font-semibold text-primary-800">{s.amount}</span>}
+          {s.amount && <span className="font-semibold text-primary">{s.amount}</span>}
           {s.deadline && (
             <span className="inline-flex items-center gap-1.5 text-muted">
               <CalendarDays className="size-4" aria-hidden="true" /> {s.deadline}

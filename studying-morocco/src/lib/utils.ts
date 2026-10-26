@@ -1,5 +1,15 @@
 import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { extendTailwindMerge } from 'tailwind-merge'
+
+// Teach tailwind-merge the brand type scale and radii so `text-h2` is not mistaken for a colour.
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      'font-size': [{ text: ['small', 'body', 'btn', 'h1', 'h2', 'h3', 'h4'] }],
+      rounded: [{ rounded: ['card', 'control'] }],
+    },
+  },
+})
 
 export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs))
 
@@ -21,6 +31,10 @@ export const initials = (text: string, max = 3) =>
 
 export const whatsappLink = (number: string | null | undefined, message: string) =>
   number ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : null
+
+/** WhatsApp number for display: the formatted phone number when both are the same line, else +digits. */
+export const whatsappDisplay = (whatsapp: string, phone?: string | null) =>
+  phone && phone.replace(/\D/g, '') === whatsapp ? phone : `+${whatsapp}`
 
 export const splitParagraphs = (text: string | null | undefined) =>
   (text ?? '')

@@ -44,37 +44,37 @@ export default async function ServicePage({ params }: { params: SlugParams }) {
         ]}
         crumbLabel={t.common.breadcrumb}
         aside={
-          <span className="hidden size-28 items-center justify-center rounded-[2rem] bg-accent text-secondary-900 shadow-lift lg:inline-flex">
-            <Icon name={service.icon} className="size-14" strokeWidth={1.5} />
+          <span className="hidden size-24 items-center justify-center rounded-card bg-surface text-primary lg:inline-flex">
+            <Icon name={service.icon} className="size-12" strokeWidth={1.5} />
           </span>
         }
       >
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          <LinkButton href={applyHref} variant="gold" size="lg">
+        <div className="mt-8 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center">
+          <LinkButton href={applyHref} size="lg">
             {t.services.request}
           </LinkButton>
           {service.priceFrom != null && (
-            <p className="text-white/80">
-              {t.services.priceFrom} <span className="text-xl font-bold text-white">{formatMoney(service.priceFrom, service.currency || 'USD', locale)}</span>
-              {service.priceNote && <span className="text-sm"> · {service.priceNote}</span>}
+            <p className="text-line">
+              {t.services.priceFrom} <span className="text-h4 font-semibold text-white">{formatMoney(service.priceFrom, service.currency || 'USD', locale)}</span>
+              {service.priceNote && <span className="text-small"> · {service.priceNote}</span>}
             </p>
           )}
         </div>
       </PageHeader>
 
-      <div className="container-page grid gap-12 py-14 lg:grid-cols-[1fr_22rem] lg:py-20">
+      <div className="container-page grid gap-12 lg:grid-cols-[1fr_22rem] py-section">
         <div className="min-w-0 space-y-12">
           {service.description && <RichText data={service.description} locale={locale} />}
           {!!service.steps?.length && (
             <section>
-              <h2 className="text-2xl sm:text-3xl">{t.services.howItWorks}</h2>
+              <h2>{t.services.howItWorks}</h2>
               <ol className="mt-6 space-y-4">
                 {service.steps.map((step, i) => (
-                  <li key={step.id ?? i} className="flex gap-4 rounded-2xl border border-line bg-surface p-5">
-                    <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-sans font-bold text-white">{formatNumber(i + 1, locale)}</span>
+                  <li key={step.id ?? i} className="flex gap-4 rounded-card border border-line bg-surface p-card">
+                    <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-cta font-semibold text-primary">{formatNumber(i + 1, locale)}</span>
                     <div>
-                      <h3 className="font-sans text-base font-bold">{step.title}</h3>
-                      {step.text && <p className="mt-1 text-ink/75">{step.text}</p>}
+                      <h3 className="text-h4">{step.title}</h3>
+                      {step.text && <p className="mt-1 text-ink">{step.text}</p>}
                     </div>
                   </li>
                 ))}
@@ -83,12 +83,12 @@ export default async function ServicePage({ params }: { params: SlugParams }) {
           )}
         </div>
         {!!service.features?.length && (
-          <aside className="rounded-[var(--radius-card)] border border-line bg-surface p-6 shadow-soft lg:sticky lg:top-24 lg:self-start">
-            <h2 className="font-sans text-lg font-bold">{t.services.included}</h2>
+          <aside className="rounded-card border border-line bg-surface p-card lg:sticky lg:top-24 lg:self-start">
+            <h2 className="text-h4">{t.services.included}</h2>
             <ul className="mt-4 space-y-3">
               {service.features.map((f) => (
-                <li key={f.id ?? f.text} className="flex items-start gap-2.5 text-[0.95rem]">
-                  <Check className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" /> {f.text}
+                <li key={f.id ?? f.text} className="flex items-start gap-2.5 text-small">
+                  <Check className="mt-1 size-4 shrink-0 text-primary" aria-hidden="true" strokeWidth={3} /> {f.text}
                 </li>
               ))}
             </ul>
@@ -100,8 +100,8 @@ export default async function ServicePage({ params }: { params: SlugParams }) {
       </div>
 
       {others.length > 0 && (
-        <section className="border-t border-line bg-sand py-16">
-          <div className="container-page grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="border-t border-line bg-canvas py-section">
+          <div className="container-page grid gap-grid md:grid-cols-2 lg:grid-cols-3">
             {others.map((s) => (
               <ServiceCard key={s.id} service={s} locale={locale} t={t} compact />
             ))}

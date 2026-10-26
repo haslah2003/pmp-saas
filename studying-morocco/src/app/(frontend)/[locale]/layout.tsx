@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import type { ReactNode } from 'react'
 
 import { AnnouncementBar } from '@/components/layout/AnnouncementBar'
-import { BrandStyle } from '@/components/layout/BrandStyle'
 import { ConsentBanner } from '@/components/layout/ConsentBanner'
 import { FloatingActions } from '@/components/layout/FloatingActions'
 import { Footer } from '@/components/layout/Footer'
@@ -26,7 +25,7 @@ export function generateStaticParams() {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#13253D',
+  themeColor: '#322057',
   width: 'device-width',
   initialScale: 1,
 }
@@ -71,7 +70,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
     name: siteName,
     alternateName: locale === 'ar' ? 'Studying in Morocco' : 'الدراسة في المغرب',
     url: absoluteURL(`/${locale}`),
-    logo: absoluteURL('/favicon.svg'),
+    logo: absoluteURL('/brand/kno-academy-logo.png'),
     description: settings.defaultDescription || t.meta.description,
     parentOrganization: { '@type': 'Organization', name: settings.organization || 'KNO Academy' },
     areaServed: ['OM', 'AE', 'QA', 'SA', 'KW', 'BH', 'JO', 'LB', 'SY', 'IQ', 'GB', 'EU', 'Africa'],
@@ -98,12 +97,17 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   return (
     <html lang={locale} dir={dirOf(locale)} className={fontVariables}>
       <head>
-        <BrandStyle brand={settings.brand} />
+        {settings.adobeFontsKitId && (
+          <>
+            <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" />
+            <link rel="stylesheet" href={`https://use.typekit.net/${settings.adobeFontsKitId}.css`} />
+          </>
+        )}
       </head>
       <body className="min-h-dvh">
         <a
           href="#main"
-          className="sr-only z-50 rounded-full bg-primary px-4 py-2 text-white focus:not-sr-only focus:fixed focus:start-4 focus:top-4"
+          className="sr-only z-50 rounded-control bg-cta px-4 py-2 font-semibold text-primary focus:not-sr-only focus:fixed focus:start-4 focus:top-4"
         >
           {t.nav.skip}
         </a>

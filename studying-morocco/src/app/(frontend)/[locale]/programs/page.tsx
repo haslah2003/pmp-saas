@@ -4,6 +4,7 @@ import Link from 'next/link'
 
 import { ProgramCard } from '@/components/cards/ProgramCard'
 import { FilterBar } from '@/components/forms/FilterBar'
+import { buttonClass } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { formatNumber } from '@/lib/format'
@@ -51,7 +52,7 @@ export default async function ProgramsPage({ params, searchParams }: { params: L
         ]}
         crumbLabel={t.common.breadcrumb}
       />
-      <div className="container-page -mt-8 pb-20">
+      <div className="container-page pt-10 pb-section">
         <FilterBar
           action={`/${locale}/programs`}
           q={filters.q}
@@ -67,11 +68,11 @@ export default async function ProgramsPage({ params, searchParams }: { params: L
             { name: 'lang', label: t.common.language, value: filters.language, anyLabel: t.common.all, options: teachingLanguages.map((o) => ({ value: o.value, label: o.label[locale] })) },
           ]}
         />
-        <p className="mt-8 mb-5 text-sm text-muted" aria-live="polite">
+        <p className="mt-8 mb-5 text-small text-muted" aria-live="polite">
           {formatNumber(result.totalDocs, locale)} {t.common.results}
         </p>
         {result.docs.length ? (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-grid md:grid-cols-2 lg:grid-cols-3">
             {result.docs.map((p) => (
               <ProgramCard key={p.id} program={p} locale={locale} t={t} />
             ))}
@@ -80,17 +81,17 @@ export default async function ProgramsPage({ params, searchParams }: { params: L
           <EmptyState title={t.common.noResults} text={t.common.noResultsHint} cta={t.nav.consultation} href={`/${locale}/consultation`} />
         )}
         {result.totalPages > 1 && (
-          <nav className="mt-10 flex items-center justify-center gap-3" aria-label={t.common.page}>
+          <nav className="mt-10 flex items-center gap-3" aria-label={t.common.page}>
             {result.hasPrevPage && (
-              <Link href={pageHref(page - 1)} className="inline-flex h-11 items-center gap-1 rounded-full border border-line bg-surface px-4 font-semibold">
+              <Link href={pageHref(page - 1)} className={buttonClass('secondary', 'md', undefined, true)}>
                 <ChevronLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" /> {t.common.previous}
               </Link>
             )}
-            <span className="text-sm text-muted">
+            <span className="text-small text-muted">
               {t.common.page} {formatNumber(page, locale)} {t.common.of} {formatNumber(result.totalPages, locale)}
             </span>
             {result.hasNextPage && (
-              <Link href={pageHref(page + 1)} className="inline-flex h-11 items-center gap-1 rounded-full border border-line bg-surface px-4 font-semibold">
+              <Link href={pageHref(page + 1)} className={buttonClass('secondary', 'md', undefined, true)}>
                 {t.common.next} <ChevronRight className="size-4 rtl:-scale-x-100" aria-hidden="true" />
               </Link>
             )}

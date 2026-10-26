@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 
-import { StarOrnament } from '@/components/art/Ornaments'
+import { buttonClass } from '@/components/ui/Button'
 
 const copy = {
   ar: { title: 'الصفحة غير موجودة', text: 'الصفحة التي تبحث عنها نُقلت أو لم تعد موجودة.', home: 'العودة إلى الرئيسية', search: 'ابحث في الموقع' },
@@ -15,16 +15,15 @@ export default function NotFound() {
   const locale = params?.locale === 'en' ? 'en' : 'ar'
   const c = copy[locale]
   return (
-    <section className="container-page flex min-h-[60vh] flex-col items-center justify-center py-20 text-center">
-      <p className="font-sans text-7xl font-bold text-primary-200">404</p>
-      <StarOrnament className="mt-4 size-6 text-accent" />
-      <h1 className="mt-4 text-3xl">{c.title}</h1>
-      <p className="mt-3 max-w-md text-ink/70">{c.text}</p>
-      <div className="mt-8 flex flex-wrap justify-center gap-3">
-        <Link href={`/${locale}`} className="inline-flex h-11 items-center rounded-full bg-primary px-6 font-semibold text-white">
+    <section className="container-page flex min-h-[60vh] flex-col justify-center py-section">
+      <p className="text-h4 font-semibold text-muted">404</p>
+      <h1 className="mt-2">{c.title}</h1>
+      <p className="mt-3 max-w-xl text-body text-ink">{c.text}</p>
+      <div className="mt-8 flex flex-col gap-3 md:flex-row">
+        <Link href={`/${locale}`} className={buttonClass('primary')}>
           {c.home}
         </Link>
-        <Link href={`/${locale}/search`} className="inline-flex h-11 items-center rounded-full border border-line px-6 font-semibold">
+        <Link href={`/${locale}/search`} className={buttonClass('secondary')}>
           {c.search}
         </Link>
       </div>

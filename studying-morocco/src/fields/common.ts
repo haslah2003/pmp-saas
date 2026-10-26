@@ -35,18 +35,6 @@ export const iconField = (name = 'icon'): SelectField => ({
   options: iconKeys.map((key) => ({ label: key, value: key })),
 })
 
-export const hexColorField = (name: string, label: { en: string; ar: string }, defaultValue: string): TextField => ({
-  name,
-  type: 'text',
-  label,
-  defaultValue,
-  validate: (value: unknown) =>
-    value == null || value === '' || /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(String(value))
-      ? true
-      : 'Use a hex colour such as #0F6E5F',
-  admin: { width: '33%', placeholder: defaultValue },
-})
-
 export const localizedText = (name: string, label: { en: string; ar: string }, required = false): TextField => ({
   name,
   type: 'text',

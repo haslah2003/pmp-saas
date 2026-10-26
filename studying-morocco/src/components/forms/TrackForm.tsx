@@ -9,6 +9,8 @@ import { formatDate } from '@/lib/format'
 import { applicationStatuses, optionLabel, type Locale } from '@/lib/options'
 import { cn } from '@/lib/utils'
 
+import { buttonClass } from '@/components/ui/Button'
+
 import { Field, TextInput } from './fields'
 
 export function TrackForm({ locale, t, initialRef }: { locale: Locale; t: Pick<Dictionary, 'track' | 'errors' | 'common'>; initialRef?: string }) {
@@ -19,7 +21,7 @@ export function TrackForm({ locale, t, initialRef }: { locale: Locale; t: Pick<D
   return (
     <div className="space-y-8">
       <form
-        className="grid gap-4 rounded-[2rem] border border-line bg-surface p-6 shadow-lift sm:grid-cols-[1fr_1fr_auto] sm:items-end sm:p-8"
+        className="grid gap-4 rounded-card border border-line bg-surface p-card lg:grid-cols-[1fr_1fr_auto] lg:items-end"
         onSubmit={(e) => {
           e.preventDefault()
           const f = new FormData(e.currentTarget)
@@ -43,27 +45,27 @@ export function TrackForm({ locale, t, initialRef }: { locale: Locale; t: Pick<D
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-6 font-semibold text-white hover:bg-primary-700 disabled:opacity-60"
+          className={buttonClass('primary', 'md', 'min-h-12')}
         >
           {pending && <Loader2 className="size-5 animate-spin" aria-hidden="true" />}
           {t.track.submit}
         </button>
         {error && (
-          <p className="text-sm font-medium text-clay-700 sm:col-span-3" role="alert">
+          <p className="text-small font-semibold text-primary lg:col-span-3" role="alert">
             {error}
           </p>
         )}
       </form>
 
       {result && (
-        <section className="rounded-[2rem] border border-line bg-surface p-6 shadow-soft sm:p-8" aria-live="polite">
+        <section className="rounded-card border border-line bg-surface p-card" aria-live="polite">
           <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5">
             <div>
-              <p className="text-sm text-muted">{t.track.currentStatus}</p>
-              <p className="mt-1 text-2xl font-bold text-primary-800">{optionLabel(applicationStatuses, result.status, locale)}</p>
+              <p className="text-small text-muted">{t.track.currentStatus}</p>
+              <p className="mt-1 text-h3 font-semibold text-primary">{optionLabel(applicationStatuses, result.status, locale)}</p>
             </div>
-            <div className="text-end text-sm">
-              <p className="font-sans font-bold tracking-wider" dir="ltr">
+            <div className="text-end text-small">
+              <p className="font-semibold" dir="ltr">
                 {result.reference}
               </p>
               <p className="text-muted">
@@ -72,21 +74,21 @@ export function TrackForm({ locale, t, initialRef }: { locale: Locale; t: Pick<D
             </div>
           </div>
           {result.status === 'on-hold' && (
-            <p className="mt-5 flex items-center gap-2 rounded-2xl bg-accent-50 p-4 text-sm text-accent-700">
+            <p className="mt-5 flex items-center gap-2 rounded-card bg-canvas p-4 text-small text-primary">
               <PauseCircle className="size-5" aria-hidden="true" /> {t.track.onHold}
             </p>
           )}
           {result.status === 'lost' && (
-            <p className="mt-5 flex items-center gap-2 rounded-2xl bg-clay-50 p-4 text-sm text-clay-700">
+            <p className="mt-5 flex items-center gap-2 rounded-card bg-canvas p-4 text-small text-primary">
               <XCircle className="size-5" aria-hidden="true" /> {t.track.closed}
             </p>
           )}
           {result.publicMessage && (
-            <div className="mt-5 rounded-2xl bg-primary-50 p-4">
-              <p className="flex items-center gap-2 text-sm font-semibold text-primary-800">
+            <div className="mt-5 rounded-card bg-canvas p-4">
+              <p className="flex items-center gap-2 text-small font-semibold text-primary">
                 <MessageSquareText className="size-4" aria-hidden="true" /> {t.track.counselorMessage}
               </p>
-              <p className="mt-1.5 text-sm whitespace-pre-line text-ink/85">{result.publicMessage}</p>
+              <p className="mt-1.5 text-small whitespace-pre-line text-ink">{result.publicMessage}</p>
             </div>
           )}
           <ol className="mt-6 space-y-0">
@@ -101,13 +103,13 @@ export function TrackForm({ locale, t, initialRef }: { locale: Locale; t: Pick<D
                     <span className={cn('absolute start-[0.6875rem] top-7 bottom-0 w-0.5', done ? 'bg-primary' : 'bg-line')} aria-hidden="true" />
                   )}
                   {done ? (
-                    <CheckCircle2 className={cn('relative size-6 shrink-0', current ? 'text-accent-700' : 'text-primary')} aria-hidden="true" />
+                    <CheckCircle2 className={cn('relative size-6 shrink-0 rounded-full', current ? 'bg-cta text-primary' : 'text-primary')} aria-hidden="true" />
                   ) : (
-                    <Circle className="relative size-6 shrink-0 text-line" aria-hidden="true" />
+                    <Circle className="relative size-6 shrink-0 text-muted" aria-hidden="true" />
                   )}
                   <div>
                     <p className={cn('font-semibold', done ? 'text-ink' : 'text-muted')}>{optionLabel(applicationStatuses, step, locale)}</p>
-                    {reachedAt && <p className="text-xs text-muted">{formatDate(reachedAt, locale, 'medium')}</p>}
+                    {reachedAt && <p className="text-small text-muted">{formatDate(reachedAt, locale, 'medium')}</p>}
                   </div>
                 </li>
               )

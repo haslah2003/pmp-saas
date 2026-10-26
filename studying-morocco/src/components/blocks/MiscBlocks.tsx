@@ -1,6 +1,5 @@
 import { ArrowRight, Quote, Star } from 'lucide-react'
 
-import { StarOrnament } from '@/components/art/Ornaments'
 import { PostCard } from '@/components/cards/PostCard'
 import { NewsletterForm } from '@/components/forms/NewsletterForm'
 import { ProgramFinder } from '@/components/forms/ProgramFinder'
@@ -23,28 +22,28 @@ export async function TestimonialsBlock({ block, locale, t }: BlockProps<'testim
   return (
     <Section tone="surface">
       <SectionHeading eyebrow={block.eyebrow} title={block.heading} intro={block.intro} />
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-grid md:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => {
           const photo = asMedia(item.photo)
           return (
-            <figure key={item.id} className="flex h-full flex-col rounded-[var(--radius-card)] border border-line bg-canvas p-7">
-              <Quote className="size-8 text-accent rtl:-scale-x-100" aria-hidden="true" />
-              <div className="mt-2 flex gap-0.5 text-accent" aria-label={`${item.rating ?? 5}/5`}>
+            <figure key={item.id} className="flex h-full flex-col rounded-card border border-line bg-surface p-card">
+              <Quote className="size-8 text-primary rtl:-scale-x-100" aria-hidden="true" />
+              <div className="mt-2 flex gap-0.5 text-cta" aria-label={`${item.rating ?? 5}/5`}>
                 {Array.from({ length: item.rating ?? 5 }).map((_, i) => (
                   <Star key={i} className="size-4 fill-current" aria-hidden="true" />
                 ))}
               </div>
-              <blockquote className="mt-4 flex-1 text-[1.02rem] leading-relaxed text-ink/85">{item.quote}</blockquote>
+              <blockquote className="mt-4 flex-1 text-body text-ink">{item.quote}</blockquote>
               <figcaption className="mt-6 flex items-center gap-3 border-t border-line pt-5">
                 {photo?.url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={photo.url} alt="" className="size-11 rounded-full object-cover" />
                 ) : (
-                  <span className="inline-flex size-11 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">{item.name.slice(0, 1)}</span>
+                  <span className="inline-flex size-11 items-center justify-center rounded-full bg-primary text-small font-semibold text-white">{item.name.slice(0, 1)}</span>
                 )}
                 <span>
                   <span className="block font-semibold text-ink">{item.name}</span>
-                  <span className="block text-sm text-muted">
+                  <span className="block text-small text-muted">
                     {[optionLabel(countries, item.country, locale), item.program, item.university].filter(Boolean).join(' · ')}
                   </span>
                 </span>
@@ -64,8 +63,8 @@ export async function FAQBlock({ block, locale, t }: BlockProps<'faq'>) {
     <Section>
       <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
         <div>
-          <SectionHeading eyebrow={block.eyebrow} title={block.heading} intro={block.intro} align="start" className="lg:sticky lg:top-28" />
-          <LinkButton href={`/${locale}/faq`} variant="outline" className="-mt-4">
+          <SectionHeading eyebrow={block.eyebrow} title={block.heading} intro={block.intro} className="lg:sticky lg:top-28" />
+          <LinkButton href={`/${locale}/faq`} variant="secondary">
             {t.common.viewAll}
             <ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden="true" />
           </LinkButton>
@@ -86,15 +85,14 @@ export async function PostsFeedBlock({ block, locale, t }: BlockProps<'postsFeed
         eyebrow={block.eyebrow}
         title={block.heading}
         intro={block.intro}
-        align="start"
         action={
-          <LinkButton href={`/${locale}/blog`} variant="outline">
+          <LinkButton href={`/${locale}/blog`} variant="secondary">
             {t.common.viewAll}
             <ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden="true" />
           </LinkButton>
         }
       />
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-grid md:grid-cols-2 lg:grid-cols-3">
         {docs.map((post) => (
           <PostCard key={post.id} post={post} locale={locale} t={t} />
         ))}
@@ -105,7 +103,7 @@ export async function PostsFeedBlock({ block, locale, t }: BlockProps<'postsFeed
 
 export function RichTextBlock({ block, locale }: BlockProps<'richText'>) {
   return (
-    <section className="py-12 sm:py-16">
+    <section className="py-section">
       <div className={cn('container-page', block.narrow !== false && 'max-w-3xl')}>
         <RichText data={block.content} locale={locale} />
       </div>
@@ -116,26 +114,26 @@ export function RichTextBlock({ block, locale }: BlockProps<'richText'>) {
 export function CTABlock({ block, locale }: BlockProps<'cta'>) {
   const dark = block.variant !== 'light'
   return (
-    <section className="py-12 sm:py-16">
+    <section className="py-section">
       <div className="container-page">
         <div
           className={cn(
-            'relative overflow-hidden rounded-[2rem] px-6 py-14 text-center sm:px-12 sm:py-16',
-            dark ? 'pattern-zellige bg-secondary text-white [--pattern-opacity:0.09]' : 'border border-line bg-accent-50',
+            'flex flex-col gap-8 rounded-card p-card md:p-10 lg:flex-row lg:items-center lg:justify-between lg:p-12',
+            dark ? 'on-dark bg-primary text-white' : 'border border-line bg-canvas',
           )}
         >
-          <div className="pointer-events-none absolute -bottom-32 left-1/2 size-80 -translate-x-1/2 rounded-full bg-primary/50 blur-3xl" aria-hidden="true" />
-          <StarOrnament className={cn('relative mx-auto size-8', dark ? 'text-accent' : 'text-primary')} />
-          <h2 className={cn('relative mx-auto mt-5 max-w-2xl text-3xl sm:text-4xl', dark && 'text-white')}>{block.heading}</h2>
-          {block.text && <p className={cn('relative mx-auto mt-4 max-w-xl text-lg', dark ? 'text-white/75' : 'text-ink/75')}>{block.text}</p>}
-          <div className="relative mt-8 flex flex-wrap justify-center gap-3">
+          <div className="max-w-2xl">
+            <h2 className={cn(dark && 'text-white')}>{block.heading}</h2>
+            {block.text && <p className={cn('mt-3 text-body', dark ? 'text-line' : 'text-ink')}>{block.text}</p>}
+          </div>
+          <div className="flex shrink-0 flex-col gap-3 md:flex-row">
             {block.primaryCta?.label && (
-              <LinkButton href={localizeHref(block.primaryCta.href, locale)} variant={dark ? 'gold' : 'primary'} size="lg">
+              <LinkButton href={localizeHref(block.primaryCta.href, locale)} size="lg">
                 {block.primaryCta.label}
               </LinkButton>
             )}
             {block.secondaryCta?.label && (
-              <LinkButton href={localizeHref(block.secondaryCta.href, locale)} variant={dark ? 'light' : 'outline'} size="lg">
+              <LinkButton href={localizeHref(block.secondaryCta.href, locale)} variant={dark ? 'light' : 'secondary'} size="lg">
                 {block.secondaryCta.label}
               </LinkButton>
             )}
@@ -148,12 +146,12 @@ export function CTABlock({ block, locale }: BlockProps<'cta'>) {
 
 export function NewsletterBlock({ block, locale, t }: BlockProps<'newsletter'>) {
   return (
-    <section className="py-12 sm:py-16">
+    <section className="py-section">
       <div className="container-page">
-        <div className="grid items-center gap-8 rounded-[2rem] border border-line bg-surface p-8 shadow-soft sm:p-12 lg:grid-cols-2">
+        <div className="grid items-center gap-8 rounded-card border border-line bg-canvas p-card md:p-10 lg:grid-cols-2 lg:p-12">
           <div>
-            <h2 className="text-2xl sm:text-3xl">{block.heading || t.newsletter.title}</h2>
-            <p className="mt-3 text-ink/75">{block.text || t.newsletter.text}</p>
+            <h2>{block.heading || t.newsletter.title}</h2>
+            <p className="mt-3 text-ink">{block.text || t.newsletter.text}</p>
           </div>
           <NewsletterForm locale={locale} t={t} />
         </div>
@@ -165,7 +163,7 @@ export function NewsletterBlock({ block, locale, t }: BlockProps<'newsletter'>) 
 export async function ProgramSearchBlock({ block, locale, t }: BlockProps<'programSearch'>) {
   const [disciplines, cities] = await Promise.all([getDisciplines(locale), getCities(locale)])
   return (
-    <Section tone="sand">
+    <Section tone="canvas">
       <SectionHeading eyebrow={block.eyebrow} title={block.heading} intro={block.intro} />
       <ProgramFinder locale={locale} t={t} disciplines={disciplines} cities={cities} />
     </Section>
@@ -176,13 +174,13 @@ export function ComparisonBlock({ block }: BlockProps<'comparison'>) {
   return (
     <Section tone="surface">
       <SectionHeading eyebrow={block.eyebrow} title={block.heading} intro={block.intro} />
-      <div className="mx-auto max-w-4xl overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface shadow-soft">
+      <div className="max-w-4xl overflow-hidden rounded-card border border-line bg-surface">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[34rem] text-start text-[0.95rem]">
+          <table className="w-full min-w-[34rem] text-start text-body">
             <thead>
-              <tr className="bg-sand">
+              <tr className="bg-canvas">
                 <th scope="col" className="px-5 py-4 text-start font-semibold text-muted" />
-                <th scope="col" className="px-5 py-4 text-start font-semibold">{block.labelA}</th>
+                <th scope="col" className="px-5 py-4 text-start font-semibold text-primary">{block.labelA}</th>
                 <th scope="col" className="bg-primary px-5 py-4 text-start font-semibold text-white">{block.labelB}</th>
               </tr>
             </thead>
@@ -190,14 +188,14 @@ export function ComparisonBlock({ block }: BlockProps<'comparison'>) {
               {block.rows?.map((row, i) => (
                 <tr key={row.id ?? i} className="border-t border-line">
                   <th scope="row" className="px-5 py-4 text-start font-semibold text-ink">{row.label}</th>
-                  <td className="px-5 py-4 text-ink/75">{row.a}</td>
-                  <td className="bg-primary-50 px-5 py-4 font-medium text-primary-900">{row.b}</td>
+                  <td className="px-5 py-4 text-ink">{row.a}</td>
+                  <td className="bg-canvas px-5 py-4 font-medium text-primary">{row.b}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {block.footnote && <p className="border-t border-line px-5 py-3 text-xs text-muted">{block.footnote}</p>}
+        {block.footnote && <p className="border-t border-line px-5 py-3 text-small text-muted">{block.footnote}</p>}
       </div>
     </Section>
   )

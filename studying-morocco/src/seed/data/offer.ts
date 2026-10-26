@@ -304,13 +304,13 @@ export const services = [
   },
 ]
 
+// Package prices are left empty on purpose (shown as “On request”); enter them in Admin → Services & pricing → Packages.
 const feature = (text: ReturnType<typeof L>, included = true) => ({ text, included })
 
 export const packages = [
   {
     slug: 'essential',
     order: 10,
-    price: 490,
     currency: 'USD',
     name: L('الأساسية', 'Essential'),
     tagline: L('للطالب المستقل الذي يحتاج القبول فقط', 'For independent students who only need admission'),
@@ -326,7 +326,6 @@ export const packages = [
   {
     slug: 'complete',
     order: 20,
-    price: 1290,
     currency: 'USD',
     highlighted: true,
     name: L('الشاملة', 'Complete'),
@@ -344,7 +343,6 @@ export const packages = [
   {
     slug: 'family-premium',
     order: 30,
-    price: 2900,
     currency: 'USD',
     name: L('العائلية المميزة', 'Family Premium'),
     tagline: L('للعائلات المنتقلة وأولياء الأمور', 'For relocating families and parents'),

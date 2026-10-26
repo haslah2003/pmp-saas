@@ -17,15 +17,14 @@ export async function UniversitiesBlock({ block, locale, t }: BlockProps<'univer
         eyebrow={block.eyebrow}
         title={block.heading}
         intro={block.intro}
-        align="start"
         action={
-          <LinkButton href={`/${locale}/universities`} variant="outline">
+          <LinkButton href={`/${locale}/universities`} variant="secondary">
             {t.common.viewAll}
             <ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden="true" />
           </LinkButton>
         }
       />
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-grid md:grid-cols-2 lg:grid-cols-3">
         {universities.map((u) => (
           <UniversityCard key={u.id} university={u} locale={locale} t={t} />
         ))}

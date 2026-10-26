@@ -4,6 +4,8 @@ import Link from 'next/link'
 import Script from 'next/script'
 import { useEffect, useState } from 'react'
 
+import { buttonClass } from '@/components/ui/Button'
+
 type Choice = 'all' | 'essential'
 const KEY = 'sim-consent'
 
@@ -68,19 +70,19 @@ export function ConsentBanner({
           role="dialog"
           aria-live="polite"
           aria-label={policy}
-          className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-2xl rounded-3xl border border-line bg-surface/95 p-5 shadow-lift backdrop-blur md:bottom-6"
+          className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-2xl rounded-card border border-line bg-surface p-card md:bottom-6"
         >
-          <p className="text-sm leading-relaxed text-ink/85">
+          <p className="text-small text-ink">
             {text}{' '}
             <Link href={policyHref} className="font-semibold text-primary underline underline-offset-2">
               {policy}
             </Link>
           </p>
-          <div className="mt-4 flex flex-wrap justify-end gap-2">
-            <button type="button" onClick={() => decide('essential')} className="h-10 rounded-full border border-line px-4 text-sm font-semibold hover:bg-ink/5">
+          <div className="mt-4 flex flex-col gap-2 md:flex-row">
+            <button type="button" onClick={() => decide('essential')} className={buttonClass('secondary')}>
               {reject}
             </button>
-            <button type="button" onClick={() => decide('all')} className="h-10 rounded-full bg-primary px-5 text-sm font-semibold text-white hover:bg-primary-700">
+            <button type="button" onClick={() => decide('all')} className={buttonClass('primary')}>
               {accept}
             </button>
           </div>

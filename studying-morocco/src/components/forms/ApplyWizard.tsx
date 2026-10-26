@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 
 import { submitApplication, type ApplicationInput } from '@/app/(frontend)/actions'
+import { buttonClass } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { SocialIcon } from '@/components/ui/SocialIcon'
 import type { Dictionary } from '@/i18n'
@@ -212,22 +213,22 @@ export function ApplyWizard({
 
   if (reference) {
     return (
-      <div ref={topRef} className="rounded-[2rem] border border-line bg-surface p-8 text-center shadow-lift sm:p-12" role="status">
-        <span className="mx-auto inline-flex size-16 items-center justify-center rounded-full bg-primary-50 text-primary">
-          <CheckCircle2 className="size-9" aria-hidden="true" />
+      <div ref={topRef} className="rounded-card border border-line bg-surface p-card md:p-10" role="status">
+        <span className="inline-flex size-14 items-center justify-center rounded-full bg-canvas text-primary">
+          <CheckCircle2 className="size-8" aria-hidden="true" />
         </span>
-        <h2 className="mt-6 text-3xl">{a.successTitle}</h2>
-        <p className="mx-auto mt-3 max-w-md text-ink/75">{a.successText}</p>
-        <p className="mt-8 text-sm text-muted">{a.reference}</p>
-        <p className="mt-1 font-sans text-3xl font-bold tracking-wider text-primary-800" dir="ltr">
+        <h2 className="mt-6">{a.successTitle}</h2>
+        <p className="mt-3 max-w-xl text-body text-ink">{a.successText}</p>
+        <p className="mt-8 text-small text-muted">{a.reference}</p>
+        <p className="mt-1 text-h2 font-semibold text-primary" dir="ltr">
           {reference}
         </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href={`/${locale}/track?ref=${reference}`} className="inline-flex h-12 items-center rounded-full bg-primary px-6 font-semibold text-white hover:bg-primary-700">
+        <div className="mt-8 flex flex-col gap-3 md:flex-row">
+          <Link href={`/${locale}/track?ref=${reference}`} className={buttonClass('primary')}>
             {a.trackCta}
           </Link>
           {whatsappHref && (
-            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-full bg-[#1f9d55] px-6 font-semibold text-white">
+            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={buttonClass('secondary')}>
               <SocialIcon name="whatsapp" className="size-5" /> {a.whatsappCta}
             </a>
           )}
@@ -238,27 +239,27 @@ export function ApplyWizard({
 
   const optional = t.common.optional
   return (
-    <div ref={topRef} className="scroll-mt-28 rounded-[2rem] border border-line bg-surface shadow-lift">
+    <div ref={topRef} className="scroll-mt-28 rounded-card border border-line bg-surface">
       <ol className="grid grid-cols-4 border-b border-line" aria-label={a.title}>
         {a.steps.map((label, i) => (
-          <li key={label} className={cn('relative px-2 py-4 text-center text-xs font-semibold sm:text-sm', i <= step ? 'text-primary-800' : 'text-muted')}>
+          <li key={label} className={cn('relative px-2 py-4 text-center text-small font-semibold', i <= step ? 'text-primary' : 'text-muted')}>
             <span
               className={cn(
-                'mx-auto mb-1.5 flex size-8 items-center justify-center rounded-full text-sm',
-                i < step ? 'bg-primary text-white' : i === step ? 'bg-primary-100 text-primary-800 ring-2 ring-primary' : 'bg-ink/5',
+                'mx-auto mb-1.5 flex size-8 items-center justify-center rounded-full text-small',
+                i < step ? 'bg-primary text-white' : i === step ? 'bg-cta text-primary' : 'bg-canvas text-muted ring-1 ring-line',
               )}
               aria-current={i === step ? 'step' : undefined}
             >
               {i < step ? <CheckCircle2 className="size-4" aria-hidden="true" /> : i + 1}
             </span>
-            <span className="hidden sm:inline">{label}</span>
-            <span className={cn('absolute inset-x-0 bottom-0 h-0.5', i <= step ? 'bg-primary' : 'bg-transparent')} />
+            <span className="hidden md:inline">{label}</span>
+            <span className={cn('absolute inset-x-0 bottom-0 h-0.5', i <= step && 'bg-primary')} />
           </li>
         ))}
       </ol>
 
       <form
-        className="relative space-y-6 p-6 sm:p-10"
+        className="relative space-y-6 p-card md:p-10"
         noValidate
         onSubmit={(e) => {
           e.preventDefault()
@@ -271,7 +272,7 @@ export function ApplyWizard({
         {step === 0 && (
           <>
             <div>
-              <p className="mb-3 text-sm font-semibold">{a.applyingAs}</p>
+              <p className="mb-3 text-small font-semibold text-ink">{a.applyingAs}</p>
               <ChoiceCards
                 name="applicantType"
                 value={s.applicantType}
@@ -283,8 +284,8 @@ export function ApplyWizard({
                 ]}
               />
             </div>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Field id="fullName" label={a.fullName} required error={errors.fullName} className="sm:col-span-2">
+            <div className="grid gap-grid md:grid-cols-2">
+              <Field id="fullName" label={a.fullName} required error={errors.fullName} className="md:col-span-2">
                 <TextInput id="fullName" autoComplete="name" value={s.fullName} onChange={(e) => set('fullName', e.target.value)} invalid={!!errors.fullName} />
               </Field>
               <Field id="email" label={a.email} required error={errors.email}>
@@ -318,25 +319,25 @@ export function ApplyWizard({
         )}
 
         {step === 1 && (
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-grid md:grid-cols-2">
             <Field id="level" label={a.level} optionalLabel={optional}>
               <Select id="level" value={s.level} onChange={(e) => set('level', e.target.value)} options={levelOptions(studyLevels)} placeholder={a.selectPlaceholder} />
             </Field>
             <Field id="discipline" label={a.field} optionalLabel={optional}>
               <Select id="discipline" value={s.discipline} onChange={(e) => set('discipline', e.target.value)} options={disciplines.map((d) => ({ value: d.id, label: d.name }))} placeholder={a.selectPlaceholder} />
             </Field>
-            <div className="sm:col-span-2">
-              <p className="mb-2 text-sm font-semibold">
-                {a.universities} <span className="text-xs font-normal text-muted">({a.chooseMany})</span>
+            <div className="md:col-span-2">
+              <p className="mb-2 text-small font-semibold text-ink">
+                {a.universities} <span className="text-small font-normal text-muted">({a.chooseMany})</span>
               </p>
               <ChipGroup label={a.universities} options={universities.map((u) => ({ value: u.id, label: u.name }))} value={s.universities} onChange={(v) => set('universities', v)} max={5} />
             </div>
-            <Field id="program" label={a.program} optionalLabel={optional} className="sm:col-span-2">
+            <Field id="program" label={a.program} optionalLabel={optional} className="md:col-span-2">
               <Select id="program" value={s.program} onChange={(e) => set('program', e.target.value)} options={programOptions} placeholder={a.selectPlaceholder} />
             </Field>
-            <div className="sm:col-span-2">
-              <p className="mb-2 text-sm font-semibold">
-                {a.cities} <span className="text-xs font-normal text-muted">({a.chooseMany})</span>
+            <div className="md:col-span-2">
+              <p className="mb-2 text-small font-semibold text-ink">
+                {a.cities} <span className="text-small font-normal text-muted">({a.chooseMany})</span>
               </p>
               <ChipGroup label={a.cities} options={cities.map((c) => ({ value: c.id, label: c.name }))} value={s.cities} onChange={(v) => set('cities', v)} max={5} />
             </div>
@@ -358,7 +359,7 @@ export function ApplyWizard({
             <Field id="grade" label={a.grade} optionalLabel={optional}>
               <TextInput id="grade" value={s.grade} onChange={(e) => set('grade', e.target.value)} />
             </Field>
-            <Field id="intake" label={a.intake} optionalLabel={optional} className="sm:col-span-2">
+            <Field id="intake" label={a.intake} optionalLabel={optional} className="md:col-span-2">
               <TextInput id="intake" placeholder={locale === 'ar' ? 'سبتمبر 2027' : 'September 2027'} value={s.intake} onChange={(e) => set('intake', e.target.value)} />
             </Field>
           </div>
@@ -367,10 +368,10 @@ export function ApplyWizard({
         {step === 2 && (
           <>
             <div>
-              <p className="mb-3 text-sm font-semibold">
-                {a.services} <span className="text-xs font-normal text-muted">({a.chooseMany})</span>
+              <p className="mb-3 text-small font-semibold text-ink">
+                {a.services} <span className="text-small font-normal text-muted">({a.chooseMany})</span>
               </p>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {serviceKeys.map((sk) => {
                   const active = s.services.includes(sk.value)
                   return (
@@ -380,11 +381,11 @@ export function ApplyWizard({
                       aria-pressed={active}
                       onClick={() => set('services', active ? s.services.filter((v) => v !== sk.value) : [...s.services, sk.value])}
                       className={cn(
-                        'flex items-center gap-3 rounded-2xl border p-3.5 text-start text-sm font-semibold transition',
-                        active ? 'border-primary bg-primary-50 ring-2 ring-primary-100' : 'border-line bg-surface hover:border-primary-200',
+                        'flex min-h-14 items-center gap-3 rounded-card border p-3.5 text-start text-small font-semibold text-primary transition-colors',
+                        active ? 'border-2 border-primary bg-canvas' : 'border-muted bg-surface hover:border-primary',
                       )}
                     >
-                      <span className={cn('inline-flex size-9 shrink-0 items-center justify-center rounded-xl', active ? 'bg-primary text-white' : 'bg-ink/5 text-ink/70')}>
+                      <span className={cn('inline-flex size-9 shrink-0 items-center justify-center rounded-control', active ? 'bg-primary text-white' : 'bg-canvas text-primary')}>
                         <Icon name={serviceIcons[sk.value]} className="size-4.5" />
                       </span>
                       {sk.label[locale]}
@@ -401,8 +402,8 @@ export function ApplyWizard({
 
         {step === 3 && (
           <div className="space-y-6">
-            <p className="text-ink/75">{a.review}</p>
-            <dl className="grid gap-x-8 gap-y-4 rounded-2xl bg-sand/60 p-5 text-sm sm:grid-cols-2">
+            <p className="text-ink">{a.review}</p>
+            <dl className="grid gap-x-8 gap-y-4 rounded-card bg-canvas p-card text-small md:grid-cols-2">
               {(
                 [
                   [a.fullName, s.fullName],
@@ -420,7 +421,7 @@ export function ApplyWizard({
                 .filter(([, v]) => v)
                 .map(([k, v]) => (
                   <div key={k}>
-                    <dt className="text-xs font-semibold text-muted">{k}</dt>
+                    <dt className="text-small font-semibold text-muted">{k}</dt>
                     <dd className="mt-0.5 font-medium break-words text-ink">{v}</dd>
                   </div>
                 ))}
@@ -433,7 +434,7 @@ export function ApplyWizard({
                 className="mt-1 size-5 shrink-0 accent-[var(--color-primary)]"
                 aria-invalid={!!errors.consent || undefined}
               />
-              <span className="text-sm leading-relaxed text-ink/85">
+              <span className="text-small text-ink">
                 {a.consent}{' '}
                 <Link href={`/${locale}/privacy`} className="font-semibold text-primary underline underline-offset-2" target="_blank">
                   {t.footer.privacy}
@@ -441,7 +442,7 @@ export function ApplyWizard({
               </span>
             </label>
             {errors.consent && (
-              <p className="text-xs font-medium text-clay-700" role="alert">
+              <p className="text-small font-semibold text-primary" role="alert">
                 {errors.consent}
               </p>
             )}
@@ -449,25 +450,25 @@ export function ApplyWizard({
         )}
 
         {formError && (
-          <p className="rounded-2xl bg-clay-50 p-4 text-sm font-medium text-clay-700" role="alert">
+          <p className="rounded-card border-s-4 border-cta-active bg-canvas p-4 text-small font-semibold text-primary" role="alert">
             {formError}
           </p>
         )}
 
         <div className="flex items-center justify-between gap-3 border-t border-line pt-6">
           {step > 0 ? (
-            <button type="button" onClick={() => setStep((v) => v - 1)} className="inline-flex h-12 items-center gap-2 rounded-full px-5 font-semibold text-ink/80 hover:bg-ink/5">
+            <button type="button" onClick={() => setStep((v) => v - 1)} className={buttonClass('secondary', 'md', undefined, true)}>
               <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" /> {t.common.previous}
             </button>
           ) : (
-            <Link href={`/${locale}`} className="inline-flex h-12 items-center gap-2 rounded-full px-5 font-semibold text-ink/70 hover:bg-ink/5">
+            <Link href={`/${locale}`} className={buttonClass('secondary', 'md', undefined, true)}>
               <Home className="size-4" aria-hidden="true" />
             </Link>
           )}
           <button
             type="submit"
             disabled={pending}
-            className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-7 font-semibold text-white shadow-[0_8px_20px_-8px_var(--color-primary)] transition hover:bg-primary-700 disabled:opacity-60"
+            className={buttonClass('primary', 'md', undefined, true)}
           >
             {pending ? <Loader2 className="size-5 animate-spin" aria-hidden="true" /> : null}
             {step < 3 ? t.common.next : pending ? t.common.sending : a.submit}

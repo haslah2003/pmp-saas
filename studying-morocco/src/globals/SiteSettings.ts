@@ -1,23 +1,9 @@
 import type { GlobalConfig } from 'payload'
 
 import { anyone, isAdmin } from '@/access'
-import { hexColorField } from '@/fields/common'
 import { revalidateGlobal } from '@/hooks/revalidate'
 
 const L = (en: string, ar: string) => ({ en, ar })
-
-/**
- * Brand defaults. KNO Academy's official palette was not available when the
- * site was built — replace these in Admin → Site settings → Brand.
- */
-export const brandDefaults = {
-  primary: '#0F6E5F',
-  secondary: '#13253D',
-  accent: '#D4A24C',
-  clay: '#C2603F',
-  ink: '#18202B',
-  canvas: '#FBF8F2',
-}
 
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
@@ -79,7 +65,7 @@ export const SiteSettings: GlobalConfig = {
               name: 'whatsapp',
               type: 'text',
               label: L('WhatsApp number', 'رقم واتساب'),
-              admin: { description: L('International format, digits only, e.g. 212600000000', 'بالصيغة الدولية، أرقام فقط، مثال 212600000000') },
+              admin: { description: L('International format, digits only, e.g. 96895885074', 'بالصيغة الدولية، أرقام فقط، مثال 96895885074') },
               validate: (value: unknown) => (!value || /^\d{8,15}$/.test(String(value)) ? true : 'Digits only, 8–15 characters'),
             },
             { name: 'address', type: 'textarea', localized: true, label: L('Address', 'العنوان') },
@@ -116,32 +102,22 @@ export const SiteSettings: GlobalConfig = {
         {
           label: L('Brand', 'الهوية البصرية'),
           description: L(
-            'Brand colours applied across the website. Set these to the KNO Academy palette.',
-            'ألوان الهوية المطبقة على الموقع. اضبطها على ألوان أكاديمية KNO.',
+            'Colours, fonts and sizes follow the KNO Academy Web Branding & UI Governance Guidelines and are fixed in the code. Changes need written brand approval.',
+            'الألوان والخطوط والمقاسات تتبع دليل الهوية الرقمية لأكاديمية KNO وهي مثبتة في الشيفرة، وأي تغيير يتطلب موافقة مكتوبة من مالك العلامة.',
           ),
           fields: [
             {
-              name: 'brand',
-              type: 'group',
-              label: false,
-              fields: [
-                {
-                  type: 'row',
-                  fields: [
-                    hexColorField('primary', L('Primary (buttons, links)', 'الأساسي (الأزرار والروابط)'), brandDefaults.primary),
-                    hexColorField('secondary', L('Secondary (dark sections)', 'الثانوي (الأقسام الداكنة)'), brandDefaults.secondary),
-                    hexColorField('accent', L('Accent (gold highlights)', 'اللون المميز (الذهبي)'), brandDefaults.accent),
-                  ],
-                },
-                {
-                  type: 'row',
-                  fields: [
-                    hexColorField('clay', L('Decorative (terracotta)', 'زخرفي (طيني)'), brandDefaults.clay),
-                    hexColorField('ink', L('Text colour', 'لون النص'), brandDefaults.ink),
-                    hexColorField('canvas', L('Page background', 'خلفية الصفحة'), brandDefaults.canvas),
-                  ],
-                },
-              ],
+              name: 'adobeFontsKitId',
+              type: 'text',
+              label: L('Adobe Fonts web project ID (English font)', 'معرّف مشروع Adobe Fonts (الخط الإنجليزي)'),
+              admin: {
+                placeholder: 'abc1def',
+                description: L(
+                  'The ID of the Adobe Fonts web project that contains Acumin Variable Concept (from https://use.typekit.net/<ID>.css). Until it is set, English text uses the visitor’s system font. Arabic always uses Noto Kufi Arabic.',
+                  'معرّف مشروع الويب في Adobe Fonts الذي يضم خط Acumin Variable Concept (من الرابط https://use.typekit.net/<ID>.css). إلى أن يُضبط، يظهر النص الإنجليزي بخط النظام لدى الزائر. النص العربي يستخدم دائمًا خط Noto Kufi Arabic.',
+                ),
+              },
+              validate: (value: unknown) => (!value || /^[a-z0-9]{5,12}$/.test(String(value)) ? true : 'Letters and digits only, e.g. abc1def'),
             },
           ],
         },

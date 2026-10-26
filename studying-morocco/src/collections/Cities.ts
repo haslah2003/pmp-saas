@@ -77,23 +77,6 @@ export const Cities: CollectionConfig = {
       ],
     },
     slug('name'),
-    {
-      name: 'artVariant',
-      type: 'select',
-      defaultValue: 'imperial',
-      label: { en: 'Illustration style', ar: 'نمط الرسم التوضيحي' },
-      admin: {
-        position: 'sidebar',
-        description: { en: 'Used when no photo is uploaded.', ar: 'يُستخدم عند عدم رفع صورة.' },
-      },
-      options: [
-        { value: 'imperial', label: { en: 'Imperial city', ar: 'مدينة عتيقة' } },
-        { value: 'coast', label: { en: 'Atlantic coast', ar: 'ساحل أطلسي' } },
-        { value: 'mountain', label: { en: 'Atlas mountains', ar: 'جبال الأطلس' } },
-        { value: 'desert', label: { en: 'Desert & oasis', ar: 'صحراء وواحة' } },
-        { value: 'modern', label: { en: 'Modern campus', ar: 'حرم جامعي حديث' } },
-      ],
-    },
     { name: 'image', type: 'upload', relationTo: 'media', label: { en: 'Cover photo', ar: 'صورة الغلاف' }, admin: { position: 'sidebar' } },
     publishedField,
     featuredField,

@@ -22,11 +22,11 @@ export default async function SearchPage({ params, searchParams }: { params: Loc
   const linkList = (title: string, items: { id: number; label: string; href: string }[]) =>
     items.length ? (
       <section>
-        <h2 className="mb-4 text-xl">{title}</h2>
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <h2 className="mb-4 text-h4">{title}</h2>
+        <ul className="grid gap-3 md:grid-cols-2">
           {items.map((i) => (
             <li key={i.id}>
-              <Link href={i.href} className="block rounded-2xl border border-line bg-surface p-4 font-semibold transition hover:border-primary-200 hover:bg-primary-50">
+              <Link href={i.href} className="block rounded-card border border-line bg-surface p-4 font-semibold text-primary transition-colors hover:border-primary">
                 {i.label}
               </Link>
             </li>
@@ -50,11 +50,11 @@ export default async function SearchPage({ params, searchParams }: { params: Loc
             defaultValue={q}
             autoFocus
             placeholder={t.search.placeholder}
-            className="h-14 w-full rounded-full border-0 bg-white ps-13 pe-5 text-lg text-ink shadow-lift outline-none focus:ring-4 focus:ring-accent/40"
+            className="min-h-12 w-full rounded-control border-0 bg-surface ps-13 pe-5 text-body text-ink outline-none focus:ring-2 focus:ring-cta"
           />
         </form>
       </PageHeader>
-      <div className="container-page space-y-12 py-12 lg:py-16">
+      <div className="container-page space-y-12 py-section">
         {!results && <p className="text-muted">{t.search.empty}</p>}
         {results && (
           <p className="text-muted" aria-live="polite">
@@ -63,8 +63,8 @@ export default async function SearchPage({ params, searchParams }: { params: Loc
         )}
         {results?.universities.length ? (
           <section>
-            <h2 className="mb-4 text-xl">{t.search.groups.universities}</h2>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <h2 className="mb-4 text-h4">{t.search.groups.universities}</h2>
+            <div className="grid gap-grid md:grid-cols-2 lg:grid-cols-3">
               {results.universities.map((u) => (
                 <UniversityCard key={u.id} university={u} locale={locale} t={t} />
               ))}
@@ -73,8 +73,8 @@ export default async function SearchPage({ params, searchParams }: { params: Loc
         ) : null}
         {results?.programs.length ? (
           <section>
-            <h2 className="mb-4 text-xl">{t.search.groups.programs}</h2>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <h2 className="mb-4 text-h4">{t.search.groups.programs}</h2>
+            <div className="grid gap-grid md:grid-cols-2 lg:grid-cols-3">
               {results.programs.map((p) => (
                 <ProgramCard key={p.id} program={p} locale={locale} t={t} />
               ))}

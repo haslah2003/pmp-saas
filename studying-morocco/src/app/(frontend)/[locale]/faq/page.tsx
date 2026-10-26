@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { faqLD, FAQList } from '@/components/ui/Accordion'
-import { LinkButton } from '@/components/ui/Button'
+import { buttonClass, LinkButton } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SocialIcon } from '@/components/ui/SocialIcon'
 import { faqCategories } from '@/lib/options'
@@ -32,10 +32,10 @@ export default async function FAQPage({ params }: { params: LocaleParams }) {
         ]}
         crumbLabel={t.common.breadcrumb}
       />
-      <div className="container-page grid gap-10 py-14 lg:grid-cols-[16rem_1fr] lg:py-20">
+      <div className="container-page grid gap-10 lg:grid-cols-[16rem_1fr] py-section">
         <nav className="no-scrollbar flex gap-2 overflow-x-auto lg:sticky lg:top-24 lg:flex-col lg:self-start" aria-label={t.faq.title}>
           {groups.map((g) => (
-            <a key={g.value} href={`#${g.value}`} className="shrink-0 rounded-2xl px-4 py-2.5 text-sm font-semibold text-ink/80 hover:bg-primary-50 hover:text-primary-800">
+            <a key={g.value} href={`#${g.value}`} className="inline-flex min-h-11 shrink-0 items-center rounded-control px-4 text-small font-semibold text-ink hover:bg-canvas hover:text-primary">
               {g.label[locale]} <span className="text-muted">({g.items.length})</span>
             </a>
           ))}
@@ -43,22 +43,22 @@ export default async function FAQPage({ params }: { params: LocaleParams }) {
         <div className="min-w-0 space-y-12">
           {groups.map((g) => (
             <section key={g.value} id={g.value} className="scroll-mt-28">
-              <h2 className="mb-5 text-2xl">{g.label[locale]}</h2>
+              <h2 className="mb-5">{g.label[locale]}</h2>
               <FAQList items={g.items.map((f) => ({ id: f.id, question: f.question, answer: f.answer }))} />
             </section>
           ))}
-          <div className="pattern-zellige flex flex-col items-start gap-4 rounded-[var(--radius-card)] bg-secondary p-8 text-white [--pattern-opacity:0.08] sm:flex-row sm:items-center sm:justify-between">
+          <div className="on-dark flex flex-col gap-6 rounded-card bg-primary p-card text-white lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="font-display text-xl font-bold text-white">{t.faq.stillQuestions}</p>
-              <p className="mt-1 text-white/75">{t.faq.stillQuestionsText}</p>
+              <p className="text-h4 font-semibold text-white">{t.faq.stillQuestions}</p>
+              <p className="mt-1 text-line">{t.faq.stillQuestionsText}</p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col gap-3 md:flex-row">
               {wa && (
-                <a href={wa} target="_blank" rel="noopener noreferrer" data-track="whatsapp_faq" className="inline-flex h-11 items-center gap-2 rounded-full bg-[#1f9d55] px-5 font-semibold">
+                <a href={wa} target="_blank" rel="noopener noreferrer" data-track="whatsapp_faq" className={buttonClass('light')}>
                   <SocialIcon name="whatsapp" className="size-5" /> {t.common.whatsappUs}
                 </a>
               )}
-              <LinkButton href={`/${locale}/consultation`} variant="gold">
+              <LinkButton href={`/${locale}/consultation`}>
                 {t.nav.consultation}
               </LinkButton>
             </div>

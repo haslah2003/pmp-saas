@@ -16,7 +16,7 @@ export default async function TrackPage({ params, searchParams }: { params: Loca
   return (
     <>
       <PageHeader title={t.track.title} intro={t.track.intro} />
-      <div className="container-page max-w-3xl py-12 lg:py-16">
+      <div className="container-page max-w-3xl py-section">
         <TrackForm locale={locale} t={{ track: t.track, errors: t.errors, common: t.common }} initialRef={ref} />
       </div>
     </>

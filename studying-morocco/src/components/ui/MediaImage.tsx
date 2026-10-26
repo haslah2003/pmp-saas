@@ -5,7 +5,7 @@ import type { Media } from '@/payload-types'
 
 type Size = 'thumbnail' | 'card' | 'hero'
 
-/** Renders an uploaded image, picking a pre-generated size when available. */
+/** Renders an uploaded image, picking a pre-generated size when available. Slightly desaturated per the brand photo style. */
 export function MediaImage({
   media,
   size = 'card',
@@ -32,7 +32,7 @@ export function MediaImage({
       fill
       sizes={sizes}
       priority={priority}
-      className={cn('object-cover', className)}
+      className={cn('object-cover saturate-[.9]', className)}
       style={focal ? { objectPosition: focal } : undefined}
     />
   )

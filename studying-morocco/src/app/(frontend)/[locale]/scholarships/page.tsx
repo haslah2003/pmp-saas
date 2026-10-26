@@ -26,17 +26,17 @@ export default async function ScholarshipsPage({ params }: { params: LocaleParam
         ]}
         crumbLabel={t.common.breadcrumb}
       />
-      <div className="container-page py-14 lg:py-20">
-        <p className="mb-10 flex items-start gap-3 rounded-[var(--radius-card)] border border-accent-100 bg-accent-50 p-5 text-[0.95rem] leading-relaxed text-ink/85">
-          <AlertTriangle className="mt-0.5 size-5 shrink-0 text-accent-700" aria-hidden="true" />
+      <div className="container-page py-section">
+        <p className="mb-10 flex items-start gap-3 rounded-card border-s-4 border-cta bg-canvas p-card text-ink">
+          <AlertTriangle className="mt-1 size-5 shrink-0 text-primary" aria-hidden="true" />
           {t.scholarships.gccNotice}
         </p>
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-grid md:grid-cols-2 lg:grid-cols-3">
           {scholarships.map((s) => (
             <ScholarshipCard key={s.id} scholarship={s} locale={locale} t={t} />
           ))}
         </div>
-        <p className="mt-10 text-center text-sm text-muted">{t.common.indicative}</p>
+        <p className="mt-10 text-small text-muted">{t.common.indicative}</p>
       </div>
     </>
   )

@@ -37,9 +37,9 @@ export default async function ServicesPage({ params }: { params: LocaleParams })
         const list = services.filter((s) => (s.category ?? 'core') === g.key)
         if (!list.length) return null
         return (
-          <Section key={g.key} className={g.key === 'core' ? undefined : 'pt-0 sm:pt-0 lg:pt-0'}>
-            {g.title && <SectionHeading title={g.title} align="start" />}
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Section key={g.key} className={g.key === 'core' ? undefined : 'pt-0 md:pt-0 lg:pt-0'}>
+            {g.title && <SectionHeading title={g.title} />}
+            <div className="grid gap-grid md:grid-cols-2 lg:grid-cols-3">
               {list.map((s) => (
                 <ServiceCard key={s.id} service={s} locale={locale} t={t} />
               ))}
@@ -48,9 +48,9 @@ export default async function ServicesPage({ params }: { params: LocaleParams })
         )
       })}
       {packages.length > 0 && (
-        <Section tone="sand" id="packages">
+        <Section tone="canvas" id="packages">
           <SectionHeading title={t.services.packagesTitle} intro={t.services.packagesIntro} />
-          <div className="grid items-stretch gap-6 lg:grid-cols-3">
+          <div className="grid items-stretch gap-grid md:grid-cols-2 lg:grid-cols-3">
             {packages.map((p) => (
               <PackageCard key={p.id} pkg={p} locale={locale} t={t} />
             ))}

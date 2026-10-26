@@ -1,12 +1,11 @@
 import { Mail, MapPin, Phone } from 'lucide-react'
 import Link from 'next/link'
 
-import { StarDivider } from '@/components/art/Ornaments'
 import { SocialIcon } from '@/components/ui/SocialIcon'
 import type { Dictionary } from '@/i18n'
 import type { Locale } from '@/lib/options'
 import { localizeHref } from '@/lib/routes'
-import { whatsappLink } from '@/lib/utils'
+import { whatsappDisplay, whatsappLink } from '@/lib/utils'
 import type { Navigation, SiteSetting } from '@/payload-types'
 
 import { Logo } from './Logo'
@@ -65,25 +64,25 @@ export function Footer({
   const year = new Date().getFullYear()
 
   return (
-    <footer className="pattern-zellige bg-secondary-900 text-white/80 [--pattern-opacity:0.05]">
-      <div className="container-page pt-16 pb-28 md:pb-10">
+    <footer className="on-dark bg-primary text-line">
+      <div className="container-page pt-section pb-28 md:pb-10">
         <div className="grid gap-12 lg:grid-cols-[1.3fr_2fr]">
           <div className="max-w-sm space-y-5">
-            <Logo locale={locale} siteName={settings.siteName || t.meta.siteName} byline={t.meta.by} logo={logoOnDark} dark />
-            <p className="text-[0.95rem] leading-relaxed text-white/70">{navigation?.footerNote || t.footer.about}</p>
-            <ul className="space-y-2.5 text-sm">
+            <Logo locale={locale} siteName={settings.siteName || t.meta.siteName} logo={logoOnDark} dark />
+            <p className="text-small text-line">{navigation?.footerNote || t.footer.about}</p>
+            <ul className="space-y-3 text-small">
               {wa && (
                 <li>
                   <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2.5 hover:text-white" data-track="whatsapp_footer">
-                    <SocialIcon name="whatsapp" className="size-4 text-[#4ade80]" />
-                    <span dir="ltr">+{settings.whatsapp}</span>
+                    <SocialIcon name="whatsapp" className="size-4 text-cta" />
+                    <span dir="ltr">{whatsappDisplay(settings.whatsapp!, settings.phone)}</span>
                   </a>
                 </li>
               )}
               {settings.phone && (
                 <li>
                   <a href={`tel:${settings.phone.replace(/[^\d+]/g, '')}`} className="inline-flex items-center gap-2.5 hover:text-white">
-                    <Phone className="size-4 text-accent" aria-hidden="true" />
+                    <Phone className="size-4 text-cta" aria-hidden="true" />
                     <span dir="ltr">{settings.phone}</span>
                   </a>
                 </li>
@@ -91,14 +90,14 @@ export function Footer({
               {settings.email && (
                 <li>
                   <a href={`mailto:${settings.email}`} className="inline-flex items-center gap-2.5 hover:text-white">
-                    <Mail className="size-4 text-accent" aria-hidden="true" />
+                    <Mail className="size-4 text-cta" aria-hidden="true" />
                     {settings.email}
                   </a>
                 </li>
               )}
               {settings.address && (
                 <li className="flex items-start gap-2.5">
-                  <MapPin className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
+                  <MapPin className="mt-1 size-4 shrink-0 text-cta" aria-hidden="true" />
                   <span className="whitespace-pre-line">{settings.address}</span>
                 </li>
               )}
@@ -112,22 +111,22 @@ export function Footer({
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={s.platform}
-                    className="inline-flex size-10 items-center justify-center rounded-full bg-white/8 text-white/80 ring-1 ring-white/10 transition hover:bg-accent hover:text-secondary-900"
+                    className="inline-flex size-11 items-center justify-center rounded-full text-white ring-1 ring-white/40 transition-colors hover:bg-cta hover:text-primary hover:ring-cta"
                   >
-                    <SocialIcon name={s.platform} className="size-[1.1rem]" />
+                    <SocialIcon name={s.platform} className="size-5" />
                   </a>
                 ))}
               </div>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-3">
             {columns.map((col) => (
               <div key={col.title}>
-                <h2 className="mb-4 font-sans text-sm font-bold tracking-wide text-accent uppercase rtl:normal-case">{col.title}</h2>
-                <ul className="space-y-2.5 text-[0.95rem]">
+                <h2 className="mb-4 text-body font-semibold text-white">{col.title}</h2>
+                <ul className="space-y-3 text-small">
                   {col.links.map((link) => (
                     <li key={link.href}>
-                      <Link href={localizeHref(link.href, locale)} className="transition hover:text-white">
+                      <Link href={localizeHref(link.href, locale)} className="transition-colors hover:text-white hover:underline">
                         {link.label}
                       </Link>
                     </li>
@@ -137,12 +136,11 @@ export function Footer({
             ))}
           </div>
         </div>
-        <StarDivider className="my-10" />
-        <div className="flex flex-col gap-3 text-xs text-white/55 md:flex-row md:items-center md:justify-between">
-          <p>
+        <div className="mt-12 flex flex-col gap-3 border-t border-white/20 pt-8 text-small text-line lg:flex-row lg:justify-between lg:gap-12">
+          <p className="shrink-0">
             © {year} {settings.siteName || t.meta.siteName} — {settings.organization || 'KNO Academy'}. {t.footer.rights}
           </p>
-          <p className="max-w-2xl md:text-end">{t.footer.disclaimer}</p>
+          <p className="max-w-2xl">{t.footer.disclaimer}</p>
         </div>
       </div>
     </footer>

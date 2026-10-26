@@ -2,20 +2,17 @@ import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 
-import { StarOrnament } from '../art/Ornaments'
-
-type Tone = 'canvas' | 'surface' | 'sand' | 'dark'
+type Tone = 'surface' | 'canvas' | 'dark'
 
 const tones: Record<Tone, string> = {
-  canvas: 'bg-canvas',
   surface: 'bg-surface',
-  sand: 'bg-sand',
-  dark: 'bg-secondary text-white pattern-zellige [--pattern-opacity:0.07]',
+  canvas: 'bg-canvas',
+  dark: 'on-dark bg-primary text-white',
 }
 
 export function Section({
   children,
-  tone = 'canvas',
+  tone = 'surface',
   className,
   id,
 }: {
@@ -25,17 +22,27 @@ export function Section({
   id?: string
 }) {
   return (
-    <section id={id} className={cn('py-16 sm:py-20 lg:py-24', tones[tone], className)}>
+    <section id={id} className={cn('py-section', tones[tone], className)}>
       <div className="container-page">{children}</div>
     </section>
   )
 }
 
+/** Small label above a heading, marked with a short amber rule. */
+export function Eyebrow({ children, dark = false, className }: { children: ReactNode; dark?: boolean; className?: string }) {
+  return (
+    <p className={cn('flex items-center gap-2 text-small font-semibold', dark ? 'text-white' : 'text-primary', className)}>
+      <span aria-hidden="true" className="h-0.5 w-6 shrink-0 bg-cta" />
+      {children}
+    </p>
+  )
+}
+
+/** Section title block. Always start-aligned (left in English, right in Arabic). */
 export function SectionHeading({
   eyebrow,
   title,
   intro,
-  align = 'center',
   dark = false,
   action,
   className,
@@ -43,39 +50,17 @@ export function SectionHeading({
   eyebrow?: string | null
   title?: string | null
   intro?: string | null
-  align?: 'center' | 'start'
   dark?: boolean
   action?: ReactNode
   className?: string
 }) {
   if (!eyebrow && !title && !intro) return null
-  const centered = align === 'center'
   return (
-    <div
-      className={cn(
-        'mb-10 flex flex-col gap-4 sm:mb-12',
-        centered ? 'mx-auto max-w-3xl items-center text-center' : 'items-start sm:flex-row sm:items-end sm:justify-between',
-        className,
-      )}
-    >
-      <div className={cn('flex flex-col gap-3', centered && 'items-center')}>
-        {eyebrow && (
-          <p
-            className={cn(
-              'inline-flex items-center gap-2 text-sm font-semibold tracking-wide uppercase rtl:tracking-normal rtl:normal-case',
-              dark ? 'text-accent' : 'text-primary',
-            )}
-          >
-            <StarOrnament className="size-3.5" />
-            {eyebrow}
-          </p>
-        )}
-        {title && (
-          <h2 className={cn('text-3xl leading-tight sm:text-4xl lg:text-[2.75rem]', dark && 'text-white')}>{title}</h2>
-        )}
-        {intro && (
-          <p className={cn('max-w-2xl text-base sm:text-lg', dark ? 'text-white/75' : 'text-muted')}>{intro}</p>
-        )}
+    <div className={cn('mb-8 flex flex-col gap-4 md:mb-10 lg:flex-row lg:items-end lg:justify-between', className)}>
+      <div className="flex max-w-3xl flex-col gap-3">
+        {eyebrow && <Eyebrow dark={dark}>{eyebrow}</Eyebrow>}
+        {title && <h2 className={cn(dark && 'text-white')}>{title}</h2>}
+        {intro && <p className={cn('text-body', dark ? 'text-line' : 'text-muted')}>{intro}</p>}
       </div>
       {action}
     </div>
@@ -88,18 +73,17 @@ export function Badge({
   className,
 }: {
   children: ReactNode
-  tone?: 'neutral' | 'primary' | 'gold' | 'clay' | 'dark'
+  tone?: 'neutral' | 'primary' | 'highlight' | 'dark'
   className?: string
 }) {
   const tones = {
-    neutral: 'bg-ink/5 text-ink/80',
-    primary: 'bg-primary-50 text-primary-800 ring-1 ring-inset ring-primary-100',
-    gold: 'bg-accent-50 text-accent-700 ring-1 ring-inset ring-accent-100',
-    clay: 'bg-clay-50 text-clay-700',
-    dark: 'bg-white/10 text-white ring-1 ring-inset ring-white/20',
+    neutral: 'bg-canvas text-ink ring-1 ring-inset ring-line',
+    primary: 'bg-canvas text-primary ring-1 ring-inset ring-line',
+    highlight: 'bg-cta text-primary',
+    dark: 'text-white ring-1 ring-inset ring-white/40',
   }
   return (
-    <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold', tones[tone], className)}>
+    <span className={cn('inline-flex items-center gap-1 rounded-full px-3 py-0.5 text-small font-semibold', tones[tone], className)}>
       {children}
     </span>
   )

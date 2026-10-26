@@ -25,13 +25,13 @@ export default async function CitiesPage({ params }: { params: LocaleParams }) {
         ]}
         crumbLabel={t.common.breadcrumb}
       />
-      <div className="container-page py-14 lg:py-20">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="container-page py-section">
+        <div className="grid gap-grid md:grid-cols-2 lg:grid-cols-3">
           {cities.map((c) => (
             <CityCard key={c.id} city={c} locale={locale} t={t} />
           ))}
         </div>
-        <p className="mt-10 text-center text-sm text-muted">{t.cities.estimate}</p>
+        <p className="mt-10 text-small text-muted">{t.cities.estimate}</p>
       </div>
     </>
   )

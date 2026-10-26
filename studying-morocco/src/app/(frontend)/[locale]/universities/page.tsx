@@ -33,7 +33,7 @@ export default async function UniversitiesPage({ params, searchParams }: { param
         ]}
         crumbLabel={t.common.breadcrumb}
       />
-      <div className="container-page -mt-8 pb-20">
+      <div className="container-page pt-10 pb-section">
         <FilterBar
           action={`/${locale}/universities`}
           q={filters.q}
@@ -47,11 +47,11 @@ export default async function UniversitiesPage({ params, searchParams }: { param
             { name: 'lang', label: t.common.language, value: filters.language, anyLabel: t.common.all, options: teachingLanguages.map((o) => ({ value: o.value, label: o.label[locale] })) },
           ]}
         />
-        <p className="mt-8 mb-5 text-sm text-muted" aria-live="polite">
+        <p className="mt-8 mb-5 text-small text-muted" aria-live="polite">
           {formatNumber(universities.length, locale)} {t.common.results}
         </p>
         {universities.length ? (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-grid md:grid-cols-2 lg:grid-cols-3">
             {universities.map((u) => (
               <UniversityCard key={u.id} university={u} locale={locale} t={t} />
             ))}

@@ -1,31 +1,14 @@
-import { Fraunces, IBM_Plex_Sans_Arabic, Noto_Kufi_Arabic, Plus_Jakarta_Sans } from 'next/font/google'
+import { Noto_Kufi_Arabic } from 'next/font/google'
 
-export const plexArabic = IBM_Plex_Sans_Arabic({
-  subsets: ['arabic'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-plex-arabic',
-  display: 'swap',
-})
-
+/**
+ * Arabic: Noto Kufi Arabic for everything (headings, body, Latin words inside Arabic text).
+ * English: Acumin Variable Concept, served from the Adobe Fonts kit set in Site settings → Brand.
+ */
 export const kufi = Noto_Kufi_Arabic({
-  subsets: ['arabic'],
+  subsets: ['arabic', 'latin'],
+  weight: 'variable',
   variable: '--font-kufi',
   display: 'swap',
-  preload: false,
 })
 
-export const jakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-jakarta',
-  display: 'swap',
-})
-
-export const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-fraunces',
-  axes: ['opsz', 'SOFT'],
-  display: 'swap',
-  preload: false,
-})
-
-export const fontVariables = [plexArabic.variable, kufi.variable, jakarta.variable, fraunces.variable].join(' ')
+export const fontVariables = kufi.variable

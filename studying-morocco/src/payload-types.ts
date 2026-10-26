@@ -232,7 +232,6 @@ export interface University {
   city: number | City;
   logo?: (number | null) | Media;
   cover?: (number | null) | Media;
-  color?: string | null;
   lastVerified?: string | null;
   /**
    * Visible on the public website.
@@ -384,10 +383,6 @@ export interface City {
    * URL part in English: lowercase letters, numbers and hyphens.
    */
   slug: string;
-  /**
-   * Used when no photo is uploaded.
-   */
-  artVariant?: ('imperial' | 'coast' | 'mountain' | 'desert' | 'modern') | null;
   image?: (number | null) | Media;
   /**
    * Visible on the public website.
@@ -766,7 +761,6 @@ export interface Page {
             variant?: ('home' | 'page') | null;
             eyebrow?: string | null;
             heading: string;
-            highlight?: string | null;
             subheading?: string | null;
             primaryCta?: {
               label?: string | null;
@@ -813,7 +807,6 @@ export interface Page {
             eyebrow?: string | null;
             heading?: string | null;
             intro?: string | null;
-            layout?: ('bento' | 'grid') | null;
             items?:
               | {
                   icon?:
@@ -1831,7 +1824,6 @@ export interface UniversitiesSelect<T extends boolean = true> {
   city?: T;
   logo?: T;
   cover?: T;
-  color?: T;
   lastVerified?: T;
   published?: T;
   featured?: T;
@@ -1919,7 +1911,6 @@ export interface CitiesSelect<T extends boolean = true> {
       };
   generateSlug?: T;
   slug?: T;
-  artVariant?: T;
   image?: T;
   published?: T;
   featured?: T;
@@ -2054,7 +2045,6 @@ export interface PagesSelect<T extends boolean = true> {
               variant?: T;
               eyebrow?: T;
               heading?: T;
-              highlight?: T;
               subheading?: T;
               primaryCta?:
                 | T
@@ -2098,7 +2088,6 @@ export interface PagesSelect<T extends boolean = true> {
               eyebrow?: T;
               heading?: T;
               intro?: T;
-              layout?: T;
               items?:
                 | T
                 | {
@@ -2650,7 +2639,7 @@ export interface SiteSetting {
   email?: string | null;
   phone?: string | null;
   /**
-   * International format, digits only, e.g. 212600000000
+   * International format, digits only, e.g. 96895885074
    */
   whatsapp?: string | null;
   address?: string | null;
@@ -2667,14 +2656,10 @@ export interface SiteSetting {
    * Comma-separated staff emails (requires SMTP settings).
    */
   notificationEmails?: string | null;
-  brand?: {
-    primary?: string | null;
-    secondary?: string | null;
-    accent?: string | null;
-    clay?: string | null;
-    ink?: string | null;
-    canvas?: string | null;
-  };
+  /**
+   * The ID of the Adobe Fonts web project that contains Acumin Variable Concept (from https://use.typekit.net/<ID>.css). Until it is set, English text uses the visitor’s system font. Arabic always uses Noto Kufi Arabic.
+   */
+  adobeFontsKitId?: string | null;
   defaultDescription?: string | null;
   ogImage?: (number | null) | Media;
   googleSiteVerification?: string | null;
@@ -2806,16 +2791,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         id?: T;
       };
   notificationEmails?: T;
-  brand?:
-    | T
-    | {
-        primary?: T;
-        secondary?: T;
-        accent?: T;
-        clay?: T;
-        ink?: T;
-        canvas?: T;
-      };
+  adobeFontsKitId?: T;
   defaultDescription?: T;
   ogImage?: T;
   googleSiteVerification?: T;

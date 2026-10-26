@@ -8,6 +8,8 @@ import type { Dictionary } from '@/i18n'
 import { contactChannels, countries, timeSlots, type Locale } from '@/lib/options'
 
 import { trackEvent } from '../layout/Tracker'
+import { buttonClass } from '@/components/ui/Button'
+
 import { ChoiceCards, Field, Honeypot, Select, TextArea, TextInput } from './fields'
 
 type Mode = 'consultation' | 'contact'
@@ -33,10 +35,10 @@ export function InquiryForm({
   if (done) {
     const copy = mode === 'consultation' ? t.consultation : t.contact
     return (
-      <div className="rounded-[2rem] border border-line bg-surface p-10 text-center shadow-lift" role="status">
-        <CheckCircle2 className="mx-auto size-12 text-primary" aria-hidden="true" />
-        <h2 className="mt-5 text-2xl">{copy.successTitle}</h2>
-        <p className="mt-2 text-ink/75">{copy.successText}</p>
+      <div className="rounded-card border border-line bg-surface p-card" role="status">
+        <CheckCircle2 className="size-10 text-primary" aria-hidden="true" />
+        <h2 className="mt-5">{copy.successTitle}</h2>
+        <p className="mt-2 text-ink">{copy.successText}</p>
       </div>
     )
   }
@@ -44,7 +46,7 @@ export function InquiryForm({
   return (
     <form
       noValidate
-      className="relative space-y-5 rounded-[2rem] border border-line bg-surface p-6 shadow-lift sm:p-8"
+      className="relative space-y-5 rounded-card border border-line bg-surface p-card"
       onSubmit={(e) => {
         e.preventDefault()
         const f = new FormData(e.currentTarget)
@@ -87,7 +89,7 @@ export function InquiryForm({
       <Honeypot value={website} onChange={setWebsite} />
       {mode === 'consultation' && (
         <div>
-          <p className="mb-3 text-sm font-semibold">{t.consultation.channel}</p>
+          <p className="mb-3 text-small font-semibold text-ink">{t.consultation.channel}</p>
           <ChoiceCards
             name="channel"
             value={channel}
@@ -96,7 +98,7 @@ export function InquiryForm({
           />
         </div>
       )}
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-grid md:grid-cols-2">
         <Field id="inq-name" label={mode === 'consultation' ? t.consultation.name : t.apply.fullName} required error={errors.name}>
           <TextInput id="inq-name" name="name" autoComplete="name" invalid={!!errors.name} />
         </Field>
@@ -119,23 +121,23 @@ export function InquiryForm({
             </Field>
           </>
         ) : (
-          <Field id="inq-subject" label={t.contact.subject} optionalLabel={t.common.optional} className="sm:col-span-2">
+          <Field id="inq-subject" label={t.contact.subject} optionalLabel={t.common.optional} className="md:col-span-2">
             <TextInput id="inq-subject" name="subject" />
           </Field>
         )}
-        <Field id="inq-message" label={mode === 'consultation' ? t.consultation.message : t.contact.message} optionalLabel={mode === 'consultation' ? t.common.optional : undefined} className="sm:col-span-2">
+        <Field id="inq-message" label={mode === 'consultation' ? t.consultation.message : t.contact.message} optionalLabel={mode === 'consultation' ? t.common.optional : undefined} className="md:col-span-2">
           <TextArea id="inq-message" name="message" rows={5} />
         </Field>
       </div>
       {formError && (
-        <p className="rounded-2xl bg-clay-50 p-4 text-sm font-medium text-clay-700" role="alert">
+        <p className="rounded-card bg-canvas p-4 text-small font-medium text-primary" role="alert">
           {formError}
         </p>
       )}
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex h-13 w-full items-center justify-center gap-2 rounded-full bg-primary px-7 text-base font-semibold text-white shadow-[0_8px_20px_-8px_var(--color-primary)] transition hover:bg-primary-700 disabled:opacity-60"
+        className={buttonClass('primary', 'lg', 'w-full')}
       >
         {pending && <Loader2 className="size-5 animate-spin" aria-hidden="true" />}
         {pending ? t.common.sending : mode === 'consultation' ? t.consultation.submit : t.contact.submit}
